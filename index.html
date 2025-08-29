@@ -134,7 +134,16 @@
     }
 
     document.getElementById('forgotLink').addEventListener('click', () => openDialog('forgotDialog'));
-    document.getElementById('privacyLink').addEventListener('click', () => openDialog('privacyDialog'));
+document.getElementById('privacyLink').addEventListener('click', (e) => {
+  // If dialog works, open it and prevent navigation
+  const dlg = document.getElementById('privacyDialog');
+  if (dlg && typeof dlg.showModal === 'function') {
+    e.preventDefault();
+    dlg.showModal();
+  }
+  // else: no JS / no <dialog> support => follow the link to /privacy
+});
+
     document.querySelectorAll('[data-close]').forEach(btn => {
       btn.addEventListener('click', (e) => closeDialog(e.target.getAttribute('data-close')));
     });
