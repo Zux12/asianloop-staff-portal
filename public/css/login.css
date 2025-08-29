@@ -1,1 +1,107 @@
 
+/* Reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Container */
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Card */
+.login-card {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+/* Logo */
+.login-logo img {
+  height: 60px;
+  margin-bottom: 16px;
+}
+
+/* Titles */
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.login-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* Form */
+.login-form {
+  text-align: left;
+}
+.login-form label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+}
+.login-form input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+.login-form input:focus {
+  outline: none;
+  border-color: #0077ff;
+  box-shadow: 0 0 0 2px rgba(0,119,255,0.2);
+}
+
+/* Button */
+.login-form button {
+  width: 100%;
+  padding: 12px;
+  background: #0077ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.login-form button:hover {
+  background: #005fcc;
+}
+
+/* Links */
+.login-links {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.login-links a {
+  color: #0077ff;
+  text-decoration: none;
+}
+.login-links a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.login-footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 20px;
+}
