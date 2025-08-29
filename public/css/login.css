@@ -1,70 +1,47 @@
-/* Base */
+/* ---------- Global safety ---------- */
 * { box-sizing: border-box; }
+html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+img, input, button { max-width: 100%; }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;   /* stop sideways scroll completely */
-}
-
-img, input, button {
-  max-width: 100%;      /* prevent overflowing their parent */
-}
-
-
-
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: #222;
-  background: #f6f7fb;
-}
-
-
-
-/* Layout */
+/* ---------- Page layout ---------- */
 .login-wrap {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;      /* stack card + footer vertically */
   align-items: center;
-  justify-content: center;
-  padding: 16px;          /* ensures spacing on tiny screens */
-  overflow-x: hidden;     /* kill horizontal scroll */
+  padding: 16px;               /* breathing room on tiny screens */
+  background: #f6f7fb;
+  color: #222;
 }
+
+/* Center the card in the available vertical space */
 .login-card {
   width: 100%;
   max-width: 420px;
+  margin: auto;                /* pushes it to vertical center in the column */
   padding: 28px 20px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.06);
   text-align: center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-.brand img {
-  height: 56px; width: auto; display: inline-block;
-  margin-bottom: 12px;
-}
-.title {
-  font-size: 1.5rem; font-weight: 700; margin: 6px 0 4px;
-}
-.subtitle {
-  color: #555; font-size: 0.95rem; margin: 0 0 18px;
-}
+.brand img { height: 56px; width: auto; margin-bottom: 12px; }
+
+.title { font-size: 1.5rem; font-weight: 700; margin: 6px 0 4px; }
+.subtitle { color: #555; font-size: 0.95rem; margin: 0 0 18px; }
+
+/* ---------- Form ---------- */
 .field { text-align: left; margin-bottom: 14px; }
 .field label { display: block; font-size: 0.86rem; font-weight: 600; margin-bottom: 6px; }
 .field input {
-  width: 100%; font-size: 1rem; padding: 12px 12px;
+  width: 100%; font-size: 1rem; padding: 12px;
   border: 1px solid #cfd4dc; border-radius: 10px; background: #fff;
   transition: box-shadow .15s ease, border-color .15s ease;
 }
 .field input:focus {
-  outline: none;
-  border-color: #2a6df4;
-  box-shadow: 0 0 0 3px rgba(42,109,244,0.18);
+  outline: none; border-color: #2a6df4; box-shadow: 0 0 0 3px rgba(42,109,244,0.18);
 }
 
 .btn-primary {
@@ -76,11 +53,11 @@ body {
 }
 .btn-primary:hover { background: #1f5be0; }
 .btn-primary:active { transform: translateY(1px); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 
-.msg { min-height: 20px; color: #d12828; font-size: 0.92rem; margin-top: 8px; }
+.msg { min-height: 20px; color: #d12828; font-size: .92rem; margin-top: 8px; }
 
-/* Links row */
+/* Links under the form */
 .links {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 12px;
@@ -88,27 +65,31 @@ body {
 .link {
   background: none; border: 0; padding: 0;
   color: #2a6df4; cursor: pointer; text-decoration: none;
-  font-size: 0.92rem; font-weight: 600;
+  font-size: .92rem; font-weight: 600;
 }
 .link:hover { text-decoration: underline; }
 
-/* Footer */
+/* ---------- Footer (always below card) ---------- */
 .footer {
-  text-align: center; padding: 18px 10px; color: #666; font-size: 0.9rem;
+  width: 100%;
+  max-width: 720px;
+  text-align: center;
+  padding: 18px 10px;
+  color: #666; font-size: .9rem;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin-top: 16px;            /* space away from card */
 }
 .footer .sep { margin: 0 8px; color: #aaa; }
-.footer .copyright { margin-top: 8px; color: #888; font-size: 0.86rem; }
+.footer .copyright { margin-top: 8px; color: #888; font-size: .86rem; }
 
-/* Dialogs */
+/* ---------- Dialogs ---------- */
 .modal {
   width: min(680px, 92vw);
   border: none; border-radius: 14px; padding: 0;
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
 .modal::backdrop { background: rgba(0,0,0,0.45); }
-.modal-content {
-  padding: 22px 22px 18px; background: #fff; border-radius: 14px;
-}
+.modal-content { padding: 22px 22px 18px; background: #fff; border-radius: 14px; }
 .modal-content h2 { margin: 0 0 10px; font-size: 1.35rem; }
 .modal-content h3 { margin: 14px 0 8px; font-size: 1.05rem; }
 .modal-content p { margin: 8px 0; color: #333; }
@@ -121,9 +102,10 @@ body {
 }
 .btn:hover { background: #e6ecff; }
 
-/* Mobile tweaks */
+/* ---------- Mobile tweaks ---------- */
 @media (max-width: 480px) {
-  .login-card { margin: 7vh 14px 3vh; padding: 22px 18px; }
-  .brand img { height: 50px; }
-  .subtitle { font-size: 0.9rem; }
+  .login-card { margin: 0; padding: 22px 16px; }
+  .brand img { height: 48px; }
+  .subtitle { font-size: .88rem; }
+  .modal { width: 94vw; }
 }
