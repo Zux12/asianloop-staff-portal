@@ -1,1 +1,2 @@
+web: npx serve -s .
 
