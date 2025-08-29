@@ -32,6 +32,13 @@ app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(__dirname, 'favicon.ico'));
 });
 
+// Health check (quick 200 for uptime checks)
+app.get('/healthz', (req, res) => res.type('text').send('ok'));
+
+// Explicit HEAD handlers (avoid hangs on some platforms)
+app.head('/', (req, res) => res.status(200).end());
+app.head('/dashboard', requireAuth, (req, res) => res.status(200).end());
+
 
 // Public: privacy page
 app.get('/privacy', (req, res) => {
