@@ -1,1 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asianloop Staff Portal — Login</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="public/css/login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="logo.jpg" alt="Asianloop logo" />
+      </div>
+      <h1 class="login-title">Staff Portal</h1>
+      <p class="login-subtitle">Sign in with your <strong>@asian-loop.com</strong> email</p>
+
+      <form class="login-form">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="name@asian-loop.com" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" required />
+
+        <button type="submit">Sign in</button>
+
+        <div class="login-links">
+          <a href="https://mail.asian-loop.com">Forgot password?</a>
+          <a href="mailto:admin@asian-loop.com">Need access?</a>
+        </div>
+      </form>
+    </div>
+    <footer class="login-footer">
+      © <span id="year"></span> Asianloop Sdn Bhd
+    </footer>
+  </div>
+
+  <script>
+    // just updates footer year
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
 
