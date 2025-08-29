@@ -21,6 +21,11 @@ const {
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+// Public: privacy page
+app.get('/privacy', (req, res) => {
+  res.sendFile(require('path').join(__dirname, 'privacy.html'));
+});
+
 // ---------- Middleware ----------
 app.set('trust proxy', 1); // Heroku
 
