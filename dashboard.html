@@ -1,1 +1,51 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asianloop Staff Portal — Dashboard</title>
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="public/css/dashboard.css" />
+</head>
+<body>
+  <header class="al-header">
+    <div class="al-inner">
+      <a class="al-brand" href="/dashboard" aria-label="Asianloop">
+        <img src="logo.jpg" alt="Asianloop logo" />
+      </a>
+      <nav class="al-nav">
+        <form action="/logout" method="post">
+          <button class="btn btn-logout" type="submit">Logout</button>
+        </form>
+      </nav>
+    </div>
+  </header>
+
+  <main class="al-main">
+    <section class="al-card">
+      <h1>Dashboard (Under Construction)</h1>
+      <p>Thanks for signing in. The staff dashboard is being built.</p>
+
+      <ul class="todo">
+        <li>Quick tiles to internal apps (CustodyCalc, Regulation Hub, CryptoLoop)</li>
+        <li>Announcements &amp; notices</li>
+        <li>Resources (logos, letterheads, SOPs)</li>
+        <li>Role-based access (admin, staff, contractor)</li>
+      </ul>
+
+      <div class="cta-row">
+        <a class="btn" href="/">Back to Login</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="al-footer">
+    © <span id="year"></span> Asianloop Sdn Bhd — Internal use only.
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
