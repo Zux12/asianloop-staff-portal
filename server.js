@@ -21,6 +21,18 @@ const {
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+const path = require('path');
+
+// Serve root assets needed by public pages
+app.get('/logo.jpg', (req, res) => {
+  res.sendFile(path.join(__dirname, 'logo.jpg'));
+});
+
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'favicon.ico'));
+});
+
+
 // Public: privacy page
 app.get('/privacy', (req, res) => {
   res.sendFile(require('path').join(__dirname, 'privacy.html'));
