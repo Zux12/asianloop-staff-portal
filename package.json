@@ -1,12 +1,17 @@
-
 {
   "name": "asianloop-staff-portal",
   "version": "1.0.0",
-  "description": "Asianloop Staff Portal (login page only)",
+  "description": "Asianloop Staff Portal",
+  "main": "server.js",
   "scripts": {
-    "start": "serve -s ."
+    "start": "node server.js"
   },
   "dependencies": {
-    "serve": "^14.0.1"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.17.3",
+    "imapflow": "^1.0.164",
+    "path-to-regexp": "^6.2.2"
   }
 }
