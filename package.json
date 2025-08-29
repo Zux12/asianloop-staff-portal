@@ -1,1 +1,12 @@
 
+{
+  "name": "asianloop-staff-portal",
+  "version": "1.0.0",
+  "description": "Asianloop Staff Portal (login page only)",
+  "scripts": {
+    "start": "serve -s ."
+  },
+  "dependencies": {
+    "serve": "^14.0.1"
+  }
+}
