@@ -120,6 +120,10 @@ app.post('/login', loginLimiter, async (req, res) => {
     // Generic failure (don’t leak which part failed)
     return res.status(401).send('Invalid email or password.');
   }
+
+  // lazy require to avoid boot-time crashes if module missing
+const { ImapFlow } = require('imapflow');
+
 });
 
 // Dashboard (protected)
