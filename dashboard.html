@@ -53,6 +53,19 @@
     document.getElementById('year').textContent = new Date().getFullYear();
 
 
-  </script>
+  // set footer year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // fetch user session info and display email
+  fetch('/me')
+    .then(r => r.json())
+    .then(u => {
+      if (u && u.email) {
+        document.getElementById('userEmail').textContent = u.email;
+      }
+    })
+    .catch(() => {});
+</script>
+
 </body>
 </html>
