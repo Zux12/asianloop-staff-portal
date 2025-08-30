@@ -30,6 +30,7 @@
       <p class="subtitle">Use your <strong>@asian-loop.com</strong> email and password. Do not share your credentials.</p>
 
   <form id="loginForm" action="/login" method="post" novalidate>
+    
         <div class="field">
           <label for="email">Work email</label>
           <input id="email" name="email" type="email" placeholder="name@asian-loop.com" autocomplete="username" required />
@@ -117,70 +118,72 @@
     </div>
   </dialog>
 
-  <!-- Minimal page script: accessibility + validation (no auth yet) -->
+  <!-- Minimal page script: accessibility + validation  -->
   <script>
-    // Footer year
-    document.getElementById('year').textContent = new Date().getFullYear();
+  // Footer year
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Dialog helpers
-    function openDialog(id) {
-      const dlg = document.getElementById(id);
-      if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
-      else alert('Popup: ' + id); // fallback
-    }
-    function closeDialog(id) {
-      const dlg = document.getElementById(id);
-      if (dlg && typeof dlg.close === 'function') dlg.close();
-    }
-
-    document.getElementById('forgotLink').addEventListener('click', () => openDialog('forgotDialog'));
-document.getElementById('privacyLink').addEventListener('click', (e) => {
-  // If dialog works, open it and prevent navigation
-  const dlg = document.getElementById('privacyDialog');
-  if (dlg && typeof dlg.showModal === 'function') {
-    e.preventDefault();
-    dlg.showModal();
+  // Dialog helpers
+  function openDialog(id) {
+    const dlg = document.getElementById(id);
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+    else alert('Popup: ' + id); // fallback
   }
-  // else: no JS / no <dialog> support => follow the link to /privacy
-});
+  function closeDialog(id) {
+    const dlg = document.getElementById(id);
+    if (dlg && typeof dlg.close === 'function') dlg.close();
+  }
 
-    document.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', (e) => closeDialog(e.target.getAttribute('data-close')));
-    });
-
-    // Close dialogs on backdrop click
-    document.querySelectorAll('dialog').forEach(dlg => {
-      dlg.addEventListener('click', (e) => {
-        const rect = dlg.getBoundingClientRect();
-        const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
-        if (!inside) dlg.close();
-      });
-    });
-
-    // Basic client-side validation (no actual submit/auth yet)
-    const form = document.getElementById('loginForm');
-    const msg = document.getElementById('msg');
-    const submitBtn = document.getElementById('submitBtn');
-
-    form.addEventListener('submit', (e) => {
+  // Wire dialog buttons
+  document.getElementById('forgotLink').addEventListener('click', () => openDialog('forgotDialog'));
+  document.getElementById('privacyLink').addEventListener('click', (e) => {
+    const dlg = document.getElementById('privacyDialog');
+    if (dlg && typeof dlg.showModal === 'function') {
       e.preventDefault();
-      msg.textContent = '';
-      const email = (document.getElementById('email').value || '').trim();
-      const pw = document.getElementById('password').value;
-
-      if (!email) { msg.textContent = 'Please enter your work email.'; return; }
-      if (!email.toLowerCase().endsWith('@asian-loop.com')) { msg.textContent = 'This portal only accepts @asian-loop.com emails.'; return; }
-      if (!pw) { msg.textContent = 'Please enter your password.'; return; }
-
-      // UI-only: show "Signing in…" state then success redirect cue
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Signing in…';
-      setTimeout(() => {
-        msg.textContent = 'Redirecting to your dashboard…';
-        submitBtn.textContent = 'Sign in';
-        submitBtn.disabled = false;
-      }, 900);
+      dlg.showModal();
+    }
+  });
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', (e) => closeDialog(e.target.getAttribute('data-close')));
+  });
+  document.querySelectorAll('dialog').forEach(dlg => {
+    dlg.addEventListener('click', (e) => {
+      const rect = dlg.getBoundingClientRect();
+      const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                     e.clientY >= rect.top && e.clientY <= rect.bottom;
+      if (!inside) dlg.close();
     });
-  </script>
+  });
+
+  // ----- Login form validation -----
+  const form = document.getElementById('loginForm');
+  const msg = document.getElementById('msg');
+
+  form.addEventListener('submit', (e) => {
+    msg.textContent = '';
+    const email = (document.getElementById('email').value || '').trim();
+    const pw = document.getElementById('password').value;
+
+    if (!email) { 
+      e.preventDefault(); 
+      msg.textContent = 'Please enter your work email.'; 
+      return; 
+    }
+    if (!email.toLowerCase().endsWith('@asian-loop.com')) { 
+      e.preventDefault(); 
+      msg.textContent = 'This portal only accepts @asian-loop.com emails.'; 
+      return; 
+    }
+    if (!pw) { 
+      e.preventDefault(); 
+      msg.textContent = 'Please enter your password.'; 
+      return; 
+    }
+
+    // If validation passes, the form submits normally to /login
+    // Express handles IMAP auth and redirects to /dashboard
+  });
+</script>
+
 </body>
 </html>
