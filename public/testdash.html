@@ -13,7 +13,6 @@
       --muted:#8a90a7;        /* secondary text */
       --text:#e9edf7;         /* main text */
       --accent:#6d8bff;       /* primary accent */
-      --accent-2:#b7c4ff;     /* lighter accent */
       --ok: #3ccf91;          /* success green */
       --shadow: 0 10px 30px rgba(0,0,0,.35);
       --radius: 18px;
@@ -32,6 +31,7 @@
       padding-bottom:40px;
     }
     a{color:inherit}
+
     /* Top nav */
     .al-header{
       position:sticky; top:0; z-index:10;
@@ -44,7 +44,12 @@
       display:flex; align-items:center; justify-content:space-between; gap:14px;
     }
     .al-brand{display:flex; align-items:center; gap:12px; text-decoration:none}
-    .al-brand img{width:34px; height:34px; border-radius:8px; object-fit:cover; box-shadow:var(--shadow)}
+    /* ✅ Logo fix: preserve aspect ratio, no forced square */
+    .al-brand img{
+      height:34px; width:auto; object-fit:contain; display:block;
+      border-radius:6px; box-shadow:var(--shadow);
+      background: transparent;
+    }
     .al-brand span{font-weight:700; letter-spacing:.2px}
     .al-right{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
     .al-welcome{opacity:.9; font-size:.95rem}
@@ -55,18 +60,12 @@
     }
     .btn:active{transform:translateY(1px)}
     .btn-logout{border-color:rgba(255,98,98,.4)}
-    /* Page shell */
+
+    /* Page */
     .al-main{max-width:1100px; margin:22px auto 0; padding:0 18px; display:grid; gap:20px}
     .page-title{font-size:1.6rem; font-weight:800; letter-spacing:.3px; margin:8px 0 2px}
     .page-sub{color:var(--muted); margin:0 0 8px}
-    /* Grid */
-    .grid{display:grid; gap:18px}
-    .grid-tiles{grid-template-columns: repeat(12, 1fr)}
-    @media (max-width: 1024px){ .grid-tiles{grid-template-columns: repeat(8,1fr)} }
-    @media (max-width: 640px) { .grid-tiles{grid-template-columns: repeat(4,1fr)} }
-    .span-4{grid-column: span 4}
-    .span-8{grid-column: span 8}
-    .span-12{grid-column: span 12}
+
     /* Cards */
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
@@ -75,8 +74,6 @@
       box-shadow: var(--shadow);
       padding:18px;
     }
-    .card h3{margin:0 0 8px; font-size:1.05rem; letter-spacing:.2px}
-    .card p{margin:0; color:var(--muted)}
     .section-head{
       display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px
     }
@@ -87,9 +84,11 @@
       border:1px solid rgba(0,0,0,.08);
       box-shadow: 0 4px 12px rgba(0,0,0,.15), inset 0 0 0 1px rgba(255,255,255,.35);
     }
+
     /* Tiles (disabled placeholders) */
     .tiles{display:grid; gap:14px; grid-template-columns: repeat(12, 1fr)}
-    .tile{grid-column: span 4; min-height:110px; display:flex; flex-direction:column; justify-content:space-between;
+    .tile{
+      grid-column: span 4; min-height:110px; display:flex; flex-direction:column; justify-content:space-between;
       padding:16px; border-radius:16px; position:relative; overflow:hidden;
       background: radial-gradient(240px 140px at 90% -10%, rgba(109,139,255,.22), transparent 60%), rgba(255,255,255,.03);
       border:1px dashed rgba(255,255,255,.22);
@@ -105,7 +104,8 @@
     }
     @media (max-width:1024px){ .tile{grid-column: span 6} }
     @media (max-width:640px){ .tile{grid-column: span 12} }
-    /* Announcements list */
+
+    /* Announcements */
     .ann-list{display:flex; flex-direction:column; gap:12px}
     .ann{
       border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:14px;
@@ -115,6 +115,7 @@
     .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(60,207,145,.12)}
     .ann h4{margin:0 0 6px; font-size:1rem}
     .ann p{margin:0}
+
     /* Resources */
     .res-list{display:grid; gap:10px}
     .res-item{
@@ -123,7 +124,7 @@
       padding:12px 14px; border-radius:12px; cursor:not-allowed;
     }
     .res-item span{color:var(--muted); font-size:.95rem}
-    /* Footer */
+
     footer{max-width:1100px; margin:16px auto 0; padding:0 18px; color:var(--muted); font-size:.9rem; opacity:.9}
   </style>
 </head>
@@ -148,7 +149,7 @@
   <main class="al-main">
     <div>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Everything you need in one view. Links are placeholders for now (intentionally disabled).</p>
+      <p class="page-sub">Layout preview with placeholders only. Tiles are disabled until we wire them to real pages.</p>
     </div>
 
     <!-- Quick Links (placeholders only) -->
@@ -166,6 +167,7 @@
           </div>
           <small class="muted">Activation planned in next phase</small>
         </div>
+
         <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
           <span class="chip">Disabled</span>
           <div>
@@ -174,22 +176,79 @@
           </div>
           <small class="muted">Activation planned in next phase</small>
         </div>
+
+        <!-- ✅ New: Warehouse Management -->
         <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
           <span class="chip">Disabled</span>
           <div>
-            <h4>CryptoLoop</h4>
-            <p>Dashboard for simulated trading & reporting.</p>
+            <h4>Warehouse Management</h4>
+            <p>Inventory, receipts, issues, and stock levels.</p>
           </div>
           <small class="muted">Activation planned in next phase</small>
         </div>
+
+<!-- ✅ New: QA/QC -->
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>Quality / QAQC</h4>
+        <p>Inspections, lab results, QA/QC reporting tools.</p>
+      </div>
+      <small class="muted">Activation planned in next phase</small>
+    </div>
+
+    <!-- ✅ New: HSE -->
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>HSE</h4>
+        <p>Safety procedures, incident logs, compliance.</p>
+      </div>
+      <small class="muted">Activation planned in next phase</small>
+    </div>
+
+    <!-- ✅ New: Certification Management -->
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>Certification Management</h4>
+        <p>ISO, API, OIML, DOE, BOMBA, AELB certificates.</p>
+      </div>
+      <small class="muted">Activation planned in next phase</small>
+    </div>
+
+    <!-- ✅ New: Customer Portal -->
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>Customer Portal</h4>
+        <p>Customer-facing dashboard & document uploads.</p>
+      </div>
+      <small class="muted">Activation planned in next phase</small>
+    </div>
+
+    <!-- ✅ New: RMA / Returns -->
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>RMA / Returns</h4>
+        <p>Return material authorizations & defect tracking.</p>
+      </div>
+      <small class="muted">Activation planned in next phase</small>
+    </div>
+
+
+        
+        <!-- ✅ New: Meter Status / Calibration Tracker -->
         <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
           <span class="chip">Disabled</span>
           <div>
-            <h4>FlowLab</h4>
-            <p>Calibration scheduling & certificates.</p>
+            <h4>Meter Status / Calibration</h4>
+            <p>Track calibration due dates, certificates, and history.</p>
           </div>
           <small class="muted">Activation planned in next phase</small>
         </div>
+
         <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
           <span class="chip">Disabled</span>
           <div>
@@ -198,6 +257,7 @@
           </div>
           <small class="muted">Activation planned in next phase</small>
         </div>
+
         <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
           <span class="chip">Disabled</span>
           <div>
@@ -209,6 +269,88 @@
       </div>
     </section>
 
+    <!-- ✅ New: Team Dashboards -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Team Dashboards</h2>
+        <span class="badge">Division Hubs</span>
+      </div>
+      <div class="tiles">
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Marketing & Sales</h4>
+            <p>Leads, pipeline, campaigns, and proposals.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Technology & Innovation</h4>
+            <p>R&D pipeline, pilots, IP, and standards.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Operations</h4>
+            <p>Jobs, work orders, turnarounds, QA/QC.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Business Dev & Strategy</h4>
+            <p>Partnerships, bids, KPIs, strategic plans.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Corporate Affairs & Comms</h4>
+            <p>Press, stakeholder updates, events, brand.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>Quality / QAQC</h4>
+        <p>QA/QC division view, inspection logs, findings.</p>
+      </div>
+      <small class="muted">Dashboard placeholder</small>
+    </div>
+
+    <div class="tile" aria-disabled="true">
+      <span class="chip">Disabled</span>
+      <div>
+        <h4>HSE</h4>
+        <p>Health, Safety & Environment initiatives and reports.</p>
+      </div>
+      <small class="muted">Dashboard placeholder</small>
+    </div>
+        
+        <!-- Optional extra hub (can remove) -->
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Finance & Admin</h4>
+            <p>Approvals, POs, invoices, and budget views.</p>
+          </div>
+          <small class="muted">Dashboard placeholder</small>
+        </div>
+      </div>
+    </section>
+
     <!-- Announcements -->
     <section class="card">
       <div class="section-head">
@@ -216,7 +358,6 @@
         <span class="badge">MVP</span>
       </div>
       <div class="ann-list" id="annList">
-        <!-- Sample static items (read-only) -->
         <article class="ann">
           <div class="meta"><span class="dot" aria-hidden="true"></span><span>Aug 30, 2025</span>•<span>Portal MVP layout ready</span></div>
           <h4>Welcome to the new dashboard layout</h4>
@@ -227,6 +368,40 @@
           <h4>Planned: session store hardening</h4>
           <p>We’ll move to Redis-backed sessions and add security headers before enabling admin tools.</p>
         </article>
+      </div>
+    </section>
+
+    <!-- Optional: Data & Reports (keep or remove) -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Data & Reports</h2>
+        <span class="badge">Coming Soon</span>
+      </div>
+      <div class="tiles">
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>KPIs Overview</h4>
+            <p>Throughput, utilization, calibration turnaround.</p>
+          </div>
+          <small class="muted">Report placeholder</small>
+        </div>
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Compliance & Audits</h4>
+            <p>PTP/PTB, ISO/API/OIML trackers & findings.</p>
+          </div>
+          <small class="muted">Report placeholder</small>
+        </div>
+        <div class="tile" aria-disabled="true">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Vendor Performance</h4>
+            <p>SLA, delivery quality, on-time, cost variance.</p>
+          </div>
+          <small class="muted">Report placeholder</small>
+        </div>
       </div>
     </section>
 
@@ -258,11 +433,8 @@
   </footer>
 
   <script>
-    // Optional niceties: show dynamic year and email if available
+    // dynamic year + email
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // If your app already injects the email server-side, it will replace this.
-    // Otherwise, this tries sessionStorage.userEmail → fallback to existing text.
     try {
       var email = sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail');
       if (email) document.getElementById('welcomeEmail').textContent = email;
