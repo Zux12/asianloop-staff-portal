@@ -24,6 +24,9 @@ const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(B
 // -------- Middleware --------
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
+app.get('/error', (req, res) => {
+  res.status(401).sendFile(require('path').join(__dirname, 'error.html'));
+});
 
 
 
@@ -108,10 +111,10 @@ app.post('/login', loginLimiter, async (req, res) => {
 
     req.session.user = { email };
     return res.redirect('/dashboard');
-  } catch (err) {
-    // Don’t leak which part failed
-    return res.status(401).send('Invalid email or password.');
-  }
+} catch (err) {
+  return res.redirect('/error?msg=' + encodeURIComponent('Invalid email or password.'));
+}
+
 });
 
 app.post('/logout', (req, res) => {
