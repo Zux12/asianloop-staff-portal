@@ -25,6 +25,8 @@ const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(B
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
 
+
+
 app.use(session({
   name: SESSION_NAME,
   secret: SESSION_SECRET,
@@ -58,6 +60,14 @@ app.use('/public/css/login.css', express.static(path.join(__dirname, 'public/css
 
 app.get('/logo.jpg', (req, res) => res.sendFile(path.join(__dirname, 'logo.jpg')));
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon.ico')));
+
+
+// -------- Static & root assets --------
+
+// Publicly available CSS (needed on login)
+app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
+
+
 
 // -------- Pages --------
 app.get('/', (req, res) => {
