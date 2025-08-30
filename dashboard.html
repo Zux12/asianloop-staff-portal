@@ -53,18 +53,22 @@
     document.getElementById('year').textContent = new Date().getFullYear();
 
 
-  // set footer year
+
+  // footer year
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // fetch user session info and display email
-  fetch('/me')
-    .then(r => r.json())
-    .then(u => {
-      if (u && u.email) {
-        document.getElementById('userEmail').textContent = u.email;
-      }
-    })
-    .catch(() => {});
+  // read simple cookie value
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g,'\\$1') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  const email = getCookie('al_user_email');
+  if (email) {
+    document.getElementById('userEmail').textContent = email;
+  }
+
+
 </script>
 
 </body>
