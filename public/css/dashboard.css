@@ -9,8 +9,23 @@ body {
 .al-header { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid #eceff3; }
 .al-inner { max-width: 1080px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
 .al-brand img { height: 40px; width: auto; display: block; }
-.btn-logout { padding: 8px 12px; border-radius: 10px; border: 1px solid #e1e7ff; background: #eef2ff; color: #2a3a8a; font-weight: 700; cursor: pointer; }
-.btn-logout:hover { background: #e6ecff; }
+.btn-logout {
+  padding: 6px 14px;
+  border-radius: 999px;           /* pill shape */
+  border: 1px solid #d0d7f9;
+  background: #f6f9ff;
+  color: #2a3a8a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-logout:hover {
+  background: #e9f0ff;
+  border-color: #b5c6f9;
+}
+
 
 /* Main */
 .al-main { min-height: calc(100vh - 120px); display: grid; place-items: center; padding: 24px 16px; }
