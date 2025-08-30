@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asianloop — Sign-in Error</title>
+  <link rel="icon" href="favicon.ico"/>
+  <style>
+    *{box-sizing:border-box} html,body{height:100%;margin:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;color:#222;display:grid;place-items:center;padding:20px}
+    .card{max-width:560px;width:100%;background:#fff;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.06);padding:24px}
+    .top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .top img{height:42px}
+    h1{margin:8px 0 4px;font-size:1.4rem}
+    p{margin:8px 0;color:#444}
+    .note{background:#fff4f4;border:1px solid #ffd7d7;color:#841b1b;padding:10px 12px;border-radius:10px;margin:10px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;cursor:pointer}
+    .btn-primary{background:#2a6df4;color:#fff}
+    .btn-secondary{background:#eef2ff;color:#2a3a8a;border:1px solid #dfe6ff}
+    .btn:hover{opacity:.95}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top">
+      <img src="/public/images/logo.jpg" alt="Asianloop logo"/>
+      <strong>Asianloop Staff Portal</strong>
+    </div>
+    <h1>We couldn’t sign you in</h1>
+    <p class="note" id="errText">Invalid email or password.</p>
+    <p>Make sure you’re using your <strong>@asian-loop.com</strong> email and the correct password. If you still can’t sign in, contact IT.</p>
+    <div class="row">
+      <a class="btn btn-primary" href="/">Back to Login</a>
+      <a class="btn btn-secondary" href="mailto:info@asian-loop.com?subject=Sign-in%20help">Contact IT</a>
+    </div>
+  </div>
+
+  <script>
+    // Optional: support custom messages via ?msg=...
+    const params = new URLSearchParams(location.search);
+    const msg = params.get('msg');
+    if (msg) document.getElementById('errText').textContent = msg;
+  </script>
+</body>
+</html>
