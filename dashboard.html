@@ -15,9 +15,10 @@
         <img src="/public/images/logo.jpg" alt="Asianloop logo" />
       </a>
       <nav class="al-nav">
-        <form action="/logout" method="post">
-          <button class="btn btn-logout" type="submit">Logout</button>
-        </form>
+<form action="/logout" method="post">
+  <button class="btn btn-logout" type="submit">Logout</button>
+</form>
+
       </nav>
     </div>
   </header>
@@ -35,7 +36,9 @@
       </ul>
 
       <div class="cta-row">
-<a class="btn" href="/logout" onclick="event.preventDefault(); fetch('/logout',{method:'POST'}).then(()=>location.href='/');">Back to Login</a>
+<form action="/logout" method="post" style="display:inline;">
+  <button class="btn" type="submit">Back to Login</button>
+</form>
 
       </div>
     </section>
