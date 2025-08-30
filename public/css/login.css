@@ -109,3 +109,23 @@ img, input, button { max-width: 100%; }
   .subtitle { font-size: .88rem; }
   .modal { width: 94vw; }
 }
+
+
+/* Remember checkbox row */
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.remember-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+.remember-row label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
