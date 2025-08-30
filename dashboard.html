@@ -50,6 +50,20 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+      (function () {
+    const brand = document.querySelector('.al-brand');
+    if (brand) {
+      // Ensure the logo is on top/clickable in case of overlays
+      brand.style.position = 'relative';
+      brand.style.zIndex = '10';
+
+      brand.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.location.assign('https://asian-loop.com/');
+      });
+    }
+  })();
   </script>
 </body>
 </html>
