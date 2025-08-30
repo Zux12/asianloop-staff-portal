@@ -33,3 +33,9 @@ body {
 /* Footer */
 .al-footer { text-align: center; color: #777; font-size: .9rem; padding: 18px; }
 
+.al-user {
+  color: #2a3a8a;
+  font-weight: 600;
+}
+
+
