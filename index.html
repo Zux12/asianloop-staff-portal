@@ -29,27 +29,32 @@
       <h1 class="title">Sign in to Asianloop Staff Portal</h1>
       <p class="subtitle">Use your <strong>@asian-loop.com</strong> email and password. Do not share your credentials.</p>
 
-  <form id="loginForm" action="/login" method="post" novalidate>
-    
-        <div class="field">
-          <label for="email">Work email</label>
-          <input id="email" name="email" type="email" placeholder="name@asian-loop.com" autocomplete="username" required />
-        </div>
+ <form id="loginForm" action="/login" method="post" novalidate>
+  <div class="field">
+    <label for="email">Work email</label>
+    <input id="email" name="email" type="email" placeholder="name@asian-loop.com" autocomplete="username" required />
+  </div>
 
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
-        </div>
+  <div class="field" style="position:relative;">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+    <button type="button" id="togglePw" aria-label="Show password" style="position:absolute; right:10px; top:36px; background:none; border:0; color:#2a6df4; font-weight:700; cursor:pointer;">Show</button>
+  </div>
 
-        <button id="submitBtn" type="submit" class="btn-primary">Sign in</button>
+  <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+    <input id="rememberEmail" type="checkbox" />
+    <label for="rememberEmail" style="margin:0; font-weight:500;">Remember my email on this device</label>
+  </div>
 
-        <p id="msg" class="msg" role="alert" aria-live="polite"></p>
+  <button id="submitBtn" type="submit" class="btn-primary">Sign in</button>
+  <p id="msg" class="msg" role="alert" aria-live="polite"></p>
 
-        <div class="links">
-          <button type="button" class="link" id="forgotLink" aria-haspopup="dialog" aria-controls="forgotDialog">Forgot password?</button>
-          <a class="link" href="mailto:info@asian-loop.com?subject=Staff%20Portal%20Access%20Request">Need access?</a>
-        </div>
-      </form>
+  <div class="links">
+    <button type="button" class="link" id="forgotLink" aria-haspopup="dialog" aria-controls="forgotDialog">Forgot password?</button>
+    <a class="link" href="mailto:info@asian-loop.com?subject=Staff%20Portal%20Access%20Request">Need access?</a>
+  </div>
+</form>
+
     </section>
 
     <footer class="footer">
@@ -183,6 +188,52 @@
     // If validation passes, the form submits normally to /login
     // Express handles IMAP auth and redirects to /dashboard
   });
+
+  
+// --- Remember my email ---
+const emailInput = document.getElementById('email');
+const rememberCb = document.getElementById('rememberEmail');
+
+// Load saved email (if any)
+try {
+  const saved = localStorage.getItem('al_saved_email');
+  if (saved) {
+    emailInput.value = saved;
+    rememberCb.checked = true;
+  }
+} catch (_) {}
+
+// Save/remove on submit (if validation passes, we won’t preventDefault)
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+  const valid = emailInput.value && emailInput.value.toLowerCase().endsWith('@asian-loop.com') && document.getElementById('password').value;
+  if (valid) {
+    try {
+      if (rememberCb.checked) localStorage.setItem('al_saved_email', emailInput.value.trim());
+      else localStorage.removeItem('al_saved_email');
+    } catch (_) {}
+  }
+});
+
+// --- Show/Hide password toggle ---
+const pwInput = document.getElementById('password');
+const togglePw = document.getElementById('togglePw');
+togglePw.addEventListener('click', () => {
+  const showing = pwInput.type === 'text';
+  pwInput.type = showing ? 'password' : 'text';
+  togglePw.textContent = showing ? 'Show' : 'Hide';
+  togglePw.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+});
+
+// --- Caps Lock warning (subtle UX helper) ---
+pwInput.addEventListener('keydown', (e) => {
+  if (e.getModifierState && e.getModifierState('CapsLock')) {
+    document.getElementById('msg').textContent = 'Caps Lock is on.';
+  } else if (document.getElementById('msg').textContent === 'Caps Lock is on.') {
+    document.getElementById('msg').textContent = '';
+  }
+});
+
+
 </script>
 
 </body>
