@@ -21,6 +21,15 @@ const {
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+const cookieOptionsDisplay = {
+  sameSite: 'lax',
+  secure: true,          // stays true since HTTPS is active
+  httpOnly: false,       // must be readable by JS for display
+  maxAge: 60 * 60 * 1000 // 1 hour
+};
+
+
+
 // -------- Middleware --------
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
@@ -113,6 +122,9 @@ app.post('/login', loginLimiter, async (req, res) => {
     await client.logout();
 
     req.session.user = { email };
+    res.cookie('al_user_email', email, cookieOptionsDisplay);
+return res.redirect('/dashboard');
+
     return res.redirect('/dashboard');
 } catch (err) {
   return res.redirect('/error?msg=' + encodeURIComponent('Invalid email or password.'));
@@ -121,6 +133,7 @@ app.post('/login', loginLimiter, async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
+    res.clearCookie('al_user_email');
   req.session.destroy(() => res.redirect('/'));
 });
 
