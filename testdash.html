@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asianloop Staff Portal — Test Dashboard</title>
+  <link rel="icon" href="favicon.ico" />
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root{
+      --bg:#0f1220;           /* deep navy */
+      --card:#14182a;         /* card bg */
+      --muted:#8a90a7;        /* secondary text */
+      --text:#e9edf7;         /* main text */
+      --accent:#6d8bff;       /* primary accent */
+      --accent-2:#b7c4ff;     /* lighter accent */
+      --ok: #3ccf91;          /* success green */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 85% -10%, rgba(109,139,255,.25), transparent 60%),
+        radial-gradient(1000px 500px at -10% 10%, rgba(60,207,145,.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-font-smoothing:antialiased;
+      padding-bottom:40px;
+    }
+    a{color:inherit}
+    /* Top nav */
+    .al-header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: saturate(150%) blur(8px);
+      background: rgba(10,12,22,.6);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .al-inner{
+      max-width:1100px; margin:0 auto; padding:14px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+    }
+    .al-brand{display:flex; align-items:center; gap:12px; text-decoration:none}
+    .al-brand img{width:34px; height:34px; border-radius:8px; object-fit:cover; box-shadow:var(--shadow)}
+    .al-brand span{font-weight:700; letter-spacing:.2px}
+    .al-right{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+    .al-welcome{opacity:.9; font-size:.95rem}
+    .btn{
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text); padding:8px 14px; border-radius:12px; cursor:pointer;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn-logout{border-color:rgba(255,98,98,.4)}
+    /* Page shell */
+    .al-main{max-width:1100px; margin:22px auto 0; padding:0 18px; display:grid; gap:20px}
+    .page-title{font-size:1.6rem; font-weight:800; letter-spacing:.3px; margin:8px 0 2px}
+    .page-sub{color:var(--muted); margin:0 0 8px}
+    /* Grid */
+    .grid{display:grid; gap:18px}
+    .grid-tiles{grid-template-columns: repeat(12, 1fr)}
+    @media (max-width: 1024px){ .grid-tiles{grid-template-columns: repeat(8,1fr)} }
+    @media (max-width: 640px) { .grid-tiles{grid-template-columns: repeat(4,1fr)} }
+    .span-4{grid-column: span 4}
+    .span-8{grid-column: span 8}
+    .span-12{grid-column: span 12}
+    /* Cards */
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .card h3{margin:0 0 8px; font-size:1.05rem; letter-spacing:.2px}
+    .card p{margin:0; color:var(--muted)}
+    .section-head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px
+    }
+    .section-head h2{margin:0; font-size:1.1rem; letter-spacing:.2px}
+    .badge{
+      padding:4px 10px; border-radius:999px; font-size:.78rem; color:#04131b;
+      background: linear-gradient(180deg, #8ff8c8, #70e6b3);
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,.15), inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+    /* Tiles (disabled placeholders) */
+    .tiles{display:grid; gap:14px; grid-template-columns: repeat(12, 1fr)}
+    .tile{grid-column: span 4; min-height:110px; display:flex; flex-direction:column; justify-content:space-between;
+      padding:16px; border-radius:16px; position:relative; overflow:hidden;
+      background: radial-gradient(240px 140px at 90% -10%, rgba(109,139,255,.22), transparent 60%), rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.22);
+      cursor:not-allowed; user-select:none; opacity:.9;
+      transition: transform .15s ease, border-color .15s ease, opacity .15s ease;
+    }
+    .tile:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.3); opacity:1}
+    .tile h4{margin:0 0 6px; font-size:1rem; letter-spacing:.2px}
+    .tile p{margin:0; color:var(--muted); font-size:.92rem}
+    .chip{
+      position:absolute; top:10px; right:10px; font-size:.72rem; padding:4px 8px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06)
+    }
+    @media (max-width:1024px){ .tile{grid-column: span 6} }
+    @media (max-width:640px){ .tile{grid-column: span 12} }
+    /* Announcements list */
+    .ann-list{display:flex; flex-direction:column; gap:12px}
+    .ann{
+      border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:14px;
+      background: rgba(255,255,255,.03);
+    }
+    .ann .meta{display:flex; gap:10px; align-items:center; color:var(--muted); font-size:.82rem; margin-bottom:6px}
+    .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(60,207,145,.12)}
+    .ann h4{margin:0 0 6px; font-size:1rem}
+    .ann p{margin:0}
+    /* Resources */
+    .res-list{display:grid; gap:10px}
+    .res-item{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border:1px dashed rgba(255,255,255,.2); background:rgba(255,255,255,.03);
+      padding:12px 14px; border-radius:12px; cursor:not-allowed;
+    }
+    .res-item span{color:var(--muted); font-size:.95rem}
+    /* Footer */
+    footer{max-width:1100px; margin:16px auto 0; padding:0 18px; color:var(--muted); font-size:.9rem; opacity:.9}
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header class="al-header">
+    <div class="al-inner">
+      <a class="al-brand" href="#" aria-label="Asianloop">
+        <img src="/public/images/logo.jpg" alt="Asianloop logo"/>
+        <span>Asianloop Staff Portal</span>
+      </a>
+      <div class="al-right">
+        <div class="al-welcome">Welcome, <strong id="welcomeEmail">user@asian-loop.com</strong></div>
+        <form action="/logout" method="post">
+          <button class="btn btn-logout" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="al-main">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Everything you need in one view. Links are placeholders for now (intentionally disabled).</p>
+    </div>
+
+    <!-- Quick Links (placeholders only) -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Quick Links</h2>
+        <span class="badge">Coming Soon</span>
+      </div>
+      <div class="tiles">
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>CustodyCalc</h4>
+            <p>Internal custody calculation tool.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Regulation Hub</h4>
+            <p>Standards, permits, and reference PDFs.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>CryptoLoop</h4>
+            <p>Dashboard for simulated trading & reporting.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>FlowLab</h4>
+            <p>Calibration scheduling & certificates.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Docs & SOPs</h4>
+            <p>Policies, SOPs, and templates.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+        <div class="tile" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span class="chip">Disabled</span>
+          <div>
+            <h4>Status</h4>
+            <p>Service uptime & scheduled maintenance.</p>
+          </div>
+          <small class="muted">Activation planned in next phase</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Announcements -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Announcements</h2>
+        <span class="badge">MVP</span>
+      </div>
+      <div class="ann-list" id="annList">
+        <!-- Sample static items (read-only) -->
+        <article class="ann">
+          <div class="meta"><span class="dot" aria-hidden="true"></span><span>Aug 30, 2025</span>•<span>Portal MVP layout ready</span></div>
+          <h4>Welcome to the new dashboard layout</h4>
+          <p>This is a read-only preview. Admin posting & editing will be enabled in the next phase.</p>
+        </article>
+        <article class="ann">
+          <div class="meta"><span class="dot" aria-hidden="true"></span><span>Aug 28, 2025</span>•<span>Security</span></div>
+          <h4>Planned: session store hardening</h4>
+          <p>We’ll move to Redis-backed sessions and add security headers before enabling admin tools.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Resources (placeholders only) -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Resources</h2>
+        <span class="badge">Coming Soon</span>
+      </div>
+      <div class="res-list">
+        <div class="res-item" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span>Privacy & Acceptable Use</span>
+          <small>Disabled</small>
+        </div>
+        <div class="res-item" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span>Logo Pack (PNG/ICO)</span>
+          <small>Disabled</small>
+        </div>
+        <div class="res-item" aria-disabled="true" title="Placeholder — not clickable yet">
+          <span>Letterhead Templates</span>
+          <small>Disabled</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> Asianloop. All rights reserved.
+  </footer>
+
+  <script>
+    // Optional niceties: show dynamic year and email if available
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // If your app already injects the email server-side, it will replace this.
+    // Otherwise, this tries sessionStorage.userEmail → fallback to existing text.
+    try {
+      var email = sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail');
+      if (email) document.getElementById('welcomeEmail').textContent = email;
+    } catch(e){/* ignore */}
+  </script>
+</body>
+</html>
