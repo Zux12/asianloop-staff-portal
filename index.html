@@ -41,10 +41,11 @@
     <button type="button" id="togglePw" aria-label="Show password" style="position:absolute; right:10px; top:36px; background:none; border:0; color:#2a6df4; font-weight:700; cursor:pointer;">Show</button>
   </div>
 
-  <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:2px;">
-    <input id="rememberEmail" type="checkbox" />
-    <label for="rememberEmail" style="margin:0; font-weight:500;">Remember my email on this device</label>
-  </div>
+<div class="field remember-row">
+  <input id="rememberEmail" type="checkbox" />
+  <label for="rememberEmail">Remember my email on this device</label>
+</div>
+
 
   <button id="submitBtn" type="submit" class="btn-primary">Sign in</button>
   <p id="msg" class="msg" role="alert" aria-live="polite"></p>
