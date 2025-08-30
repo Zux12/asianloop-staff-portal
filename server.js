@@ -28,6 +28,9 @@ app.get('/error', (req, res) => {
   res.status(401).sendFile(require('path').join(__dirname, 'error.html'));
 });
 
+app.get('/me', requireAuth, (req, res) => {
+  res.json(req.session.user); // { email }
+});
 
 
 app.use(session({
