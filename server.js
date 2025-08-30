@@ -54,18 +54,15 @@ function requireAuth(req, res, next) {
 }
 
 // -------- Static & root assets --------
-app.use('/public', requireAuth, express.static(path.join(__dirname, 'public')));
-// Keep login CSS open:
-app.use('/public/css/login.css', express.static(path.join(__dirname, 'public/css/login.css')));
-
-app.get('/logo.jpg', (req, res) => res.sendFile(path.join(__dirname, 'logo.jpg')));
-app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon.ico')));
-
-
-// -------- Static & root assets --------
-
 // Publicly available CSS (needed on login)
 app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
+
+// All other /public assets require auth
+app.use('/public', requireAuth, express.static(path.join(__dirname, 'public')));
+
+// Root assets
+app.get('/logo.jpg', (req, res) => res.sendFile(path.join(__dirname, 'logo.jpg')));
+app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon.ico')));
 
 
 
