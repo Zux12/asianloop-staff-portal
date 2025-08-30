@@ -33,10 +33,6 @@ body {
 /* Footer */
 .al-footer { text-align: center; color: #777; font-size: .9rem; padding: 18px; }
 
-.al-user {
-  color: #2a3a8a;
-  font-weight: 600;
-}
 
 .al-nav { display:flex; align-items:center; gap:12px; }
 .al-user { color:#2a3a8a; font-weight:600; }
