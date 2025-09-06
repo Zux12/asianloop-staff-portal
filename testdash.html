@@ -136,7 +136,8 @@
         <span>Asianloop Staff Portal</span>
       </a>
       <div class="al-right">
-      <div class="al-welcome">Welcome, <span id="userEmail">—</span></div>
+<div class="al-welcome">Welcome, <span id="userEmail">—</span></div>
+
 
         <form action="/logout" method="post">
           <button class="btn btn-logout" type="submit">Logout</button>
@@ -259,25 +260,26 @@
   </footer>
 
 <script>
-  // Footer year
+  // footer year
   (function(){ 
     var y = document.getElementById('year'); 
     if (y) y.textContent = new Date().getFullYear(); 
   })();
 
-  // Read a simple cookie value
+  // read a simple cookie value
   function getCookie(name) {
     const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g,'\\$1') + '=([^;]*)'));
     return m ? decodeURIComponent(m[1]) : null;
   }
 
-  // Show "Welcome, user@asian-loop.com" using the display cookie set at login
+  // fill "Welcome, …" with the email set at login
   (function () {
     var email = getCookie('al_user_email');
     var slot = document.getElementById('userEmail');
     if (email && slot) slot.textContent = email;
   })();
 </script>
+
 
 
 </body>
