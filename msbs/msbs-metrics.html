@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Metrics</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="metrics">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">Market & Business Strategy</div>
+<a class="item" href="/msbs">Overview</a>
+<a class="item active" href="/msbs/metrics">Metrics</a>
+<a class="item" href="/msbs/events">Events</a>
+<a class="item" href="/msbs/branding">Branding</a>
+<div class="divider"></div>
+<div class="group-label">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+</aside>
+
+<main class="al-main">
+<h1>Metrics Snapshot</h1>
+
+<section class="card">
+<h2>Social / Web</h2>
+<!-- MONGO: aggregate metrics: linkedin followers, 30d engagement, website visits -->
+<div class="stat-grid">
+<div class="stat"><div class="num" id="mLinkedIn">—</div><div class="lbl">LinkedIn Followers</div></div>
+<div class="stat"><div class="num" id="mEngagement">—</div><div class="lbl">30‑day Engagement</div></div>
+<div class="stat"><div class="num" id="mVisits">—</div><div class="lbl">Website Visits (30d)</div></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Notes</h2>
+<p>Non‑sensitive, high‑level only. Detailed dashboards live in the internal workspace.</p>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
