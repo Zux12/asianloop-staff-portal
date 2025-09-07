@@ -10,6 +10,7 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.17.3",
-    "imapflow": "^1.0.164"
+    "imapflow": "^1.0.164",
+    "mongodb": "^6.6.0"
   }
 }
