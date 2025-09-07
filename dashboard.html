@@ -73,51 +73,29 @@
 
 
 <!-- ⬇️ Test Dashboard Shortcut (drop into dashboard.html) -->
-<button id="openTestDash"
-  style="margin-left:12px; padding:8px 12px; border-radius:10px; border:1px solid rgba(0,0,0,.15);
-         background:linear-gradient(180deg,#fff,#f5f7fb); cursor:pointer; font-weight:600;">
-  Open Test Dashboard
-</button>
 
-<a class="btn" href="/testdash" target="_blank">Open Test Dashboard 2</a>
+
+<a class="btn" 
+   href="/testdash" 
+   target="_blank" 
+   style="
+     margin-left:12px; 
+     padding:8px 12px; 
+     border-radius:10px; 
+     border:1px solid rgba(0,0,0,.15);
+     background:linear-gradient(180deg,#fff,#f5f7fb); 
+     cursor:pointer; 
+     font-weight:600;
+     text-decoration:none;
+     color:inherit;
+   ">
+  Open Test Dashboard
+</a>
+
 
 
   
-<script>
-(function () {
-  const candidates = [
-    '/testdash.html',                // root beside dashboard.html
-    '/public/testdash.html'          // inside /public
-  ];
 
-  const openFirstFound = async () => {
-    for (const path of candidates) {
-      try {
-        const res = await fetch(path, { method: 'HEAD', cache: 'no-store' });
-        if (res.ok) {
-          window.open(path, '_blank');
-          return;
-        }
-      } catch (e) { /* continue */ }
-    }
-    alert([
-      'Could not find testdash.html at:',
-      '- /testdash.html',
-      '- /public/testdash.html',
-      '',
-      'Fix:',
-      '• Put testdash.html beside dashboard.html (then the first path works), OR',
-      '• Put it in /public (then /public/testdash.html works).',
-      '',
-      'Sanity check:',
-      'Try opening /public/css/dashboard.css in your browser.',
-      'If that loads, place testdash.html in /public.'
-    ].join('\n'));
-  };
-
-  document.getElementById('openTestDash').addEventListener('click', openFirstFound);
-})();
-</script>
 <!-- ⬆️ End Test Dashboard Shortcut -->
 
 
