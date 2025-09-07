@@ -143,16 +143,13 @@ app.get('/api/msbs/announcements', requireAuth, async (req, res) => {
   try {
     const now = new Date();
     const items = await db.collection('msbs_announcements')
-      .find({
-        $or: [
-          { startsAt: { $exists: false } },
-          { startsAt: { $lte: now } }
-        ],
-        $or2: [
-          { endsAt: { $exists: false } },
-          { endsAt: { $gte: now } }
-        ]
-      }, { projection: { title:1, body:1, pinned:1, createdAt:1, authorEmail:1 } })
+ .find({
+  $and: [
+    { $or: [ { startsAt: { $exists: false } }, { startsAt: { $lte: now } } ] },
+    { $or: [ { endsAt: { $exists: false } }, { endsAt: { $gte: now } } ] }
+  ]
+}, { projection: { title:1, body:1, pinned:1, createdAt:1, authorEmail:1 } })
+
       .sort({ pinned: -1, createdAt: -1 })
       .limit(20)
       .toArray();
