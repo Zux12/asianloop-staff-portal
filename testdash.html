@@ -260,26 +260,28 @@
   </footer>
 
 <script>
-  // footer year
-  (function(){
+  // Update footer year
+  (function () {
     var y = document.getElementById('year');
     if (y) y.textContent = new Date().getFullYear();
   })();
 
-  // read cookie helper
+  // Helper: read cookie value
   function getCookie(name) {
-    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g,'\\$1') + '=([^;]*)'));
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[]\\/+^])/g, '\\$1') + '=([^;]*)'));
     return m ? decodeURIComponent(m[1]) : null;
   }
 
-  // fill Welcome, ... using cookie set at login
+  // Fill Welcome, ... with the email stored in cookie
   (function () {
     var email = getCookie('al_user_email');
-    // Be robust: support either id (userEmail or welcomeEmail)
-    var slot = document.getElementById('userEmail') || document.getElementById('welcomeEmail');
-    if (email && slot) slot.textContent = email;
+    var slot = document.getElementById('userEmail');
+    if (email && slot) {
+      slot.textContent = email;
+    }
   })();
 </script>
+
 
 
 
