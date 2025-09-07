@@ -56,11 +56,6 @@ app.use(session({
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
 
-const path = require('path');
-app.use('/msbs', express.static(
-  path.join(__dirname, 'msbs'),
-  { index: 'msbs-overview.html' } // so /msbs serves this file
-));
 
 
 // Rate-limit login attempts
