@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<!-- Side Menu -->
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">Market & Business Strategy</div>
+<a class="item active" href="/msbs">Overview</a>
+<a class="item" href="/msbs/metrics">Metrics</a>
+<a class="item" href="/msbs/events">Events</a>
+<a class="item" href="/msbs/branding">Branding</a>
+<div class="divider"></div>
+<div class="group-label">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+</aside>
+
+<!-- Main Content -->
+<main class="al-main">
+<h1>MBS Overview</h1>
+
+<section class="card">
+<h2>Announcements</h2>
+<!-- MONGO: msbs_announcements (public). Show pinned first, then latest 10. -->
+<ul id="announcementsList">
+<li class="placeholder">(Announcements will appear here.)</li>
+</ul>
+</section>
+
+<section class="card">
+<h2>Quick Links</h2>
+<!-- MONGO: msbs_brand_assets (public) — GridFS links (logo, brochure, letterhead, slides) -->
+<ul class="link-grid">
+<li><a href="#" class="link">Logo — PNG (Light)</a></li>
+<li><a href="#" class="link">Logo — PNG (Dark)</a></li>
+<li><a href="#" class="link">Favicon — ICO</a></li>
+<li><a href="#" class="link">Company Brochure — PDF</a></li>
+<li><a href="#" class="link">Letterhead — DOCX</a></li>
+<li><a href="#" class="link">Slide Master — PPTX</a></li>
+</ul>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
