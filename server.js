@@ -117,6 +117,90 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 
 
 
+// -------- Mongo (Atlas) --------
+let db, gfs;
+(async function connectMongo(){
+  if (!MONGO_URI) {
+    console.warn('MONGO_URI is not set; /api/msbs/* will respond 503');
+    return;
+  }
+  try {
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    db = client.db(); // database comes from the URI path
+    gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
+    console.log('Mongo connected • db:', db.databaseName);
+  } catch (e) {
+    console.error('Mongo connect error:', e.message);
+  }
+})();
+
+// -------- MBS: API (read-only) --------
+
+// Announcements (public view)
+app.get('/api/msbs/announcements', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const now = new Date();
+    const items = await db.collection('msbs_announcements')
+      .find({
+        $or: [
+          { startsAt: { $exists: false } },
+          { startsAt: { $lte: now } }
+        ],
+        $or2: [
+          { endsAt: { $exists: false } },
+          { endsAt: { $gte: now } }
+        ]
+      }, { projection: { title:1, body:1, pinned:1, createdAt:1, authorEmail:1 } })
+      .sort({ pinned: -1, createdAt: -1 })
+      .limit(20)
+      .toArray();
+    res.json(items);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Branding assets (public links + GridFS)
+app.get('/api/msbs/brand-assets', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const items = await db.collection('msbs_brand_assets')
+      .find({}, { projection: { title:1, kind:1, ext:1, bytes:1, fileId:1, url:1 } })
+      .sort({ title: 1 })
+      .toArray();
+
+    // normalize to href (prefer GridFS fileId; fallback to url)
+    const normalized = items.map(x => ({
+      title: x.title,
+      kind: x.kind,
+      href: x.fileId ? `/files/${x.fileId}` : (x.url || '#')
+    }));
+    res.json(normalized);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GridFS downloader: /files/:id
+app.get('/files/:id', requireAuth, async (req, res) => {
+  if (!db || !gfs) return res.status(503).type('text').send('DB not ready');
+  try {
+    const _id = new ObjectId(req.params.id);
+    // Probe file doc for contentType/filename
+    const fileDoc = await db.collection('msbsFiles.files').findOne({ _id });
+    if (!fileDoc) return res.status(404).type('text').send('File not found');
+
+    if (fileDoc.contentType) res.set('Content-Type', fileDoc.contentType);
+    res.set('Content-Disposition', `inline; filename="${fileDoc.filename || 'file'}"`);
+
+    gfs.openDownloadStream(_id).on('error', () => res.status(404).end()).pipe(res);
+  } catch (_) {
+    res.status(400).type('text').send('Bad file id');
+  }
+});
+
 
 // -------- Pages --------
 app.get('/', (req, res) => {
