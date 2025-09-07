@@ -93,6 +93,12 @@ app.get('/dashboard', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
+// Test dashboard (auth-protected)
+app.get('/testdash', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'testdash.html'));
+});
+
+
 app.get('/privacy', (req, res) => {
   res.sendFile(path.join(__dirname, 'privacy.html'));
 });
