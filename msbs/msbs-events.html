@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Events</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="events">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">Market & Business Strategy</div>
+<a class="item" href="/msbs">Overview</a>
+<a class="item" href="/msbs/metrics">Metrics</a>
+<a class="item active" href="/msbs/events">Events</a>
+<a class="item" href="/msbs/branding">Branding</a>
+<div class="divider"></div>
+<div class="group-label">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+</aside>
+
+<main class="al-main">
+<h1>Upcoming Oil & Gas Events</h1>
+
+<section class="card">
+<div class="toolbar">
+<span class="hint">Auto‑populated weekly from sources. Last refresh: <span id="eventsRefreshedAt">—</span></span>
+</div>
+<!-- MONGO: msbs_events (public). Columns: Name • Dates • City • Country • Status • Link -->
+<table class="table" id="eventsTable">
+<thead>
+<tr><th>Name</th><th>Dates</th><th>Location</th><th>Status</th><th>Link</th></tr>
+</thead>
+<tbody>
+<tr><td colspan="5" class="placeholder">(Events will appear here.)</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="card info">
+<p>MBS team can set status in the internal Conferences page.</p>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
