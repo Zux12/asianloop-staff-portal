@@ -438,7 +438,7 @@
   </footer>
 
 <script>
-  // Footer year
+  // Update footer year
   (function () {
     var y = document.getElementById('year');
     if (y) y.textContent = new Date().getFullYear();
@@ -450,13 +450,27 @@
     return m ? decodeURIComponent(m[1]) : null;
   }
 
-  // Fill "Welcome, …" from cookie set at login
-  (function () {
-    var email = getCookie('al_user_email');
+  (async function () {
     var slot = document.getElementById('userEmail');
-    if (email && slot) slot.textContent = email;
+    if (!slot) return;
+
+    // 1) Try cookie first
+    var email = getCookie('al_user_email');
+    if (email) { slot.textContent = email; return; }
+
+    // 2) Fallback: ask the server (session)
+    try {
+      const r = await fetch('/me', { cache: 'no-store' });
+      if (r.ok) {
+        const u = await r.json();
+        if (u && u.email) { slot.textContent = u.email; return; }
+      }
+    } catch (_) {}
+
+    // 3) Still nothing — leave dash
   })();
 </script>
+
 
 </body>
 </html>
