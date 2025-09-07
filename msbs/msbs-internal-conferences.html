@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="internal-conferences">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+<a class="item" href="/msbs/internal/social">Social</a>
+<a class="item active" href="/msbs/internal/conferences">Conferences</a>
+<a class="item" href="/msbs/internal/strategy">Strategy</a>
+<a class="item" href="/msbs/internal/files">Files</a>
+<a class="item" href="/msbs/internal/notes">Team Notes</a>
+<div class="divider"></div>
+<a class="item" href="/msbs">Back to Public</a>
+</aside>
+
+<main class="al-main">
+<h1>Conference Tracker</h1>
+
+<section class="card">
+<h2>Events (from public list)</h2>
+<!-- MONGO: join msbs_events with msbs_conferences to show per-event status & checklist -->
+<table class="table" id="confTable">
+<thead><tr><th>Event</th><th>Dates</th><th>Location</th><th>Status</th><th>Checklist</th><th>Owner</th></tr></thead>
+<tbody><tr><td colspan="6" class="placeholder">(Events with internal status will appear here.)</td></tr></tbody>
+</table>
+</section>
+
+<section class="card">
+<h2>Materials Checklist Legend</h2>
+<ul>
+<li>One‑pager • Banner • Slides • Video • QR</li>
+</ul>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
