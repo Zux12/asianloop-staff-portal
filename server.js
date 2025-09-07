@@ -56,6 +56,33 @@ app.use(session({
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
 
+// --- MBS pretty URLs -> static HTML files ---
+const fs = require('fs');
+const MBS_DIR = path.join(__dirname, 'msbs');
+
+// Entry: /msbs -> msbs-overview.html
+app.get(['/msbs', '/msbs/'], requireAuth, (req, res) => {
+  res.sendFile(path.join(MBS_DIR, 'msbs-overview.html'));
+});
+
+// Internal home: /msbs/internal -> msbs-internal.html
+app.get('/msbs/internal', requireAuth, (req, res) => {
+  res.sendFile(path.join(MBS_DIR, 'msbs-internal.html'));
+});
+
+// Internal subpages: /msbs/internal/:page -> msbs-internal-:page.html
+app.get('/msbs/internal/:page', requireAuth, (req, res, next) => {
+  const file = path.join(MBS_DIR, `msbs-internal-${req.params.page}.html`);
+  fs.access(file, fs.constants.F_OK, err => err ? next() : res.sendFile(file));
+});
+
+// Public subpages: /msbs/:page -> msbs-:page.html
+app.get('/msbs/:page', requireAuth, (req, res, next) => {
+  const file = path.join(MBS_DIR, `msbs-${req.params.page}.html`);
+  fs.access(file, fs.constants.F_OK, err => err ? next() : res.sendFile(file));
+});
+
+
 
 
 
