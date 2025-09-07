@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Team Notes</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="internal-notes">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+<a class="item" href="/msbs/internal/social">Social</a>
+<a class="item" href="/msbs/internal/conferences">Conferences</a>
+<a class="item" href="/msbs/internal/strategy">Strategy</a>
+<a class="item" href="/msbs/internal/files">Files</a>
+<a class="item active" href="/msbs/internal/notes">Team Notes</a>
+<div class="divider"></div>
+<a class="item" href="/msbs">Back to Public</a>
+</aside>
+
+<main class="al-main">
+<h1>Team Notes & Reminders</h1>
+
+<section class="card">
+<h2>Notes</h2>
+<!-- MONGO: simple notes collection or reuse msbs_announcements with internal flag -->
+<ul id="notesList"><li class="placeholder">(Notes go here.)</li></ul>
+</section>
+
+<section class="card">
+<h2>Deadlines</h2>
+<table class="table" id="deadlinesTbl">
+<thead><tr><th>Item</th><th>Due</th><th>Owner</th><th>Status</th></tr></thead>
+<tbody><tr><td colspan="4" class="placeholder">(Deadlines go here.)</td></tr></tbody>
+</table>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
