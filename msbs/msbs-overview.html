@@ -52,5 +52,70 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+<script>
+// Fill "Welcome, ..." like testdash
+(function () {
+  var slot = document.getElementById('welcomeUser');
+  function readCookie(name) {
+    var cookies = (document.cookie || '').split('; ');
+    for (var i = 0; i < cookies.length; i++) {
+      var p = cookies[i], eq = p.indexOf('=');
+      if (eq > -1 && decodeURIComponent(p.slice(0,eq)) === name) return decodeURIComponent(p.slice(eq+1));
+    }
+    return null;
+  }
+  var email = readCookie('al_user_email');
+  if (slot && email) slot.textContent = email;
+})();
+
+// Render announcements
+(async function(){
+  const ul = document.getElementById('announcementsList');
+  if (!ul) return;
+  try {
+    const r = await fetch('/api/msbs/announcements', { cache:'no-store' });
+    const items = r.ok ? await r.json() : [];
+    if (!items.length) return;
+
+    ul.innerHTML = '';
+    items.forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div>
+            <strong>${a.title || 'Untitled'}</strong>
+            <div class="hint">${a.authorEmail ? a.authorEmail + ' • ' : ''}${a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}</div>
+          </div>
+          ${a.pinned ? '<span class="badge">Pinned</span>' : ''}
+        </div>
+        <div style="margin-top:6px">${a.body || ''}</div>
+      `;
+      li.className = 'ann'; // uses your card-ish list style
+      ul.appendChild(li);
+    });
+  } catch (_) {}
+})();
+
+// Render brand assets
+(async function(){
+  const ul = document.getElementById('brandAssetList');
+  if (!ul) return;
+  try {
+    const r = await fetch('/api/msbs/brand-assets', { cache:'no-store' });
+    const items = r.ok ? await r.json() : [];
+    if (!items.length) return;
+
+    ul.innerHTML = '';
+    items.forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a class="link" href="${a.href}" target="_blank" rel="noopener">${a.title || 'Download'}</a>`;
+      ul.appendChild(li);
+    });
+  } catch (_) {}
+})();
+</script>
+
+
 </body>
 </html>
