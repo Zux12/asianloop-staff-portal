@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="branding">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">Market & Business Strategy</div>
+<a class="item" href="/msbs">Overview</a>
+<a class="item" href="/msbs/metrics">Metrics</a>
+<a class="item" href="/msbs/events">Events</a>
+<a class="item active" href="/msbs/branding">Branding</a>
+<div class="divider"></div>
+<div class="group-label">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+</aside>
+
+<main class="al-main">
+<h1>Branding Assets</h1>
+
+<section class="card">
+<h2>Downloads</h2>
+<!-- MONGO: msbs_brand_assets (public) served via /files/:id from GridFS bucket msbsFiles -->
+<ul class="asset-list" id="brandAssetList">
+<li class="placeholder">(Assets will appear here.)</li>
+</ul>
+</section>
+
+<section class="card">
+<h2>Usage Notes</h2>
+<ul>
+<li>Use light‑background logo on white or pale surfaces.</li>
+<li>Use dark‑background logo on photos or dark surfaces.</li>
+<li>Keep clear‑space and do not distort the logo.</li>
+</ul>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
