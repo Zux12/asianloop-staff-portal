@@ -54,6 +54,8 @@ app.use(session({
   }
 }));
 
+app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
+
 // Rate-limit login attempts
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
