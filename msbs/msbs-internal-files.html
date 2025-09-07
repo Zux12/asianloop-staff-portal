@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+<a class="item" href="/msbs/internal/social">Social</a>
+<a class="item" href="/msbs/internal/conferences">Conferences</a>
+<a class="item" href="/msbs/internal/strategy">Strategy</a>
+<a class="item active" href="/msbs/internal/files">Files</a>
+<a class="item" href="/msbs/internal/notes">Team Notes</a>
+<div class="divider"></div>
+<a class="item" href="/msbs">Back to Public</a>
+</aside>
+
+<main class="al-main">
+<h1>File Hub</h1>
+
+<section class="card">
+<h2>Folders</h2>
+<!-- MONGO/GridFS: bucket msbsFiles, logical folders via metadata.folder -->
+<div class="folder-grid">
+<a class="folder" data-folder="Social">Social</a>
+<a class="folder" data-folder="Conferences">Conferences</a>
+<a class="folder" data-folder="Strategy">Strategy</a>
+<a class="folder" data-folder="Branding">Branding</a>
+</div>
+</section>
+
+<section class="card">
+<h2>Files</h2>
+<table class="table" id="filesTable">
+<thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Modified</th><th>Actions</th></tr></thead>
+<tbody><tr><td colspan="5" class="placeholder">(Files will appear here.)</td></tr></tbody>
+</table>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
