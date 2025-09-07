@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Social</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="internal-social">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">MBS Workspace</div>
+<a class="item" href="/msbs/internal">Team Home</a>
+<a class="item active" href="/msbs/internal/social">Social</a>
+<a class="item" href="/msbs/internal/conferences">Conferences</a>
+<a class="item" href="/msbs/internal/strategy">Strategy</a>
+<a class="item" href="/msbs/internal/files">Files</a>
+<a class="item" href="/msbs/internal/notes">Team Notes</a>
+<div class="divider"></div>
+<a class="item" href="/msbs">Back to Public</a>
+</aside>
+
+<main class="al-main">
+<h1>Social Calendar & Drafts</h1>
+
+<section class="card">
+<h2>Calendar</h2>
+<!-- MONGO: msbs_social_calendar (internal) -->
+<table class="table" id="socialCal">
+<thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Platforms</th><th>Status</th><th>Owner</th></tr></thead>
+<tbody><tr><td colspan="6" class="placeholder">(Calendar items will appear here.)</td></tr></tbody>
+</table>
+</section>
+
+<section class="card">
+<h2>Drafts</h2>
+<!-- MONGO: msbs_social_drafts (internal) imageFileId (GridFS), caption, scheduledAt, status -->
+<div class="drafts-grid" id="draftsGrid">
+<div class="placeholder">(Draft posts will appear here.)</div>
+</div>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
