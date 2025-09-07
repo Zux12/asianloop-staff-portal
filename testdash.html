@@ -444,32 +444,42 @@
     if (y) y.textContent = new Date().getFullYear();
   })();
 
-  // Helper: read cookie value
-  function getCookie(name) {
-    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[]\\/+^])/g, '\\$1') + '=([^;]*)'));
-    return m ? decodeURIComponent(m[1]) : null;
+  // Cookie reader without regex (Safari-safe)
+  function readCookie(name) {
+    var cookies = (document.cookie || '').split('; ');
+    for (var i = 0; i < cookies.length; i++) {
+      var part = cookies[i];
+      var eq = part.indexOf('=');
+      if (eq > -1) {
+        var key = decodeURIComponent(part.slice(0, eq));
+        if (key === name) {
+          return decodeURIComponent(part.slice(eq + 1));
+        }
+      }
+    }
+    return null;
   }
 
-  (async function () {
+  // Fill "Welcome, …" from cookie, then fallback to /me
+  (function () {
     var slot = document.getElementById('userEmail');
     if (!slot) return;
 
-    // 1) Try cookie first
-    var email = getCookie('al_user_email');
+    var email = readCookie('al_user_email');
     if (email) { slot.textContent = email; return; }
 
-    // 2) Fallback: ask the server (session)
+    // Fallback to session data
     try {
-      const r = await fetch('/me', { cache: 'no-store' });
-      if (r.ok) {
-        const u = await r.json();
-        if (u && u.email) { slot.textContent = u.email; return; }
-      }
+      fetch('/me', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (u) {
+          if (u && u.email) slot.textContent = u.email;
+        })
+        .catch(function(){});
     } catch (_) {}
-
-    // 3) Still nothing — leave dash
   })();
 </script>
+
 
 
 </body>
