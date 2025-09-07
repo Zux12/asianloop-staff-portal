@@ -20,6 +20,8 @@ const {
   SESSION_SECURE = 'true'
 } = process.env;
 
+const { MONGO_URI = '' } = process.env;  // set in Heroku Config Vars
+
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
 const cookieOptionsDisplay = {
