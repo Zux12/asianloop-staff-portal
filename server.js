@@ -54,7 +54,7 @@ app.use(session({
   }
 }));
 
-app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
+
 
 
 
