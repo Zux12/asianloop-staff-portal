@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Team Home</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="internal-home">
+<header class="al-header">
+<div class="al-inner">
+<a class="al-brand" href="/">Asianloop Staff Portal</a>
+<nav class="al-topnav">
+<span id="welcomeUser">Welcome, {{userEmail}}</span>
+<a href="/logout" class="btn btn-ghost">Logout</a>
+</nav>
+</div>
+</header>
+
+<div class="al-shell">
+<aside class="al-sidemenu">
+<div class="al-sidemenu-title">MBS Workspace</div>
+<a class="item active" href="/msbs/internal">Team Home</a>
+<a class="item" href="/msbs/internal/social">Social</a>
+<a class="item" href="/msbs/internal/conferences">Conferences</a>
+<a class="item" href="/msbs/internal/strategy">Strategy</a>
+<a class="item" href="/msbs/internal/files">Files</a>
+<a class="item" href="/msbs/internal/notes">Team Notes</a>
+<div class="divider"></div>
+<a class="item" href="/msbs">Back to Public</a>
+</aside>
+
+<main class="al-main">
+<h1>MBS Team Home</h1>
+
+<section class="card">
+<h2>Shortcuts</h2>
+<div class="tile-grid">
+<a class="tile" href="/msbs/internal/social">Social Calendar</a>
+<a class="tile" href="/msbs/internal/conferences">Conference Tracker</a>
+<a class="tile" href="/msbs/internal/strategy">Strategy Workbench</a>
+<a class="tile" href="/msbs/internal/files">File Hub</a>
+<a class="tile" href="/msbs/internal/notes">Team Notes</a>
+</div>
+</section>
+
+<section class="card">
+<h2>What’s New</h2>
+<!-- Optional: show last 5 internal changes (audited events) -->
+<ul id="whatsNew">
+<li class="placeholder">(Internal updates will appear here.)</li>
+</ul>
+</section>
+</main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+</body>
+</html>
