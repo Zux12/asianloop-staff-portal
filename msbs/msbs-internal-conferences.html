@@ -30,6 +30,21 @@
 <h1>Conference Tracker</h1>
 
 <section class="card">
+  <h2>Add Event (Manual)</h2>
+  <div class="al-form">
+    <input class="al-input" id="evName" placeholder="Event name (required)"/>
+    <input class="al-input" id="evCity" placeholder="City"/>
+    <input class="al-input" id="evCountry" placeholder="Country"/>
+    <input class="al-input" id="evStart" type="date" placeholder="Start date (required)"/>
+    <input class="al-input" id="evEnd" type="date" placeholder="End date"/>
+    <input class="al-input" id="evUrl" placeholder="https://link"/>
+    <button class="btn" id="evAddBtn">Add</button>
+  </div>
+  <small class="hint">Tip: only <strong>Name</strong> and <strong>Start date</strong> are required.</small>
+</section>
+
+  
+<section class="card">
 <h2>Events (from public list)</h2>
 <!-- MONGO: join msbs_events with msbs_conferences to show per-event status & checklist -->
 <table class="table" id="confTable">
@@ -175,6 +190,34 @@ function makeCB(checked){
     // leave placeholder row if load fails
   }
 })();
+
+// Manual Add handler
+(function(){
+  var btn = document.getElementById('evAddBtn');
+  if (!btn) return;
+  btn.addEventListener('click', async function(){
+    var b = {
+      name: document.getElementById('evName').value.trim(),
+      city: document.getElementById('evCity').value.trim(),
+      country: document.getElementById('evCountry').value.trim(),
+      startDate: document.getElementById('evStart').value,
+      endDate: document.getElementById('evEnd').value || null,
+      url: document.getElementById('evUrl').value.trim()
+    };
+    if (!b.name || !b.startDate) return showToast('Name & Start date required', false);
+    try{
+      var r = await fetch('/api/msbs/events/add', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(b)
+      });
+      if (!r.ok) throw 0;
+      showToast('Event added ✔', true);
+      setTimeout(function(){ location.reload(); }, 600);
+    }catch(_){ showToast('Add failed', false); }
+  });
+})();
+
 </script>
 
 </body>
