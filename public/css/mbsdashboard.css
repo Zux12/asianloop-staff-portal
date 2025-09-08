@@ -109,3 +109,21 @@ body{
 
 /* Utility */
 .hint{color:var(--muted)}
+
+
+/* Conferences UX bits */
+.al-input{ padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:var(--text); min-width:220px }
+.al-input:focus{ outline:none; border-color:rgba(255,255,255,.3) }
+.al-cb{ transform: translateY(1px) }
+.al-checks{ display:flex; flex-wrap:wrap; gap:8px }
+.al-chip{ font-size:.88rem; border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:6px 10px; background:rgba(255,255,255,.04); display:inline-flex; align-items:center; gap:6px }
+
+/* Toast */
+.al-toast{
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: rgba(0,0,0,.7); color: #fff; padding:10px 14px; border-radius:10px;
+  opacity:0; pointer-events:none; transition: opacity .15s ease;
+}
+.al-toast.show{ opacity:1 }
+.al-toast.ok{ background: linear-gradient(180deg,#8ff8c8,#70e6b3); color:#04131b }
+.al-toast.err{ background: linear-gradient(180deg,#ffb3b3,#ff8080); color:#2a0000 }
