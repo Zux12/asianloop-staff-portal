@@ -48,5 +48,132 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+  <script>
+// Fill "Welcome, ..." from cookie
+(function () {
+  var slot = document.getElementById('welcomeUser');
+  function readCookie(name) {
+    var cookies = (document.cookie || '').split('; ');
+    for (var i = 0; i < cookies.length; i++) {
+      var p = cookies[i], eq = p.indexOf('=');
+      if (eq > -1 && decodeURIComponent(p.slice(0,eq)) === name) return decodeURIComponent(p.slice(eq+1));
+    }
+    return null;
+  }
+  var email = readCookie('al_user_email');
+  if (slot && email) slot.textContent = email;
+})();
+
+// Small helper: toast
+function showToast(msg, ok){
+  var t = document.getElementById('al-toast');
+  if (!t) return alert(msg);
+  t.textContent = msg;
+  t.className = 'al-toast ' + (ok ? 'ok' : 'err') + ' show';
+  setTimeout(function(){ t.className = 'al-toast'; }, 1800);
+}
+
+// Build a status <select>
+function makeStatusSelect(val){
+  var s = document.createElement('select');
+  ['Target','Applied','Confirmed','Not attending'].forEach(function(opt){
+    var o = document.createElement('option'); o.value = opt; o.textContent = opt; s.appendChild(o);
+  });
+  s.value = val || 'Target';
+  s.className = 'al-input';
+  return s;
+}
+// Simple checkbox
+function makeCB(checked){
+  var i = document.createElement('input');
+  i.type = 'checkbox'; i.checked = !!checked; i.className = 'al-cb';
+  return i;
+}
+
+// Load & render
+(async function(){
+  var tbody = document.querySelector('#confTable tbody');
+  if (!tbody) return;
+
+  try {
+    var r = await fetch('/api/msbs/conferences', { cache:'no-store' });
+    if (!r.ok) throw new Error('Load failed');
+    var data = await r.json();
+    var items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) return;
+
+    tbody.innerHTML = '';
+    items.forEach(function(row){
+      var tr = document.createElement('tr');
+
+      // name/dates/location/url cell values
+      var tdName = document.createElement('td'); tdName.textContent = row.name;
+      var tdDates = document.createElement('td'); tdDates.textContent = row.dates || '';
+      var tdLoc  = document.createElement('td'); tdLoc.textContent  = row.location || '';
+      var tdStatus = document.createElement('td');
+      var tdChecklist = document.createElement('td');
+      var tdOwner = document.createElement('td');
+      var tdActions = document.createElement('td');
+
+      // status
+      var sel = makeStatusSelect(row.status);
+      tdStatus.appendChild(sel);
+
+      // checklist (5 toggles inline)
+      var cl = row.checklist || {};
+      var c1 = makeCB(cl.onePager), c2 = makeCB(cl.banner), c3 = makeCB(cl.slides), c4 = makeCB(cl.video), c5 = makeCB(cl.qr);
+      var wrap = document.createElement('div'); wrap.className = 'al-checks';
+      [['One-pager',c1],['Banner',c2],['Slides',c3],['Video',c4],['QR',c5]].forEach(function(pair){
+        var lab = document.createElement('label'); lab.className = 'al-chip';
+        lab.appendChild(pair[1]); lab.appendChild(document.createTextNode(' ' + pair[0]));
+        wrap.appendChild(lab);
+      });
+      tdChecklist.appendChild(wrap);
+
+      // owner
+      var owner = document.createElement('input'); owner.className = 'al-input'; owner.type = 'email';
+      owner.placeholder = 'owner@asian-loop.com'; owner.value = row.ownerEmail || '';
+      tdOwner.appendChild(owner);
+
+      // actions
+      var btn = document.createElement('button'); btn.textContent = 'Save'; btn.className = 'btn';
+      btn.addEventListener('click', async function(){
+        try {
+          var payload = {
+            name: row.name,
+            year: row.year,
+            status: sel.value,
+            ownerEmail: owner.value.trim(),
+            checklist: {
+              onePager: c1.checked, banner: c2.checked, slides: c3.checked, video: c4.checked, qr: c5.checked
+            }
+          };
+          var pr = await fetch('/api/msbs/conferences/upsert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!pr.ok) throw new Error('Save failed');
+          showToast('Saved ✔', true);
+        } catch(e){ showToast('Error saving', false); }
+      });
+      tdActions.appendChild(btn);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdDates);
+      tr.appendChild(tdLoc);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdChecklist);
+      tr.appendChild(tdOwner);
+      tr.appendChild(tdActions);
+      tbody.appendChild(tr);
+    });
+  } catch (_err) {
+    // leave placeholder row if load fails
+  }
+})();
+</script>
+
 </body>
 </html>
