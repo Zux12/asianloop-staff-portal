@@ -486,13 +486,17 @@ app.post('/api/msbs/events/add', requireAuth, async (req, res) => {
 // -------- MBS: Notes --------
 app.get('/api/msbs/notes', requireAuth, async (req, res) => {
   try {
-    const notes = await db.collection('msbs_notes')
+    const rows = await db.collection('msbs_notes')
       .find({}, { projection: { _id:1, title:1, due:1, ownerEmail:1, picStaff:1, status:1, createdAt:1 } })
       .sort({ due: 1 })
       .toArray();
+
+    // Ensure _id is a string for the frontend
+    const notes = rows.map(n => ({ ...n, _id: String(n._id) }));
     res.json(notes);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
 
 app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
   try {
