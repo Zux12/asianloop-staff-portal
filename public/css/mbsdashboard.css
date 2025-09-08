@@ -127,3 +127,14 @@ body{
 .al-toast.show{ opacity:1 }
 .al-toast.ok{ background: linear-gradient(180deg,#8ff8c8,#70e6b3); color:#04131b }
 .al-toast.err{ background: linear-gradient(180deg,#ffb3b3,#ff8080); color:#2a0000 }
+
+/* Conferences page polish */
+#confTable thead th { position: sticky; top: 0; background: rgba(0,0,0,.25); backdrop-filter: blur(4px); }
+#confTable tbody tr:hover { background: rgba(255,255,255,.04); }
+#confTable td, #confTable th { vertical-align: top; }
+
+.al-form{ display: grid; gap: 8px; grid-template-columns: repeat(6, minmax(0,1fr)); }
+.al-form .btn{ grid-column: span 1; }
+@media (max-width: 960px){
+  .al-form{ grid-template-columns: 1fr; }
+}
