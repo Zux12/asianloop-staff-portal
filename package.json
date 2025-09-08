@@ -1,22 +1,18 @@
 {
   "name": "asianloop-staff-portal",
   "version": "1.0.0",
-  "description": "Asianloop Staff Portal",
-  "main": "server.js",
-"scripts": {
-  "start": "node server.js",
-  "refresh:events": "node jobs/refreshEvents.js"
-}
-  "engines": { "node": "20.x" },
-  "type": "module",
+  "engines": { "node": ">=18.0.0" },
+  "scripts": {
+    "start": "node server.js",
+    "refresh:events": "node jobs/refreshEvents.js"
+  },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "cheerio": "^1.0.0",
     "express": "^4.19.2",
-    "express-rate-limit": "^7.1.5",
-    "express-session": "^1.17.3",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
     "imapflow": "^1.0.164",
     "mongodb": "^6.6.0",
-    "cheerio": "^1.0.0",
-    "node-fetch": "^3.3.2"
+    "dotenv": "^16.4.5"
   }
 }
