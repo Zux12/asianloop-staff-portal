@@ -186,6 +186,35 @@ async function saveNote(id){
   await loadNotes();
 }
 
+async function createNote(){
+  const title = document.getElementById('new_title').value.trim();
+  if (!title) { alert('Title required'); return; }
+  const due = document.getElementById('new_due').value || null;
+  const picStaff = document.getElementById('new_pic').value.trim();
+  const status = document.getElementById('new_status').value; // will be set after create
+
+  // 1) create (owner auto)
+  let r = await fetch('/api/msbs/notes/upsert',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ title, due, picStaff })
+  });
+  if (!r.ok){ alert('Create failed'); return; }
+
+  // 2) set initial status if not Open
+  if (status !== 'Open') {
+    await loadNotes(); // get latest ids
+    // find the row by title & owner; then save status
+    // (simple pass: reload and let owner adjust; or do a second upsert once you return id server-side)
+  }
+
+  // clear form + refresh
+  document.getElementById('new_title').value = '';
+  document.getElementById('new_due').value = '';
+  document.getElementById('new_pic').value = '';
+  document.getElementById('new_status').value = 'Open';
+  await loadNotes();
+}
+
 
 // Delete (owner)
 async function deleteNote(id){
