@@ -8,6 +8,7 @@
   "refresh:events": "node jobs/refreshEvents.js"
 }
   "engines": { "node": "20.x" },
+  "type": "module",
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
