@@ -138,3 +138,17 @@ body{
 @media (max-width: 960px){
   .al-form{ grid-template-columns: 1fr; }
 }
+
+/* Notes status badges */
+.badge-note{display:inline-block; padding:4px 10px; border-radius:10px; font-size:.82rem; border:1px solid rgba(255,255,255,.15)}
+.note-Open{background:rgba(109,139,255,.18)}
+.note-Close{background:rgba(180,180,180,.22)}
+.note-Overdue{background:rgba(255,120,120,.22); border-color:rgba(255,120,120,.35)}
+.note-Urgent{background:rgba(255,190,120,.22); border-color:rgba(255,190,120,.35)}
+.note-Completed{background:rgba(60,207,145,.22); border-color:rgba(60,207,145,.35)}
+.note-Info{background:rgba(140,180,255,.18)}
+/* editable inputs */
+.al-input-sm{ padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:var(--text) }
+.al-input-sm:focus{ outline:none; border-color:rgba(255,255,255,.3) }
+.actions-row{ display:flex; gap:6px; align-items:center }
+.toolbar-row{ display:flex; gap:10px; align-items:center; margin:8px 0 }
