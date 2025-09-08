@@ -455,6 +455,32 @@ app.post('/api/msbs/conferences/upsert', requireAuth, async (req, res) => {
   }
 });
 
+// POST: manually add a new event into msbs_events (internal helper)
+app.post('/api/msbs/events/add', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const b = req.body || {};
+    const name = String(b.name || '').trim();
+    const city = String(b.city || '').trim();
+    const country = String(b.country || '').trim();
+    const url = String(b.url || '').trim();
+    const startDate = b.startDate ? new Date(b.startDate) : null;
+    const endDate   = b.endDate ? new Date(b.endDate) : null;
+    if (!name || !startDate) return res.status(400).json({ error: 'Missing name or startDate' });
+
+    const year = (startDate || endDate || new Date()).getUTCFullYear();
+    await db.collection('msbs_events').updateOne(
+      { name, year },
+      { $set: { name, startDate, endDate, city, country, url, source: 'manual', updatedAt: new Date() },
+        $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 // -------- 404 --------
 app.use((req, res) => res.status(404).type('text').send('Not found'));
