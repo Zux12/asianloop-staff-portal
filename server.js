@@ -483,44 +483,72 @@ app.post('/api/msbs/events/add', requireAuth, async (req, res) => {
 
 // -------- MBS: Notes --------
 app.get('/api/msbs/notes', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'DB not ready' });
   try {
     const notes = await db.collection('msbs_notes')
-      .find({}, { projection: { title:1, due:1, ownerEmail:1, status:1, createdAt:1 } })
+      .find({}, { projection: { title:1, due:1, ownerEmail:1, picStaff:1, status:1, createdAt:1 } })
       .sort({ due: 1 })
       .toArray();
     res.json(notes);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'DB not ready' });
   try {
     const b = req.body || {};
     const title = String(b.title||'').trim();
     if (!title) return res.status(400).json({ error: 'Missing title' });
 
+    const ownerEmail = req.session?.user?.email || '';
     const due = b.due ? new Date(b.due) : null;
-    const update = {
-      title,
-      due,
-      ownerEmail: (b.ownerEmail||'').trim(),
-      status: (b.status||'Open'),
-      updatedAt: new Date()
-    };
+    const picStaff = String(b.picStaff||'').trim();
+    const now = new Date();
 
-    await db.collection('msbs_notes').updateOne(
-      { title },
-      { $set: update, $setOnInsert: { createdAt: new Date() } },
-      { upsert: true }
-    );
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    const existing = await db.collection('msbs_notes').findOne({ title, ownerEmail });
+
+    if (!existing) {
+      await db.collection('msbs_notes').insertOne({
+        title, due, picStaff,
+        ownerEmail,
+        status: 'Open',
+        createdAt: now,
+        updatedAt: now
+      });
+      return res.json({ ok: true, created: true });
+    }
+
+    // Editing existing: only owner can update
+    if (existing.ownerEmail !== ownerEmail) {
+      return res.status(403).json({ error: 'Not your note' });
+    }
+
+    const update = {
+      due, picStaff,
+      updatedAt: now
+    };
+    if (b.status && ['Open','Close','Overdue','Urgent','Completed','Info'].includes(b.status)) {
+      update.status = b.status;
+    }
+
+    await db.collection('msbs_notes').updateOne({ _id: existing._id }, { $set: update });
+    res.json({ ok: true, updated: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
+app.post('/api/msbs/notes/delete', requireAuth, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const id = new ObjectId(b.id);
+    const ownerEmail = req.session?.user?.email || '';
+
+    const note = await db.collection('msbs_notes').findOne({ _id: id });
+    if (!note) return res.status(404).json({ error: 'Not found' });
+    if (note.ownerEmail !== ownerEmail) return res.status(403).json({ error: 'Not your note' });
+
+    await db.collection('msbs_notes').deleteOne({ _id: id });
+    res.json({ ok: true, deleted: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 
 // -------- MBS: File hub --------
 app.get('/api/msbs/files', requireAuth, async (req,res)=>{
