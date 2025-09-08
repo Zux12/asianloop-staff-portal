@@ -46,7 +46,20 @@
 <section class="card">
 <h2>Deadlines</h2>
 <table class="table" id="deadlinesTbl">
-<thead><tr><th>Item</th><th>Due</th><th>Owner</th><th>Status</th></tr></thead>
+
+
+  <thead>
+  <tr>
+    <th>Title</th>
+    <th>Created</th>
+    <th>Due</th>
+    <th>Owner</th>
+    <th>PIC Staff</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
 <tbody><tr><td colspan="4" class="placeholder">(Deadlines go here.)</td></tr></tbody>
 </table>
 </section>
@@ -55,48 +68,63 @@
 
 <footer class="al-footer">© Asianloop • MBS</footer>
 
-  <script>
-// Fill welcome
-(function(){
-  var slot = document.getElementById('welcomeUser');
-  function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]==n)?.[1]||null;}
-  var email = decodeURIComponent(readCookie('al_user_email')||'');
-  if (slot && email) slot.textContent=email;
-})();
-
-// Load notes
+ <script>
 (async function(){
-  const ul = document.getElementById('notesList');
-  const tbl = document.getElementById('deadlinesTbl').querySelector('tbody');
+  const tbody=document.getElementById('deadlinesTbl').querySelector('tbody');
   try{
-    const r = await fetch('/api/msbs/notes',{cache:'no-store'});
-    if(!r.ok) throw 0;
-    const items = await r.json();
-    ul.innerHTML=''; tbl.innerHTML='';
+    const r=await fetch('/api/msbs/notes',{cache:'no-store'});
+    const items=await r.json();
+    tbody.innerHTML='';
     items.forEach(n=>{
-      const li=document.createElement('li');
-      li.textContent=`${n.title} — ${n.status}`;
-      ul.appendChild(li);
-
       const tr=document.createElement('tr');
+      const created = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
+      const due = n.due ? new Date(n.due).toLocaleDateString() : '';
+
       tr.innerHTML=`
         <td>${n.title}</td>
-        <td>${n.due? new Date(n.due).toLocaleDateString():''}</td>
-        <td>${n.ownerEmail||''}</td>
-        <td>${n.status}</td>`;
-      tbl.appendChild(tr);
+        <td>${created}</td>
+        <td>${due}</td>
+        <td>${n.ownerEmail}</td>
+        <td>${n.picStaff||''}</td>
+        <td>${n.status}</td>
+        <td>
+          ${isOwner(n.ownerEmail) ? `
+            <button onclick="editNote('${n._id}')">Edit</button>
+            <button onclick="deleteNote('${n._id}')">Delete</button>
+          `:''}
+        </td>`;
+      tbody.appendChild(tr);
     });
   }catch(_){}
 })();
 
-// Quick add note
+function isOwner(email){
+  var slot=document.getElementById('welcomeUser');
+  return slot && slot.textContent.includes(email);
+}
+
+async function editNote(id){
+  const status=prompt('New Status? (Open/Close/Overdue/Urgent/Completed/Info)');
+  if(!status) return;
+  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status})});
+  location.reload();
+}
+
+async function deleteNote(id){
+  if(!confirm('Delete this note?')) return;
+  await fetch('/api/msbs/notes/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  location.reload();
+}
+
 async function addNote(){
-  const t=prompt('Note title?'); if(!t) return;
-  const d=prompt('Due date? (YYYY-MM-DD)');
-  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,due:d})});
+  const title=prompt('Note title?'); if(!title) return;
+  const due=prompt('Due date (YYYY-MM-DD)?');
+  const pic=prompt('PIC Staff?');
+  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,due,picStaff:pic})});
   location.reload();
 }
 </script>
+
 
 </body>
 </html>
