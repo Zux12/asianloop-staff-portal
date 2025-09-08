@@ -180,6 +180,49 @@ app.get('/api/msbs/brand-assets', requireAuth, async (req, res) => {
   }
 });
 
+// -------- MBS: Events (public view) --------
+app.get('/api/msbs/events', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const now = new Date();
+    // Upcoming and recent events (show future + last 30 days)
+    const thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
+
+    const rows = await db.collection('msbs_events')
+      .find({
+        $or: [
+          { startDate: { $gte: thirtyDaysAgo } },
+          { endDate:   { $gte: thirtyDaysAgo } }
+        ]
+      }, {
+        projection: {
+          name:1, startDate:1, endDate:1, city:1, country:1, url:1, status:1, updatedAt:1
+        }
+      })
+      .sort({ startDate: 1, name: 1 })
+      .limit(200)
+      .toArray();
+
+    // Normalize for the UI
+    const items = rows.map(e => ({
+      name: e.name,
+      dates: (e.startDate && e.endDate)
+        ? `${new Date(e.startDate).toLocaleDateString()} – ${new Date(e.endDate).toLocaleDateString()}`
+        : (e.startDate ? new Date(e.startDate).toLocaleDateString() : ''),
+      location: [e.city, e.country].filter(Boolean).join(', '),
+      status: e.status || 'Target',
+      url: e.url || '#',
+      updatedAt: e.updatedAt || null
+    }));
+
+    res.json({ refreshedAt: now.toISOString(), items });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+
 // GridFS downloader: /files/:id
 app.get('/files/:id', requireAuth, async (req, res) => {
   if (!db || !gfs) return res.status(503).type('text').send('DB not ready');
