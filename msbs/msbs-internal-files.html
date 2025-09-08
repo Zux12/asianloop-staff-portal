@@ -49,5 +49,27 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+<script>
+(async function(){
+  const tbody=document.getElementById('filesTable').querySelector('tbody');
+  try{
+    const r=await fetch('/api/msbs/files',{cache:'no-store'});
+    if(!r.ok) throw 0;
+    const items=await r.json();
+    tbody.innerHTML='';
+    items.forEach(f=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${f.name}</td>
+        <td>${(f.size/1024).toFixed(1)} KB</td>
+        <td>${f.uploaded? new Date(f.uploaded).toLocaleString():''}</td>
+        <td><a href="/files/name/${encodeURIComponent(f.name)}" target="_blank">Open</a></td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(_){}
+})();
+</script>
+
 </body>
 </html>
