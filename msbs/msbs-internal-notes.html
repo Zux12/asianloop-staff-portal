@@ -69,77 +69,98 @@
 <footer class="al-footer">© Asianloop • MBS</footer>
 
 <script>
-// Current user (from cookie)
+// Current user
 function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]===n)?.[1]||null;}
 const CURRENT_USER = decodeURIComponent(readCookie('al_user_email')||'');
 (function(){ var slot=document.getElementById('welcomeUser'); if(slot&&CURRENT_USER) slot.textContent=CURRENT_USER; })();
+const STATUSES = ['Open','Close','Overdue','Urgent','Completed','Info'];
+let FILTER = 'All';
+
 function isOwner(email){ return (CURRENT_USER||'').toLowerCase() === (email||'').toLowerCase(); }
+function badge(status){ return `<span class="badge-note note-${status}">${status}</span>`; }
 
-// Load notes
-(async function(){
-  const tbody = document.getElementById('deadlinesTbl').querySelector('tbody');
-  try{
-    const r = await fetch('/api/msbs/notes',{cache:'no-store'});
-    if(!r.ok) throw 0;
-    const items = await r.json();
-    tbody.innerHTML = '';
-    items.forEach(n=>{
-      const tr = document.createElement('tr');
-      const created = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
-      const due = n.due ? new Date(n.due).toLocaleDateString() : '';
-      const owner = n.ownerEmail || '';
-      const mine = isOwner(owner);
-      tr.innerHTML = `
-        <td>${n.title}</td>
-        <td>${created}</td>
-        <td>${due}</td>
-        <td>${owner}</td>
-        <td>${n.picStaff||''}</td>
-        <td>${n.status||'Open'}</td>
-        <td>
-          ${mine ? `
-            <button class="btn btn-ghost" onclick="editNote('${n._id}')">Edit</button>
-            <button class="btn btn-ghost" onclick="deleteNote('${n._id}')">Delete</button>
-          ` : ''}
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  }catch(_){}
-})();
-
-// Create
+// Quick add (owner auto)
 async function addNote(){
   const title = prompt('Note title?'); if(!title) return;
   const due = prompt('Due date (YYYY-MM-DD)?');
   const picStaff = prompt('PIC Staff?') || '';
-  await fetch('/api/msbs/notes/upsert', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ title, due, picStaff })
-  });
+  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,due,picStaff})});
   location.reload();
 }
 
-// Edit (owner only)
-async function editNote(id){
-  const status = prompt('Status (Open/Close/Overdue/Urgent/Completed/Info):');
-  if(!status) return;
-  await fetch('/api/msbs/notes/upsert', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ id, status })
-  });
-  location.reload();
+// Load & render
+async function loadNotes(){
+  const tbody = document.getElementById('deadlinesTbl').querySelector('tbody');
+  const r = await fetch('/api/msbs/notes',{cache:'no-store'});
+  const items = await r.json();
+
+  tbody.innerHTML='';
+  items
+    .filter(n => FILTER==='All' ? true : (n.status===FILTER))
+    .forEach(n=>{
+      const mine = isOwner(n.ownerEmail||'');
+      const tr = document.createElement('tr');
+
+      // Editable controls (only for owner)
+      const titleEl = mine ? `<input class="al-input-sm" value="${(n.title||'').replace(/"/g,'&quot;')}" id="t_${n._id}">`
+                           : `${n.title||''}`;
+      const dueISO = n.due ? new Date(n.due).toISOString().slice(0,10) : '';
+      const dueEl  = mine ? `<input class="al-input-sm" type="date" value="${dueISO}" id="d_${n._id}">`
+                           : (n.due ? new Date(n.due).toLocaleDateString() : '');
+      const picEl  = mine ? `<input class="al-input-sm" value="${(n.picStaff||'').replace(/"/g,'&quot;')}" id="p_${n._id}">`
+                           : (n.picStaff||'');
+
+      const statusEl = mine
+        ? `<select class="al-input-sm" id="s_${n._id}">${STATUSES.map(s=>`<option ${s===(n.status||'Open')?'selected':''}>${s}</option>`).join('')}</select>`
+        : badge(n.status||'Open');
+
+      const created = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
+
+      const actions = mine ? `
+        <div class="actions-row">
+          <button class="btn btn-ghost" onclick="saveNote('${n._id}')">Save</button>
+          <button class="btn btn-ghost" onclick="deleteNote('${n._id}')">Delete</button>
+        </div>` : '';
+
+      tr.innerHTML = `
+        <td>${titleEl}</td>
+        <td>${created}</td>
+        <td>${dueEl}</td>
+        <td>${n.ownerEmail||''}</td>
+        <td>${picEl}</td>
+        <td>${statusEl}</td>
+        <td>${actions}</td>`;
+      tbody.appendChild(tr);
+    });
 }
 
-// Delete (owner only)
+// Save edits (owner)
+async function saveNote(id){
+  const body = {
+    id,
+    title:  document.getElementById('t_'+id)?.value,
+    due:    document.getElementById('d_'+id)?.value || null,
+    picStaff: document.getElementById('p_'+id)?.value || '',
+    status: document.getElementById('s_'+id)?.value || 'Open'
+  };
+  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  await loadNotes();
+}
+
+// Delete (owner)
 async function deleteNote(id){
   if(!confirm('Delete this note?')) return;
-  await fetch('/api/msbs/notes/delete', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ id })
-  });
-  location.reload();
+  await fetch('/api/msbs/notes/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  await loadNotes();
 }
+
+// Filter control
+function setFilter(v){ FILTER = v; loadNotes(); }
+
+// Bootstrap
+loadNotes();
 </script>
+
 
 
 
