@@ -188,46 +188,54 @@ app.get('/api/msbs/brand-assets', requireAuth, async (req, res) => {
 });
 
 
-// -------- MBS: Events (public view) --------
+// -------- MBS: Events (public view with joined internal status) --------
 app.get('/api/msbs/events', requireAuth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'DB not ready' });
   try {
     const now = new Date();
-    // Upcoming and recent events (show future + last 30 days)
     const thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
 
-    const rows = await db.collection('msbs_events')
+    const evRows = await db.collection('msbs_events')
       .find({
         $or: [
           { startDate: { $gte: thirtyDaysAgo } },
           { endDate:   { $gte: thirtyDaysAgo } }
         ]
       }, {
-        projection: {
-          name:1, startDate:1, endDate:1, city:1, country:1, url:1, status:1, updatedAt:1
-        }
+        projection: { name:1, startDate:1, endDate:1, city:1, country:1, url:1, updatedAt:1 }
       })
       .sort({ startDate: 1, name: 1 })
-      .limit(200)
+      .limit(400)
       .toArray();
 
-    // Normalize for the UI
-    const items = rows.map(e => ({
-      name: e.name,
-      dates: (e.startDate && e.endDate)
-        ? `${new Date(e.startDate).toLocaleDateString()} – ${new Date(e.endDate).toLocaleDateString()}`
-        : (e.startDate ? new Date(e.startDate).toLocaleDateString() : ''),
-      location: [e.city, e.country].filter(Boolean).join(', '),
-      status: e.status || 'Target',
-      url: e.url || '#',
-      updatedAt: e.updatedAt || null
-    }));
+    // map internal tracker by (name, year)
+    const confRows = await db.collection('msbs_conferences')
+      .find({}, { projection: { eventName:1, year:1, status:1 } })
+      .toArray();
+    const confByKey = new Map(confRows.map(r => [`${r.eventName}::${r.year}`, r.status || 'Target']));
+
+    const items = evRows.map(e => {
+      const start = e.startDate ? new Date(e.startDate) : null;
+      const end   = e.endDate ? new Date(e.endDate) : null;
+      const year = (start || end || now).getUTCFullYear();
+      const key = `${String(e.name||'').trim()}::${year}`;
+      const status = confByKey.get(key) || 'Target';
+
+      return {
+        name: e.name,
+        dates: (start && end) ? `${start.toLocaleDateString()} – ${end.toLocaleDateString()}` : (start ? start.toLocaleDateString() : ''),
+        location: [e.city, e.country].filter(Boolean).join(', '),
+        status,
+        url: e.url || '#'
+      };
+    });
 
     res.json({ refreshedAt: now.toISOString(), items });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 
 
