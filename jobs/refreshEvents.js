@@ -164,6 +164,7 @@ async function srcSPE(){
 const SOURCES = [srcOGA, srcADIPEC, srcOTC, srcGastech, srcWGC, srcEAGE, srcSPE, srcSeedList];
 
 
+
 (async function main(){
   const client = new MongoClient(MONGO_URI);
   await client.connect();
