@@ -57,5 +57,60 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+<script>
+// Fill "Welcome, ..." (same helper as overview)
+(function () {
+  var slot = document.getElementById('welcomeUser');
+  function readCookie(name) {
+    var cookies = (document.cookie || '').split('; ');
+    for (var i = 0; i < cookies.length; i++) {
+      var p = cookies[i], eq = p.indexOf('=');
+      if (eq > -1 && decodeURIComponent(p.slice(0,eq)) === name) return decodeURIComponent(p.slice(eq+1));
+    }
+    return null;
+  }
+  var email = readCookie('al_user_email');
+  if (slot && email) slot.textContent = email;
+})();
+
+// Render events table
+(async function(){
+  const stamp = document.getElementById('eventsRefreshedAt');
+  const tbody = document.querySelector('#eventsTable tbody');
+  if (!tbody) return;
+
+  try {
+    const r = await fetch('/api/msbs/events', { cache: 'no-store' });
+    if (!r.ok) throw new Error('Load failed');
+    const data = await r.json();
+
+    if (stamp && data.refreshedAt) {
+      const d = new Date(data.refreshedAt);
+      stamp.textContent = d.toLocaleString();
+    }
+
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) return;
+
+    tbody.innerHTML = '';
+    items.forEach(ev => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${ev.name || ''}</td>
+        <td>${ev.dates || ''}</td>
+        <td>${ev.location || ''}</td>
+        <td>${ev.status || ''}</td>
+        <td>${ev.url ? `<a href="${ev.url}" target="_blank" rel="noopener">Open</a>` : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    // Leave placeholder row in place if it fails silently
+  }
+})();
+</script>
+
+  
 </body>
 </html>
