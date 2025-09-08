@@ -345,6 +345,118 @@ app.get('/healthz', (req, res) => res.type('text').send('ok'));
 app.head('/', (req, res) => res.status(200).end());
 app.head('/dashboard', requireAuth, (req, res) => res.status(200).end());
 
+
+// -------- MBS: Conferences (internal tracker) --------
+
+// GET: merged events + internal tracker
+app.get('/api/msbs/conferences', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
+
+    // 1) Base events (future + last 30d)
+    const evRows = await db.collection('msbs_events')
+      .find({
+        $or: [
+          { startDate: { $gte: thirtyDaysAgo } },
+          { endDate:   { $gte: thirtyDaysAgo } }
+        ]
+      }, {
+        projection: { name:1, startDate:1, endDate:1, city:1, country:1, url:1, updatedAt:1 }
+      })
+      .sort({ startDate: 1, name: 1 })
+      .limit(300)
+      .toArray();
+
+    // 2) Internal tracker
+    const confRows = await db.collection('msbs_conferences')
+      .find({}, { projection: { eventName:1, year:1, status:1, ownerEmail:1, checklist:1, notes:1, updatedAt:1 } })
+      .toArray();
+
+    // 3) Merge by (name, year)
+    const key = (name, d) => `${String(name||'').trim()}::${(d ? new Date(d) : now).getUTCFullYear()}`;
+    const confByKey = new Map(confRows.map(r => [ `${r.eventName}::${r.year}`, r ]));
+
+    const items = evRows.map(e => {
+      const k = key(e.name, e.startDate || e.endDate);
+      const r = confByKey.get(k);
+      const dates = (e.startDate && e.endDate)
+        ? `${new Date(e.startDate).toLocaleDateString()} – ${new Date(e.endDate).toLocaleDateString()}`
+        : (e.startDate ? new Date(e.startDate).toLocaleDateString() : '');
+      return {
+        name: e.name,
+        year: (e.startDate ? new Date(e.startDate).getUTCFullYear()
+              : (e.endDate ? new Date(e.endDate).getUTCFullYear() : new Date().getUTCFullYear())),
+        dates,
+        location: [e.city, e.country].filter(Boolean).join(', '),
+        url: e.url || '#',
+        // internal overlay (may be undefined)
+        status: r?.status || 'Target',
+        ownerEmail: r?.ownerEmail || '',
+        checklist: {
+          onePager: !!r?.checklist?.onePager,
+          banner: !!r?.checklist?.banner,
+          slides: !!r?.checklist?.slides,
+          video: !!r?.checklist?.video,
+          qr: !!r?.checklist?.qr
+        },
+        notes: r?.notes || ''
+      };
+    });
+
+    res.json({ refreshedAt: now.toISOString(), items });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST: upsert a single conference row keyed by (name, year)
+app.post('/api/msbs/conferences/upsert', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const body = req.body || {};
+    const name = String(body.name || '').trim();
+    const year = Number(body.year || new Date().getUTCFullYear());
+    if (!name || !Number.isFinite(year)) {
+      return res.status(400).json({ error: 'Missing or invalid name/year' });
+    }
+
+    const validStatus = new Set(['Target','Applied','Confirmed','Not attending']);
+    const update = {
+      eventName: name,
+      year,
+      updatedAt: new Date()
+    };
+
+    if (body.status && validStatus.has(body.status)) update.status = body.status;
+    if (typeof body.ownerEmail === 'string') update.ownerEmail = body.ownerEmail.trim();
+
+    // checklist normalization
+    const cl = body.checklist || {};
+    update.checklist = {
+      onePager: !!cl.onePager,
+      banner: !!cl.banner,
+      slides: !!cl.slides,
+      video: !!cl.video,
+      qr: !!cl.qr
+    };
+
+    if (typeof body.notes === 'string') update.notes = body.notes.trim().slice(0, 2000);
+
+    await db.collection('msbs_conferences').updateOne(
+      { eventName: name, year },
+      { $set: update, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    );
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
 // -------- 404 --------
 app.use((req, res) => res.status(404).type('text').send('Not found'));
 
