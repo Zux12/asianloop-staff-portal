@@ -193,20 +193,11 @@ app.get('/api/msbs/events', requireAuth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'DB not ready' });
   try {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
+const evRows = await db.collection('msbs_events').find(
+  { startDate: { $gte: now } },   // upcoming only
+  { projection: { name:1, startDate:1, endDate:1, city:1, country:1, url:1, updatedAt:1 } }
+).sort({ startDate: 1, name: 1 }).limit(400).toArray();
 
-    const evRows = await db.collection('msbs_events')
-      .find({
-        $or: [
-          { startDate: { $gte: thirtyDaysAgo } },
-          { endDate:   { $gte: thirtyDaysAgo } }
-        ]
-      }, {
-        projection: { name:1, startDate:1, endDate:1, city:1, country:1, url:1, updatedAt:1 }
-      })
-      .sort({ startDate: 1, name: 1 })
-      .limit(400)
-      .toArray();
 
     // map internal tracker by (name, year)
     const confRows = await db.collection('msbs_conferences')
