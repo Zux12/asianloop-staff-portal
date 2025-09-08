@@ -522,6 +522,19 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
   }
 });
 
+// -------- MBS: File hub --------
+app.get('/api/msbs/files', requireAuth, async (req,res)=>{
+  if (!db) return res.status(503).json({error:'DB not ready'});
+  try{
+    const files = await db.collection('msbsFiles.files')
+      .find({}, {projection:{filename:1,length:1,uploadDate:1}})
+      .sort({uploadDate:-1}).toArray();
+    res.json(files.map(f=>({
+      id:f._id, name:f.filename, size:f.length, uploaded:f.uploadDate
+    })));
+  }catch(e){res.status(500).json({error:e.message});}
+});
+
 
 // -------- 404 --------
 app.use((req, res) => res.status(404).type('text').send('Not found'));
