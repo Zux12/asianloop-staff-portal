@@ -114,6 +114,36 @@
     });
   } catch (_) {}
 })();
+
+
+// Optional: show top 3 upcoming events on Overview (under any placeholder you like)
+(async function(){
+  const table = document.getElementById('overviewEventsMini');
+  if (!table) return;
+
+  try {
+    const r = await fetch('/api/msbs/events', { cache: 'no-store' });
+    if (!r.ok) throw 0;
+    const data = await r.json();
+    const items = (data.items || []).slice(0, 3);
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody || !items.length) return;
+
+    tbody.innerHTML = '';
+    items.forEach(ev => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${ev.name}</td>
+        <td>${ev.dates}</td>
+        <td>${ev.location}</td>
+        <td><a href="${ev.url}" target="_blank" rel="noopener">Open</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(_){}
+})();
+  
 </script>
 
 
