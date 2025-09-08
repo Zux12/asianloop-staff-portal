@@ -153,14 +153,23 @@ async function loadNotes(){
 async function saveNote(id){
   const body = {
     id,
-    title:  document.getElementById('t_'+id)?.value,
+    title:  document.getElementById('t_'+id)?.value || '',
     due:    document.getElementById('d_'+id)?.value || null,
     picStaff: document.getElementById('p_'+id)?.value || '',
     status: document.getElementById('s_'+id)?.value || 'Open'
   };
-  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const r = await fetch('/api/msbs/notes/upsert',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(()=>({}));
+    alert('Save failed: ' + (e.error || r.status));
+    return;
+  }
   await loadNotes();
 }
+
 
 // Delete (owner)
 async function deleteNote(id){
