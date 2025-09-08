@@ -11,6 +11,8 @@
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.17.3",
     "imapflow": "^1.0.164",
-    "mongodb": "^6.6.0"
+    "mongodb": "^6.6.0",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^3.3.2"
   }
 }
