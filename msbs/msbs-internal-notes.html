@@ -39,12 +39,27 @@
 <h2>Notes</h2>
 <!-- MONGO: simple notes collection or reuse msbs_announcements with internal flag -->
 <ul id="notesList"><li class="placeholder">(Notes go here.)</li></ul>
-  <button class="btn" onclick="addNote()">+ Add Note</button>
+
 
 </section>
 
 <section class="card">
 <h2>Deadlines</h2>
+
+  <div class="toolbar-row">
+  <button class="btn" onclick="addNote()">+ Add Note</button>
+  <label class="hint">Filter:</label>
+  <select class="al-input-sm" onchange="setFilter(this.value)">
+    <option>All</option>
+    <option>Open</option>
+    <option>Close</option>
+    <option>Overdue</option>
+    <option>Urgent</option>
+    <option>Completed</option>
+    <option>Info</option>
+  </select>
+</div>
+
 <table class="table" id="deadlinesTbl">
 
 
