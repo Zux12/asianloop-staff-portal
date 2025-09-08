@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Asianloop Staff Portal",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
+"scripts": {
+  "start": "node server.js",
+  "refresh:events": "node jobs/refreshEvents.js"
+}
   "engines": { "node": "20.x" },
   "dependencies": {
     "dotenv": "^16.4.5",
