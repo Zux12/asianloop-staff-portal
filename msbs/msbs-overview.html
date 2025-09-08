@@ -123,7 +123,7 @@
 })();
 
 
-// Optional: show top 3 upcoming events on Overview (under any placeholder you like)
+// Optional: show upcoming events on Overview (under any placeholder you like)
 (async function(){
   const table = document.getElementById('overviewEventsMini');
   if (!table) return;
@@ -132,7 +132,8 @@
     const r = await fetch('/api/msbs/events', { cache: 'no-store' });
     if (!r.ok) throw 0;
     const data = await r.json();
-    const items = (data.items || []).slice(0, 3);
+    const items = data.items || [];
+
 
     const tbody = table.querySelector('tbody');
     if (!tbody || !items.length) return;
