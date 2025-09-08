@@ -481,6 +481,47 @@ app.post('/api/msbs/events/add', requireAuth, async (req, res) => {
   }
 });
 
+// -------- MBS: Notes --------
+app.get('/api/msbs/notes', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const notes = await db.collection('msbs_notes')
+      .find({}, { projection: { title:1, due:1, ownerEmail:1, status:1, createdAt:1 } })
+      .sort({ due: 1 })
+      .toArray();
+    res.json(notes);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'DB not ready' });
+  try {
+    const b = req.body || {};
+    const title = String(b.title||'').trim();
+    if (!title) return res.status(400).json({ error: 'Missing title' });
+
+    const due = b.due ? new Date(b.due) : null;
+    const update = {
+      title,
+      due,
+      ownerEmail: (b.ownerEmail||'').trim(),
+      status: (b.status||'Open'),
+      updatedAt: new Date()
+    };
+
+    await db.collection('msbs_notes').updateOne(
+      { title },
+      { $set: update, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 // -------- 404 --------
 app.use((req, res) => res.status(404).type('text').send('Not found'));
