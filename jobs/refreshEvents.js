@@ -1,41 +1,31 @@
-// jobs/refreshEvents.js
-// Purpose: refresh msbs_events from curated sources, but only once ~every 90 days.
-// Safe to run weekly via Heroku Scheduler; self-throttles via msbs_meta.
-
-import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
-import { MongoClient } from 'mongodb';
+// jobs/refreshEvents.js (CommonJS, Node >=18: has global fetch)
+const cheerio = require('cheerio');
+const { MongoClient } = require('mongodb');
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
   console.error('MONGO_URI missing'); process.exit(1);
 }
 
-const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
 const NOW = new Date();
+const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
 
-// --- Helpers ---
+// Helpers
 function yearFromDates(startDate, endDate) {
   const y = (startDate || endDate) ? new Date(startDate || endDate).getUTCFullYear() : NOW.getUTCFullYear();
   return Number.isFinite(y) ? y : NOW.getUTCFullYear();
 }
-function normStr(s){ return (s || '').trim(); }
-function asDate(s){
-  try { const d = new Date(s); return isNaN(d.getTime()) ? null : d; } catch { return null; }
-}
+const normStr = s => (s || '').trim();
+const asDate = s => {
+  try { const d = new Date(s); return isNaN(d) ? null : d; } catch { return null; }
+};
 
-// --- Source adapters (return array of {name,startDate,endDate,city,country,url,source}) ---
-// Keep these simple; we can harden later if sites change.
-
+// Sources (very light heuristics + safe fallbacks)
 async function srcOGA(){
-  // OGA — dates vary; if parsing fails, keep a sensible placeholder
   const url = 'https://www.oilandgas-asia.com/';
   try {
-    const html = await (await fetch(url, { timeout: 15000 })).text();
-    const $ = cheerio.load(html);
-    // Try to find a date-like snippet on homepage
-    const bodyText = $('body').text();
-    // naive year guess (next year or current)
+    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const $ = cheerio.load(html); void $; // placeholder parse
     const guessYear = NOW.getUTCMonth() > 8 ? NOW.getUTCFullYear()+1 : NOW.getUTCFullYear();
     return [{
       name: 'OGA (Oil & Gas Asia)',
@@ -45,7 +35,6 @@ async function srcOGA(){
       url, source: 'oga:auto'
     }];
   } catch {
-    // Fallback static
     return [{
       name: 'OGA (Oil & Gas Asia)',
       startDate: asDate(`${NOW.getUTCFullYear()+1}-09-10`),
@@ -59,10 +48,8 @@ async function srcOGA(){
 async function srcADIPEC(){
   const url = 'https://www.adipec.com/';
   try {
-    const html = await (await fetch(url, { timeout: 15000 })).text();
-    const $ = cheerio.load(html);
-    const text = $('body').text();
-    // very light heuristic; dates often in Nov
+    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const $ = cheerio.load(html); void $;
     const guessYear = NOW.getUTCMonth() > 9 ? NOW.getUTCFullYear()+1 : NOW.getUTCFullYear();
     return [{
       name: 'ADIPEC',
@@ -85,9 +72,8 @@ async function srcADIPEC(){
 async function srcOTC(){
   const url = 'https://www.otcnet.org/';
   try {
-    const html = await (await fetch(url, { timeout: 15000 })).text();
-    const $ = cheerio.load(html);
-    const text = $('body').text();
+    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const $ = cheerio.load(html); void $;
     const guessYear = NOW.getUTCMonth() > 4 ? NOW.getUTCFullYear()+1 : NOW.getUTCFullYear();
     return [{
       name: 'OTC (Offshore Technology Conference)',
@@ -107,38 +93,32 @@ async function srcOTC(){
   }
 }
 
-// Add or remove sources here
 const SOURCES = [srcOGA, srcADIPEC, srcOTC];
 
-async function main(){
+(async function main(){
   const client = new MongoClient(MONGO_URI);
   await client.connect();
-  const db = client.db(); // DB name is taken from MONGO_URI path
+  const db = client.db();
   const events = db.collection('msbs_events');
   const meta   = db.collection('msbs_meta');
 
-  // Ensure index for idempotent upsert (name + year)
+  // index for idempotent upsert
   await events.createIndex({ name: 1, year: 1 }, { unique: true });
 
-  // Self-throttle: only run if 90+ days since last refresh
+  // self-throttle ~90 days
   const key = 'events_last_refresh';
   const metaDoc = await meta.findOne({ key });
   if (metaDoc?.ts && (NOW - metaDoc.ts) < NINETY_DAYS) {
-    console.log('Skip refresh: ran recently on', metaDoc.ts.toISOString());
+    console.log('Skip refresh: ran', metaDoc.ts.toISOString());
     await client.close(); return;
   }
 
   let collected = [];
   for (const fn of SOURCES) {
-    try {
-      const rows = await fn();
-      collected = collected.concat(rows || []);
-    } catch (e) {
-      console.warn('Source error:', fn.name, e.message);
-    }
+    try { collected = collected.concat(await fn() || []); }
+    catch (e) { console.warn('Source error:', fn.name, e.message); }
   }
 
-  // Normalize & upsert
   for (const e of collected) {
     const doc = {
       name: normStr(e.name),
@@ -152,7 +132,6 @@ async function main(){
       year: yearFromDates(e.startDate, e.endDate),
       updatedAt: new Date()
     };
-
     if (!doc.name) continue;
 
     await events.updateOne(
@@ -162,19 +141,14 @@ async function main(){
     );
   }
 
-  // Optional: prune very old events (ended > 180 days ago)
+  // prune very old events (ended > 180d ago)
   const sixMonthsAgo = new Date(NOW.getTime() - 180*24*60*60*1000);
   await events.deleteMany({ endDate: { $exists: true, $lt: sixMonthsAgo } });
 
-  // Update meta timestamp
   await meta.updateOne(
-    { key },
-    { $set: { key, ts: new Date(), count: collected.length } },
-    { upsert: true }
+    { key }, { $set: { key, ts: new Date(), count: collected.length } }, { upsert: true }
   );
 
   console.log('Refresh complete. Upserts:', collected.length);
   await client.close();
-}
-
-main().catch(e => { console.error(e); process.exit(1); });
+})().catch(e => { console.error(e); process.exit(1); });
