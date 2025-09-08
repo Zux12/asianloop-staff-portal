@@ -500,18 +500,17 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
     const b = req.body || {};
     const now = new Date();
 
-    // EDIT by id (owner only)
+    // EDIT by id (owner only) — can change title, due, picStaff, status
     if (b.id) {
       const _id = new ObjectId(b.id);
       const note = await db.collection('msbs_notes').findOne({ _id });
       if (!note) return res.status(404).json({ error: 'Not found' });
       if (note.ownerEmail !== me) return res.status(403).json({ error: 'Not your note' });
 
-      const update = {
-        updatedAt: now
-      };
-      if (b.due) update.due = new Date(b.due);
-      if (typeof b.picStaff === 'string') update.picStaff = b.picStaff.trim();
+      const update = { updatedAt: now };
+      if (typeof b.title === 'string')   update.title    = b.title.trim();
+      if (b.due)                         update.due      = new Date(b.due);
+      if (typeof b.picStaff === 'string')update.picStaff = b.picStaff.trim();
       if (typeof b.status === 'string' && ['Open','Close','Overdue','Urgent','Completed','Info'].includes(b.status))
         update.status = b.status;
 
@@ -522,7 +521,8 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
     // CREATE (owner = current user)
     const title = String(b.title || '').trim();
     if (!title) return res.status(400).json({ error: 'Missing title' });
-    const doc = {
+
+    await db.collection('msbs_notes').insertOne({
       title,
       due: b.due ? new Date(b.due) : null,
       ownerEmail: me,
@@ -530,11 +530,11 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
       status: 'Open',
       createdAt: now,
       updatedAt: now
-    };
-    await db.collection('msbs_notes').insertOne(doc);
+    });
     res.json({ ok: true, created: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
 
 app.post('/api/msbs/notes/delete', requireAuth, async (req, res) => {
   try {
