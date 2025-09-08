@@ -52,5 +52,49 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+  <script>
+// Fill welcome
+(function(){
+  var slot = document.getElementById('welcomeUser');
+  function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]==n)?.[1]||null;}
+  var email = decodeURIComponent(readCookie('al_user_email')||'');
+  if (slot && email) slot.textContent=email;
+})();
+
+// Load notes
+(async function(){
+  const ul = document.getElementById('notesList');
+  const tbl = document.getElementById('deadlinesTbl').querySelector('tbody');
+  try{
+    const r = await fetch('/api/msbs/notes',{cache:'no-store'});
+    if(!r.ok) throw 0;
+    const items = await r.json();
+    ul.innerHTML=''; tbl.innerHTML='';
+    items.forEach(n=>{
+      const li=document.createElement('li');
+      li.textContent=`${n.title} — ${n.status}`;
+      ul.appendChild(li);
+
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td>${n.title}</td>
+        <td>${n.due? new Date(n.due).toLocaleDateString():''}</td>
+        <td>${n.ownerEmail||''}</td>
+        <td>${n.status}</td>`;
+      tbl.appendChild(tr);
+    });
+  }catch(_){}
+})();
+
+// Quick add note
+async function addNote(){
+  const t=prompt('Note title?'); if(!t) return;
+  const d=prompt('Due date? (YYYY-MM-DD)');
+  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,due:d})});
+  location.reload();
+}
+</script>
+
 </body>
 </html>
