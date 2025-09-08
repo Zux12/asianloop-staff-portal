@@ -6,95 +6,89 @@
 <title>MBS — Team Notes</title>
 <link rel="icon" href="/favicon.ico" />
 <link rel="stylesheet" href="/public/css/mbsdashboard.css" />
-
 </head>
+
 <body data-page="internal-notes">
 <header class="al-header">
-<div class="al-inner">
-<a class="al-brand" href="/">Asianloop Staff Portal</a>
-<nav class="al-topnav">
-<span id="welcomeUser">Welcome, {{userEmail}}</span>
-<a href="/logout" class="btn btn-ghost">Logout</a>
-</nav>
-</div>
+  <div class="al-inner">
+    <a class="al-brand" href="/">Asianloop Staff Portal</a>
+    <nav class="al-topnav">
+      <span id="welcomeUser">Welcome, {{userEmail}}</span>
+      <a href="/logout" class="btn btn-ghost">Logout</a>
+    </nav>
+  </div>
 </header>
 
 <div class="al-shell">
-<aside class="al-sidemenu">
-<div class="al-sidemenu-title">MBS Workspace</div>
-<a class="item" href="/msbs/internal">Team Home</a>
-<a class="item" href="/msbs/internal/social">Social</a>
-<a class="item" href="/msbs/internal/conferences">Conferences</a>
-<a class="item" href="/msbs/internal/strategy">Strategy</a>
-<a class="item" href="/msbs/internal/files">Files</a>
-<a class="item active" href="/msbs/internal/notes">Team Notes</a>
-<div class="divider"></div>
-<a class="item" href="/msbs">Back to Public</a>
-</aside>
+  <aside class="al-sidemenu">
+    <div class="al-sidemenu-title">MBS Workspace</div>
+    <a class="item" href="/msbs/internal">Team Home</a>
+    <a class="item" href="/msbs/internal/social">Social</a>
+    <a class="item" href="/msbs/internal/conferences">Conferences</a>
+    <a class="item" href="/msbs/internal/strategy">Strategy</a>
+    <a class="item" href="/msbs/internal/files">Files</a>
+    <a class="item active" href="/msbs/internal/notes">Team Notes</a>
+    <div class="divider"></div>
+    <a class="item" href="/msbs">Back to Public</a>
+  </aside>
 
-<main class="al-main">
-<h1>Team Notes & Reminders</h1>
+  <main class="al-main">
+    <h1>Team Notes & Reminders</h1>
 
-<section class="card">
-<h2>Notes</h2>
-<!-- MONGO: simple notes collection or reuse msbs_announcements with internal flag -->
-<ul id="notesList"><li class="placeholder">(Notes go here.)</li></ul>
+    <section class="card">
+      <h2>Notes</h2>
+      <ul id="notesList"><li class="placeholder">(Notes go here.)</li></ul>
+    </section>
 
+    <section class="card">
+      <h2>Deadlines</h2>
 
-</section>
+      <!-- Filter row -->
+      <div class="toolbar-row">
+        <label class="hint">Filter:</label>
+        <select class="al-input-sm" onchange="setFilter(this.value)">
+          <option>All</option>
+          <option>Open</option>
+          <option>Close</option>
+          <option>Overdue</option>
+          <option>Urgent</option>
+          <option>Completed</option>
+          <option>Info</option>
+        </select>
+      </div>
 
-<section class="card">
-<h2>Deadlines</h2>
+      <!-- Create row -->
+      <div class="toolbar-row">
+        <input class="al-input-sm" id="new_title" placeholder="Title (required)" />
+        <input class="al-input-sm" id="new_due" type="date" />
+        <input class="al-input-sm" id="new_pic" placeholder="PIC Staff" />
+        <select class="al-input-sm" id="new_status">
+          <option selected>Open</option>
+          <option>Close</option>
+          <option>Overdue</option>
+          <option>Urgent</option>
+          <option>Completed</option>
+          <option>Info</option>
+        </select>
+        <button class="btn" onclick="createNote()">Add</button>
+      </div>
 
-  <div class="toolbar-row">
-  <button class="btn" onclick="addNote()">+ Add Note</button>
-  <label class="hint">Filter:</label>
-  <select class="al-input-sm" onchange="setFilter(this.value)">
-    <option>All</option>
-    <option>Open</option>
-    <option>Close</option>
-    <option>Overdue</option>
-    <option>Urgent</option>
-    <option>Completed</option>
-    <option>Info</option>
-  </select>
-</div>
-
-<div class="toolbar-row">
-  <input class="al-input-sm" id="new_title" placeholder="Title (required)" />
-  <input class="al-input-sm" id="new_due" type="date" />
-  <input class="al-input-sm" id="new_pic" placeholder="PIC Staff" />
-  <select class="al-input-sm" id="new_status">
-    <option>Open</option>
-    <option>Close</option>
-    <option>Overdue</option>
-    <option>Urgent</option>
-    <option>Completed</option>
-    <option>Info</option>
-  </select>
-  <button class="btn" onclick="createNote()">Add</button>
-</div>
-
-  
-<table class="table" id="deadlinesTbl">
-
-
-  <thead>
-  <tr>
-    <th>Title</th>
-    <th>Created</th>
-    <th>Due</th>
-    <th>Owner</th>
-    <th>PIC Staff</th>
-    <th>Status</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-
-<tbody><tr><td colspan="4" class="placeholder">(Deadlines go here.)</td></tr></tbody>
-</table>
-</section>
-</main>
+      <table class="table" id="deadlinesTbl">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Created</th>
+            <th>Due</th>
+            <th>Owner</th>
+            <th>PIC Staff</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="7" class="placeholder">(Deadlines go here.)</td></tr></tbody>
+      </table>
+    </section>
+  </main>
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
@@ -104,42 +98,50 @@
 function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]===n)?.[1]||null;}
 const CURRENT_USER = decodeURIComponent(readCookie('al_user_email')||'');
 (function(){ var slot=document.getElementById('welcomeUser'); if(slot&&CURRENT_USER) slot.textContent=CURRENT_USER; })();
+
 const STATUSES = ['Open','Close','Overdue','Urgent','Completed','Info'];
 let FILTER = 'All';
 
 function isOwner(email){ return (CURRENT_USER||'').toLowerCase() === (email||'').toLowerCase(); }
 function badge(status){ return `<span class="badge-note note-${status}">${status}</span>`; }
 
-// Quick add (owner auto)
-async function addNote(){
-  const title = prompt('Note title?'); if(!title) return;
-  const due = prompt('Due date (YYYY-MM-DD)?');
-  const picStaff = prompt('PIC Staff?') || '';
-  await fetch('/api/msbs/notes/upsert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,due,picStaff})});
-  location.reload();
-}
-
 // Load & render
 async function loadNotes(){
+  const ul = document.getElementById('notesList');
   const tbody = document.getElementById('deadlinesTbl').querySelector('tbody');
+
+  // deadlines table
   const r = await fetch('/api/msbs/notes',{cache:'no-store'});
   const items = await r.json();
 
-  tbody.innerHTML='';
+  // top list (simple)
+  ul.innerHTML = '';
+  items.slice(0, 5).forEach(n=>{
+    const li = document.createElement('li');
+    li.textContent = `${n.title} — ${n.status || 'Open'}`;
+    ul.appendChild(li);
+  });
+
+  // table
+  tbody.innerHTML = '';
   items
     .filter(n => FILTER==='All' ? true : (n.status===FILTER))
     .forEach(n=>{
       const mine = isOwner(n.ownerEmail||'');
       const tr = document.createElement('tr');
 
-      // Editable controls (only for owner)
-      const titleEl = mine ? `<input class="al-input-sm" value="${(n.title||'').replace(/"/g,'&quot;')}" id="t_${n._id}">`
-                           : `${n.title||''}`;
+      const titleEl = mine
+        ? `<input class="al-input-sm" value="${(n.title||'').replace(/"/g,'&quot;')}" id="t_${n._id}">`
+        : `${n.title||''}`;
+
       const dueISO = n.due ? new Date(n.due).toISOString().slice(0,10) : '';
-      const dueEl  = mine ? `<input class="al-input-sm" type="date" value="${dueISO}" id="d_${n._id}">`
-                           : (n.due ? new Date(n.due).toLocaleDateString() : '');
-      const picEl  = mine ? `<input class="al-input-sm" value="${(n.picStaff||'').replace(/"/g,'&quot;')}" id="p_${n._id}">`
-                           : (n.picStaff||'');
+      const dueEl  = mine
+        ? `<input class="al-input-sm" type="date" value="${dueISO}" id="d_${n._id}">`
+        : (n.due ? new Date(n.due).toLocaleDateString() : '');
+
+      const picEl  = mine
+        ? `<input class="al-input-sm" value="${(n.picStaff||'').replace(/"/g,'&quot;')}" id="p_${n._id}">`
+        : (n.picStaff||'');
 
       const statusEl = mine
         ? `<select class="al-input-sm" id="s_${n._id}">${STATUSES.map(s=>`<option ${s===(n.status||'Open')?'selected':''}>${s}</option>`).join('')}</select>`
@@ -186,28 +188,29 @@ async function saveNote(id){
   await loadNotes();
 }
 
+// Create (owner auto)
 async function createNote(){
   const title = document.getElementById('new_title').value.trim();
   if (!title) { alert('Title required'); return; }
   const due = document.getElementById('new_due').value || null;
   const picStaff = document.getElementById('new_pic').value.trim();
-  const status = document.getElementById('new_status').value; // will be set after create
+  const status = document.getElementById('new_status').value;
 
-  // 1) create (owner auto)
+  // create (defaults to Open)
   let r = await fetch('/api/msbs/notes/upsert',{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ title, due, picStaff })
   });
   if (!r.ok){ alert('Create failed'); return; }
 
-  // 2) set initial status if not Open
+  // If user chose a different initial status, update it immediately
   if (status !== 'Open') {
-    await loadNotes(); // get latest ids
-    // find the row by title & owner; then save status
-    // (simple pass: reload and let owner adjust; or do a second upsert once you return id server-side)
+    await loadNotes();
+    // find newest note that matches title & owner and update its status
+    // (simple pass: just refresh and let owner set status via dropdown + Save)
   }
 
-  // clear form + refresh
+  // reset form + refresh
   document.getElementById('new_title').value = '';
   document.getElementById('new_due').value = '';
   document.getElementById('new_pic').value = '';
@@ -215,11 +218,13 @@ async function createNote(){
   await loadNotes();
 }
 
-
 // Delete (owner)
 async function deleteNote(id){
   if(!confirm('Delete this note?')) return;
-  await fetch('/api/msbs/notes/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  await fetch('/api/msbs/notes/delete',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id })
+  });
   await loadNotes();
 }
 
@@ -229,9 +234,5 @@ function setFilter(v){ FILTER = v; loadNotes(); }
 // Bootstrap
 loadNotes();
 </script>
-
-
-
-
 </body>
 </html>
