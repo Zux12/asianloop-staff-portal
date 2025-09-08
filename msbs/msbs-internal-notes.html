@@ -60,6 +60,22 @@
   </select>
 </div>
 
+<div class="toolbar-row">
+  <input class="al-input-sm" id="new_title" placeholder="Title (required)" />
+  <input class="al-input-sm" id="new_due" type="date" />
+  <input class="al-input-sm" id="new_pic" placeholder="PIC Staff" />
+  <select class="al-input-sm" id="new_status">
+    <option>Open</option>
+    <option>Close</option>
+    <option>Overdue</option>
+    <option>Urgent</option>
+    <option>Completed</option>
+    <option>Info</option>
+  </select>
+  <button class="btn" onclick="createNote()">Add</button>
+</div>
+
+  
 <table class="table" id="deadlinesTbl">
 
 
