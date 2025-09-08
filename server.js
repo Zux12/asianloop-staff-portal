@@ -164,21 +164,29 @@ app.get('/api/msbs/brand-assets', requireAuth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'DB not ready' });
   try {
     const items = await db.collection('msbs_brand_assets')
-      .find({}, { projection: { title:1, kind:1, ext:1, bytes:1, fileId:1, url:1 } })
+      .find({}, { projection: { title: 1, kind: 1, ext: 1, bytes: 1, fileId: 1, filename: 1, url: 1 } })
       .sort({ title: 1 })
       .toArray();
 
-    // normalize to href (prefer GridFS fileId; fallback to url)
-    const normalized = items.map(x => ({
-      title: x.title,
-      kind: x.kind,
-      href: x.fileId ? `/files/${x.fileId}` : (x.url || '#')
-    }));
+    // Normalize to an href:
+    // priority = GridFS by id -> GridFS by filename -> raw URL -> '#'
+    const normalized = items.map(x => {
+      const byId = x.fileId ? `/files/${String(x.fileId)}` : null;
+      const byName = x.filename ? `/files/name/${encodeURIComponent(x.filename)}` : null;
+      const raw = x.url || null;
+      return {
+        title: x.title,
+        kind: x.kind,
+        href: byId || byName || raw || '#'
+      };
+    });
+
     res.json(normalized);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 
 // -------- MBS: Events (public view) --------
 app.get('/api/msbs/events', requireAuth, async (req, res) => {
@@ -240,6 +248,36 @@ app.get('/files/:id', requireAuth, async (req, res) => {
     res.status(400).type('text').send('Bad file id');
   }
 });
+
+
+// Stream GridFS file by filename (tries msbsFiles, then fs bucket)
+app.get('/files/name/:filename', requireAuth, async (req, res) => {
+  if (!db) return res.status(503).type('text').send('DB not ready');
+  const { filename } = req.params;
+
+  try {
+    const bucketNames = ['msbsFiles', 'fs']; // try our bucket first, then default
+    for (const bucketName of bucketNames) {
+      try {
+        const bucket = new GridFSBucket(db, { bucketName });
+        // Probe metadata to set headers nicely
+        const fileDoc = await db.collection(`${bucketName}.files`).findOne({ filename });
+        if (!fileDoc) throw new Error('not-here');
+        if (fileDoc.contentType) res.set('Content-Type', fileDoc.contentType);
+        res.set('Content-Disposition', `inline; filename="${fileDoc.filename}"`);
+        return bucket.openDownloadStreamByName(filename)
+          .on('error', () => res.status(404).end())
+          .pipe(res);
+      } catch (_) {
+        // try next bucket
+      }
+    }
+    return res.status(404).type('text').send('File not found');
+  } catch (e) {
+    return res.status(500).type('text').send('Error');
+  }
+});
+
 
 
 // -------- Pages --------
