@@ -11,6 +11,24 @@ const NOW = new Date();
 const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
 
 // Helpers
+// Seed list from env: MSBS_EVENTS_SEED (one per line)
+// Format: Name|City|Country|YYYY-MM-DD|YYYY-MM-DD|https://link
+function parseSeedLine(line){
+  const [name, city, country, s, e, url] = (line || '').split('|').map(v => (v||'').trim());
+  if (!name) return null;
+  return {
+    name, city, country, url,
+    startDate: asDate(s||null),
+    endDate: asDate(e||null),
+    source: 'seed'
+  };
+}
+async function srcSeedList(){
+  const raw = process.env.MSBS_EVENTS_SEED || '';
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.map(parseSeedLine).filter(Boolean);
+}
+
 function yearFromDates(startDate, endDate) {
   const y = (startDate || endDate) ? new Date(startDate || endDate).getUTCFullYear() : NOW.getUTCFullYear();
   return Number.isFinite(y) ? y : NOW.getUTCFullYear();
@@ -93,7 +111,58 @@ async function srcOTC(){
   }
 }
 
-const SOURCES = [srcOGA, srcADIPEC, srcOTC];
+async function srcGastech(){
+  const url = 'https://www.gastechevent.com/';
+  try { await (await fetch(url)).text(); } catch {}
+  const y = (NOW.getUTCMonth() > 8) ? NOW.getUTCFullYear()+1 : NOW.getUTCFullYear();
+  return [{
+    name: 'Gastech',
+    startDate: asDate(`${y}-09-15`),
+    endDate:   asDate(`${y}-09-18`),
+    city: 'Rotating', country: '',
+    url, source: 'gastech:auto'
+  }];
+}
+async function srcWGC(){
+  const url = 'https://www.wgc2025.com/'; // World Gas Conference example
+  try { await (await fetch(url)).text(); } catch {}
+  return [{
+    name: 'World Gas Conference (WGC)',
+    startDate: asDate('2025-05-19'),
+    endDate:   asDate('2025-05-23'),
+    city: 'Beijing', country: 'China',
+    url, source: 'wgc:auto'
+  }];
+}
+async function srcEAGE(){
+  const url = 'https://eage.eventsair.com/';
+  try { await (await fetch(url)).text(); } catch {}
+  const y = NOW.getUTCFullYear();
+  return [{
+    name: 'EAGE Annual Conference & Exhibition',
+    startDate: asDate(`${y}-06-10`),
+    endDate:   asDate(`${y}-06-13`),
+    city: 'Rotating', country: '',
+    url, source: 'eage:auto'
+  }];
+}
+async function srcSPE(){
+  const url = 'https://www.spe.org/en/events/';
+  try { await (await fetch(url)).text(); } catch {}
+  // We keep one big flagship as a marker (you can add more later)
+  const y = NOW.getUTCFullYear();
+  return [{
+    name: 'SPE Annual Technical Conference and Exhibition (ATCE)',
+    startDate: asDate(`${y}-10-13`),
+    endDate:   asDate(`${y}-10-15`),
+    city: 'Rotating', country: '',
+    url, source: 'spe:auto'
+  }];
+}
+
+
+const SOURCES = [srcOGA, srcADIPEC, srcOTC, srcGastech, srcWGC, srcEAGE, srcSPE, srcSeedList];
+
 
 (async function main(){
   const client = new MongoClient(MONGO_URI);
