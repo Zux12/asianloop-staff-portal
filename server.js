@@ -639,9 +639,11 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
       metadata: { folder, ownerEmail }
     });
     file.pipe(up)
-      .on('error', err => reply(false, { error: err.message }))
-      .on('finish', f => { uploaded.push({ id: String(f._id), name: f.filename }); pending--; maybeReply(); });
-  });
+    .on('error', err => reply(false, { error: err.message }))
+    .on('finish', () => {
+    uploaded.push({ id: String(up.id), name: up.filename });
+    pending--; maybeReply();  });
+    });
 
   bb.on('finish', () => { finished = true; maybeReply(); });
   req.pipe(bb);
