@@ -161,7 +161,7 @@ document.getElementById('uploadBtn').addEventListener('click', async function ()
   Array.from(fi.files).forEach(f => fd.append('file', f));
 
   try {
-    const r = await fetch('/api/msbs/files/upload', {
+   const r = await fetch('/api/msbs/files/upload?folder=' + encodeURIComponent(folder), {
       method: 'POST',
       body: fd,
       credentials: 'same-origin'
