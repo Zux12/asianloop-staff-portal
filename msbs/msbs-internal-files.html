@@ -129,21 +129,22 @@ document.getElementById('folderFilter').addEventListener('change', (e)=>{
 
 // Upload (tolerant to non-JSON responses)
 document.getElementById('uploadBtn').addEventListener('click', async ()=>{
-  const fi = document.getElementById('fileInput');
-  const log = document.getElementById('uploadLog');
+  const fi   = document.getElementById('fileInput');
+  const log  = document.getElementById('uploadLog');
   const folder = ((document.getElementById('newFolder').value || document.getElementById('folderFilter').value) || '').trim();
   if (!fi.files.length) { log.textContent = 'No files selected.'; return; }
 
   const fd = new FormData();
+  fd.append('folder', folder);                 // ⬅️ move this ABOVE the file appends
   Array.from(fi.files).forEach(f => fd.append('file', f));
-  fd.append('folder', folder);
 
-  try {
-    const r = await fetch('/api/msbs/files/upload', {
-      method: 'POST',
-      body: fd,
-      credentials: 'same-origin'           // <- ensure session cookie is sent (Safari-safe)
-    });
+  const r = await fetch('/api/msbs/files/upload', {
+    method: 'POST',
+    body: fd,
+    credentials: 'same-origin'
+  });
+
+    
     const ct = r.headers.get('content-type') || '';
     const text = await r.text();
 
