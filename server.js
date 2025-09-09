@@ -569,6 +569,91 @@ app.get('/api/msbs/files', requireAuth, async (req,res)=>{
 });
 
 
+// ===== MBS: Files Hub (GridFS) =====
+const Busboy = require('busboy'); // <- add at top with other requires if you prefer
+
+// List files (optional folder filter)
+app.get('/api/msbs/files', requireAuth, async (req, res) => {
+  try {
+    const q = {};
+    if (req.query.folder) q['metadata.folder'] = String(req.query.folder).trim();
+
+    const rows = await db.collection('msbsFiles.files')
+      .find(q, { projection: { filename:1, length:1, uploadDate:1, contentType:1, metadata:1 } })
+      .sort({ uploadDate: -1 })
+      .toArray();
+
+    const items = rows.map(f => ({
+      id: String(f._id),
+      name: f.filename,
+      size: f.length,
+      uploaded: f.uploadDate,
+      contentType: f.contentType || '',
+      folder: f?.metadata?.folder || '',
+      ownerEmail: f?.metadata?.ownerEmail || ''
+    }));
+    res.json(items);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Distinct folders
+app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
+  try {
+    const folders = await db.collection('msbsFiles.files').distinct('metadata.folder');
+    res.json((folders || []).filter(Boolean).sort());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Upload (multi-file). Owner = current user. Optional folder.
+app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
+  if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
+  const ownerEmail = req.session?.user?.email || '';
+  const bb = Busboy({ headers: req.headers });
+
+  let folder = '';
+  const results = [];
+  let errored = false;
+
+  bb.on('field', (name, val) => {
+    if (name === 'folder') folder = String(val || '').trim();
+  });
+
+  bb.on('file', (name, file, info) => {
+    const { filename, mimeType } = info;
+    const up = gfs.openUploadStream(filename, {
+      contentType: mimeType,
+      metadata: { folder, ownerEmail }
+    });
+    file.pipe(up)
+      .on('error', (err) => { errored = true; res.status(500).json({ error: err.message }); })
+      .on('finish', (f) => {
+        results.push({ id: String(f._id), name: f.filename });
+      });
+  });
+
+  bb.on('close', () => {
+    if (!errored) res.json({ ok: true, uploaded: results });
+  });
+
+  req.pipe(bb);
+});
+
+// Delete (owner only)
+app.delete('/api/msbs/files/:id', requireAuth, async (req, res) => {
+  try {
+    const _id = new ObjectId(req.params.id);
+    const me = req.session?.user?.email || '';
+    const doc = await db.collection('msbsFiles.files').findOne({ _id });
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    if ((doc?.metadata?.ownerEmail || '') !== me)
+      return res.status(403).json({ error: 'Not your file' });
+
+    await gfs.delete(_id);
+    res.json({ ok: true, deleted: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
 // -------- 404 --------
 app.use((req, res) => res.status(404).type('text').send('Not found'));
 
