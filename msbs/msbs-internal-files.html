@@ -76,10 +76,28 @@
 <footer class="al-footer">© Asianloop • MBS</footer>
 
 <script>
-// Welcome fill
-function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]===n)?.[1]||null;}
-const CURRENT_USER = decodeURIComponent(readCookie('al_user_email')||'');
-(function(){ var slot=document.getElementById('welcomeUser'); if(slot&&CURRENT_USER) slot.textContent=CURRENT_USER; })();
+// Welcome fill (cookie, then /me)
+(function () {
+  var span = document.getElementById('welcomeUser');
+  if (!span) return;
+
+  function readCookie(n){
+    var parts = (document.cookie || '').split('; ');
+    for (var i=0;i<parts.length;i++){
+      var p = parts[i], eq = p.indexOf('=');
+      if (eq>-1 && decodeURIComponent(p.slice(0,eq))===n) return decodeURIComponent(p.slice(eq+1));
+    }
+    return null;
+  }
+
+  var email = readCookie('al_user_email');
+  if (email) { span.textContent = 'Welcome, ' + email; return; }
+
+  fetch('/me', { cache:'no-store', credentials:'same-origin' })
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(u){ if (u && u.email) span.textContent = 'Welcome, ' + u.email; })
+    .catch(function(){});
+})();
 
 // State
 let CURRENT_FOLDER = '';
@@ -127,24 +145,28 @@ document.getElementById('folderFilter').addEventListener('change', (e)=>{
   loadFiles();
 });
 
-// Upload (tolerant to non-JSON responses)
-document.getElementById('uploadBtn').addEventListener('click', async ()=>{
+
+// Upload (folder first; send cookies; robust parsing)
+document.getElementById('uploadBtn').addEventListener('click', async function () {
   const fi   = document.getElementById('fileInput');
   const log  = document.getElementById('uploadLog');
-  const folder = ((document.getElementById('newFolder').value || document.getElementById('folderFilter').value) || '').trim();
+  const fld1 = document.getElementById('newFolder').value || '';
+  const fld2 = document.getElementById('folderFilter').value || '';
+  const folder = (fld1 || fld2).trim();
+
   if (!fi.files.length) { log.textContent = 'No files selected.'; return; }
 
   const fd = new FormData();
-  fd.append('folder', folder);                 // ⬅️ move this ABOVE the file appends
+  fd.append('folder', folder);                   // <-- append folder BEFORE files
   Array.from(fi.files).forEach(f => fd.append('file', f));
 
-  const r = await fetch('/api/msbs/files/upload', {
-    method: 'POST',
-    body: fd,
-    credentials: 'same-origin'
-  });
+  try {
+    const r = await fetch('/api/msbs/files/upload', {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin'
+    });
 
-    
     const ct = r.headers.get('content-type') || '';
     const text = await r.text();
 
@@ -152,16 +174,21 @@ document.getElementById('uploadBtn').addEventListener('click', async ()=>{
       log.textContent = `Upload failed (HTTP ${r.status}): ` + text.slice(0, 140);
       return;
     }
-    const data = ct.includes('application/json') ? JSON.parse(text) : {};
+
+    const data = ct.includes('application/json') ? JSON.parse(text) : { uploaded: [] };
     const n = (data.uploaded && data.uploaded.length) ? data.uploaded.length : 0;
     log.textContent = `Uploaded ${n} file(s).`;
     fi.value = '';
-    if (folder && !document.getElementById('folderFilter').value) CURRENT_FOLDER = folder;
+
+    if (folder && !document.getElementById('folderFilter').value) {
+      CURRENT_FOLDER = folder; // jump to new folder if using "new folder"
+    }
     await refreshAll();
-  } catch (_) {
+  } catch (e) {
     log.textContent = 'Upload failed: network/error';
   }
 });
+
 
 
 // Delete
