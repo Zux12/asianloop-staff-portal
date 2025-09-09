@@ -1,75 +1,163 @@
 <!DOCTYPE html>
-<header class="al-header">
-<div class="al-inner">
-  <link rel="stylesheet" href="/public/css/mbsdashboard.css" />
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBS — Files</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/mbsdashboard.css" />
+</head>
 
-<a class="al-brand" href="/">Asianloop Staff Portal</a>
-<nav class="al-topnav">
-<span id="welcomeUser">Welcome, {{userEmail}}</span>
-<a href="/logout" class="btn btn-ghost">Logout</a>
-</nav>
-</div>
+<body data-page="internal-files">
+<header class="al-header">
+  <div class="al-inner">
+    <a class="al-brand" href="/">Asianloop Staff Portal</a>
+    <nav class="al-topnav">
+      <span id="welcomeUser">Welcome, {{userEmail}}</span>
+      <a href="/logout" class="btn btn-ghost">Logout</a>
+    </nav>
+  </div>
 </header>
 
 <div class="al-shell">
-<aside class="al-sidemenu">
-<div class="al-sidemenu-title">MBS Workspace</div>
-<a class="item" href="/msbs/internal">Team Home</a>
-<a class="item" href="/msbs/internal/social">Social</a>
-<a class="item" href="/msbs/internal/conferences">Conferences</a>
-<a class="item" href="/msbs/internal/strategy">Strategy</a>
-<a class="item active" href="/msbs/internal/files">Files</a>
-<a class="item" href="/msbs/internal/notes">Team Notes</a>
-<div class="divider"></div>
-<a class="item" href="/msbs">Back to Public</a>
-</aside>
+  <aside class="al-sidemenu">
+    <div class="al-sidemenu-title">MBS Workspace</div>
+    <a class="item" href="/msbs/internal">Team Home</a>
+    <a class="item" href="/msbs/internal/social">Social</a>
+    <a class="item" href="/msbs/internal/conferences">Conferences</a>
+    <a class="item" href="/msbs/internal/strategy">Strategy</a>
+    <a class="item active" href="/msbs/internal/files">Files</a>
+    <a class="item" href="/msbs/internal/notes">Team Notes</a>
+    <div class="divider"></div>
+    <a class="item" href="/msbs">Back to Public</a>
+  </aside>
 
-<main class="al-main">
-<h1>File Hub</h1>
+  <main class="al-main">
+    <h1>File Hub</h1>
 
-<section class="card">
-<h2>Folders</h2>
-<!-- MONGO/GridFS: bucket msbsFiles, logical folders via metadata.folder -->
-<div class="folder-grid">
-<a class="folder" data-folder="Social">Social</a>
-<a class="folder" data-folder="Conferences">Conferences</a>
-<a class="folder" data-folder="Strategy">Strategy</a>
-<a class="folder" data-folder="Branding">Branding</a>
-</div>
-</section>
+    <section class="card">
+      <h2>Folders</h2>
+      <div class="toolbar-row">
+        <label class="hint">Filter:</label>
+        <select class="al-input-sm" id="folderFilter"></select>
+        <input class="al-input-sm" id="newFolder" placeholder="New folder (optional)"/>
+      </div>
+    </section>
 
-<section class="card">
-<h2>Files</h2>
-<table class="table" id="filesTable">
-<thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Modified</th><th>Actions</th></tr></thead>
-<tbody><tr><td colspan="5" class="placeholder">(Files will appear here.)</td></tr></tbody>
-</table>
-</section>
-</main>
+    <section class="card">
+      <h2>Upload</h2>
+      <div class="toolbar-row">
+        <input class="al-input-sm" type="file" id="fileInput" multiple />
+        <button class="btn" id="uploadBtn">Upload</button>
+        <span class="hint" id="uploadHint">Select files, pick folder, then Upload.</span>
+      </div>
+      <div id="uploadLog" class="hint"></div>
+    </section>
+
+    <section class="card">
+      <h2>Files</h2>
+      <table class="table" id="filesTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Folder</th>
+            <th>Size</th>
+            <th>Uploaded</th>
+            <th>Owner</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="placeholder">(Files will appear here.)</td></tr></tbody>
+      </table>
+    </section>
+  </main>
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
 
 <script>
-(async function(){
-  const tbody=document.getElementById('filesTable').querySelector('tbody');
-  try{
-    const r=await fetch('/api/msbs/files',{cache:'no-store'});
-    if(!r.ok) throw 0;
-    const items=await r.json();
-    tbody.innerHTML='';
-    items.forEach(f=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td>${f.name}</td>
-        <td>${(f.size/1024).toFixed(1)} KB</td>
-        <td>${f.uploaded? new Date(f.uploaded).toLocaleString():''}</td>
-        <td><a href="/files/name/${encodeURIComponent(f.name)}" target="_blank">Open</a></td>`;
-      tbody.appendChild(tr);
-    });
-  }catch(_){}
-})();
-</script>
+// Welcome fill
+function readCookie(n){return (document.cookie||'').split('; ').map(p=>p.split('=')).find(p=>p[0]===n)?.[1]||null;}
+const CURRENT_USER = decodeURIComponent(readCookie('al_user_email')||'');
+(function(){ var slot=document.getElementById('welcomeUser'); if(slot&&CURRENT_USER) slot.textContent=CURRENT_USER; })();
 
+// State
+let CURRENT_FOLDER = '';
+
+// Helpers
+function fmtSize(n){ if(!n&&n!==0) return ''; const kb=n/1024; if(kb<1024) return kb.toFixed(1)+' KB'; const mb=kb/1024; return mb.toFixed(2)+' MB'; }
+
+// Load folders + files
+async function loadFolders(){
+  const sel = document.getElementById('folderFilter');
+  const r = await fetch('/api/msbs/files/folders',{cache:'no-store'});
+  const folders = (await r.json()) || [];
+  sel.innerHTML = '<option value="">All</option>' + folders.map(f=>`<option ${f===CURRENT_FOLDER?'selected':''}>${f}</option>`).join('');
+}
+async function loadFiles(){
+  const tbody = document.querySelector('#filesTable tbody');
+  const url = CURRENT_FOLDER ? `/api/msbs/files?folder=${encodeURIComponent(CURRENT_FOLDER)}` : '/api/msbs/files';
+  const r = await fetch(url,{cache:'no-store'});
+  const items = await r.json();
+  tbody.innerHTML = '';
+  if(!items.length){ tbody.innerHTML = '<tr><td colspan="6" class="placeholder">(No files)</td></tr>'; return; }
+  items.forEach(f=>{
+    const mine = (CURRENT_USER||'').toLowerCase()===(f.ownerEmail||'').toLowerCase();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${f.name}</td>
+      <td>${f.folder || ''}</td>
+      <td>${fmtSize(f.size)}</td>
+      <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
+      <td>${f.ownerEmail || ''}</td>
+      <td>
+        <a class="btn btn-ghost" href="/files/name/${encodeURIComponent(f.name)}" target="_blank" rel="noopener">Open</a>
+        ${mine ? `<button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>` : ''}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function refreshAll(){ await loadFolders(); await loadFiles(); }
+
+// Folder filter change
+document.getElementById('folderFilter').addEventListener('change', (e)=>{
+  CURRENT_FOLDER = e.target.value || '';
+  loadFiles();
+});
+
+// Upload
+document.getElementById('uploadBtn').addEventListener('click', async ()=>{
+  const fi = document.getElementById('fileInput');
+  const log = document.getElementById('uploadLog');
+  const folder = (document.getElementById('newFolder').value || document.getElementById('folderFilter').value || '').trim();
+  if(!fi.files.length){ log.textContent='No files selected.'; return; }
+
+  const fd = new FormData();
+  Array.from(fi.files).forEach(f => fd.append('file', f));
+  fd.append('folder', folder);
+
+  const r = await fetch('/api/msbs/files/upload',{ method:'POST', body: fd });
+  if(!r.ok){ log.textContent='Upload failed.'; return; }
+  const data = await r.json();
+  log.textContent = `Uploaded ${data.uploaded?.length||0} file(s).`;
+  // Reset inputs
+  fi.value='';
+  if (folder && !document.getElementById('folderFilter').value) {
+    CURRENT_FOLDER = folder; // jump to new folder
+  }
+  await refreshAll();
+});
+
+// Delete (owner-only)
+async function del(id){
+  if(!confirm('Delete this file?')) return;
+  const r = await fetch(`/api/msbs/files/${encodeURIComponent(id)}`, { method:'DELETE' });
+  if(!r.ok){ alert('Delete failed'); return; }
+  await loadFiles();
+}
+
+// Bootstrap
+refreshAll();
+</script>
 </body>
 </html>
