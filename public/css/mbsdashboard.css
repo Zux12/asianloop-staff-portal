@@ -152,3 +152,6 @@ body{
 .al-input-sm:focus{ outline:none; border-color:rgba(255,255,255,.3) }
 .actions-row{ display:flex; gap:6px; align-items:center }
 .toolbar-row{ display:flex; gap:10px; align-items:center; margin:8px 0 }
+
+#filesTable td, #filesTable th { vertical-align: middle; }
+#uploadLog { margin-top: 6px; }
