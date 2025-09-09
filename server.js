@@ -608,35 +608,53 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
   const ownerEmail = req.session?.user?.email || '';
-  const bb = Busboy({ headers: req.headers });
+  const bb = require('busboy')({ headers: req.headers });
 
   let folder = '';
   const results = [];
-  let errored = false;
+  let pending = 0;
+  let ended = false;
+  let responded = false;
+
+  function maybeReply(ok = true, payload = null) {
+    if (responded) return;
+    if (!ended || pending > 0) return;
+    responded = true;
+    return ok ? res.json({ ok: true, uploaded: results }) 
+              : res.status(500).json(payload || { error: 'Upload failed' });
+  }
 
   bb.on('field', (name, val) => {
     if (name === 'folder') folder = String(val || '').trim();
   });
 
-  bb.on('file', (name, file, info) => {
+  bb.on('file', (_name, file, info) => {
     const { filename, mimeType } = info;
+    if (!filename) return;
+    pending++;
+
     const up = gfs.openUploadStream(filename, {
       contentType: mimeType,
       metadata: { folder, ownerEmail }
     });
+
     file.pipe(up)
-      .on('error', (err) => { errored = true; res.status(500).json({ error: err.message }); })
+      .on('error', (err) => {
+        responded = true;
+        res.status(500).json({ error: err.message });
+      })
       .on('finish', (f) => {
         results.push({ id: String(f._id), name: f.filename });
+        pending--;
+        maybeReply();
       });
   });
 
-  bb.on('close', () => {
-    if (!errored) res.json({ ok: true, uploaded: results });
-  });
+  bb.on('finish', () => { ended = true; maybeReply(); });
 
   req.pipe(bb);
 });
+
 
 // Delete (owner only)
 app.delete('/api/msbs/files/:id', requireAuth, async (req, res) => {
