@@ -9,7 +9,8 @@
 <div class="al-inner">
 <a class="al-brand" href="/">Asianloop Staff Portal</a>
 <nav class="al-topnav">
-<span id="welcomeUser">Welcome, {{userEmail}}</span>
+  <span id="welcomeUser">Welcome, —</span>
+
 <a href="/logout" class="btn btn-ghost">Logout</a>
 </nav>
 </div>
@@ -69,7 +70,33 @@
     });
   } catch(_){}
 })();
+
+// Fill "Welcome, <email>" using cookie, then /me as fallback
+(function () {
+  var slot = document.getElementById('welcomeUser');
+  if (!slot) return;
+
+  function readCookie(n){
+    var parts = (document.cookie || '').split('; ');
+    for (var i=0;i<parts.length;i++){
+      var p = parts[i], eq = p.indexOf('=');
+      if (eq>-1 && decodeURIComponent(p.slice(0,eq))===n) {
+        return decodeURIComponent(p.slice(eq+1));
+      }
+    }
+    return null;
+  }
+
+  var email = readCookie('al_user_email');
+  if (email) { slot.textContent = 'Welcome, ' + email; return; }
+
+  fetch('/me', { cache:'no-store', credentials:'same-origin' })
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(u){ if (u && u.email) slot.textContent = 'Welcome, ' + u.email; })
+    .catch(function(){});
+})();
 </script>
 
+  
 </body>
 </html>
