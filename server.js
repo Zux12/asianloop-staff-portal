@@ -607,21 +607,20 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 // Upload (multi-file). Owner = current user. Optional folder.
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
+
   const ownerEmail = req.session?.user?.email || '';
-  const bb = require('busboy')({ headers: req.headers });
+  const Busboy = require('busboy');
+  const bb = Busboy({ headers: req.headers });
 
   let folder = '';
-  const results = [];
-  let pending = 0;
-  let ended = false;
-  let responded = false;
+  let pending = 0, done = false, responded = false;
+  const uploaded = [];
 
-  function maybeReply(ok = true, payload = null) {
+  function tryReply(ok = true, payload) {
     if (responded) return;
-    if (!ended || pending > 0) return;
+    if (!done || pending > 0) return;
     responded = true;
-    return ok ? res.json({ ok: true, uploaded: results }) 
-              : res.status(500).json(payload || { error: 'Upload failed' });
+    return ok ? res.json({ ok: true, uploaded }) : res.status(500).json(payload || { error: 'Upload failed' });
   }
 
   bb.on('field', (name, val) => {
@@ -629,47 +628,46 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   });
 
   bb.on('file', (_name, file, info) => {
-    const { filename, mimeType } = info;
+    const { filename, mimeType } = info || {};
     if (!filename) return;
     pending++;
 
     const up = gfs.openUploadStream(filename, {
-      contentType: mimeType,
+      contentType: mimeType || undefined,
       metadata: { folder, ownerEmail }
     });
 
     file.pipe(up)
-      .on('error', (err) => {
-        responded = true;
-        res.status(500).json({ error: err.message });
-      })
-      .on('finish', (f) => {
-        results.push({ id: String(f._id), name: f.filename });
-        pending--;
-        maybeReply();
+      .on('error', err => { responded = true; res.status(500).json({ error: err.message }); })
+      .on('finish', f => {
+        uploaded.push({ id: String(f._id), name: f.filename });
+        pending--; tryReply();
       });
   });
 
-  bb.on('finish', () => { ended = true; maybeReply(); });
-
+  bb.on('finish', () => { done = true; tryReply(); });
   req.pipe(bb);
 });
+
 
 
 // Delete (owner only)
 app.delete('/api/msbs/files/:id', requireAuth, async (req, res) => {
   try {
     const _id = new ObjectId(req.params.id);
-    const me = req.session?.user?.email || '';
+    const me = (req.session?.user?.email || '').toLowerCase();
     const doc = await db.collection('msbsFiles.files').findOne({ _id });
     if (!doc) return res.status(404).json({ error: 'Not found' });
-    if ((doc?.metadata?.ownerEmail || '') !== me)
-      return res.status(403).json({ error: 'Not your file' });
+
+    const owner = (doc?.metadata?.ownerEmail || '').toLowerCase();
+    const isOwnerless = !owner;
+    if (!isOwnerless && owner !== me) return res.status(403).json({ error: 'Not your file' });
 
     await gfs.delete(_id);
     res.json({ ok: true, deleted: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
 
 
 // -------- 404 --------
