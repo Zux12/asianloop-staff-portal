@@ -4,6 +4,8 @@ const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
+const Busboy = require('busboy');
+
 
 
 
@@ -120,22 +122,17 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon
 
 
 // -------- Mongo (Atlas) --------
+
+
 let db, gfs;
 (async function connectMongo(){
-  if (!MONGO_URI) {
-    console.warn('MONGO_URI is not set; /api/msbs/* will respond 503');
-    return;
-  }
-  try {
-    const client = new MongoClient(MONGO_URI);
-    await client.connect();
-    db = client.db(); // database comes from the URI path
-    gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
-    console.log('Mongo connected • db:', db.databaseName);
-  } catch (e) {
-    console.error('Mongo connect error:', e.message);
-  }
+  const client = new MongoClient(process.env.MONGO_URI);
+  await client.connect();
+  db = client.db();
+  gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
+  console.log('Mongo connected • db:', db.databaseName);
 })();
+
 
 // -------- MBS: API (read-only) --------
 
@@ -570,7 +567,7 @@ app.get('/api/msbs/files', requireAuth, async (req,res)=>{
 
 
 // ===== MBS: Files Hub (GridFS) =====
-const Busboy = require('busboy'); // <- add at top with other requires if you prefer
+
 
 // List files (optional folder filter)
 app.get('/api/msbs/files', requireAuth, async (req, res) => {
@@ -609,7 +606,12 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 
 
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
+
+  if (!gfs && db) gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
+
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
+
+  
 
   const ownerEmail = req.session?.user?.email || '';
   const bb = Busboy({ headers: req.headers });
