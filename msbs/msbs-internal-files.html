@@ -139,12 +139,20 @@ document.getElementById('uploadBtn').addEventListener('click', async ()=>{
   fd.append('folder', folder);
 
   try {
-    const r = await fetch('/api/msbs/files/upload', { method: 'POST', body: fd });
+    const r = await fetch('/api/msbs/files/upload', {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin'           // <- ensure session cookie is sent (Safari-safe)
+    });
     const ct = r.headers.get('content-type') || '';
     const text = await r.text();
-    if (!r.ok) { log.textContent = 'Upload failed: ' + text.slice(0,120); return; }
+
+    if (!r.ok) {
+      log.textContent = `Upload failed (HTTP ${r.status}): ` + text.slice(0, 140);
+      return;
+    }
     const data = ct.includes('application/json') ? JSON.parse(text) : {};
-    const n = (data && data.uploaded && data.uploaded.length) ? data.uploaded.length : 0;
+    const n = (data.uploaded && data.uploaded.length) ? data.uploaded.length : 0;
     log.textContent = `Uploaded ${n} file(s).`;
     fi.value = '';
     if (folder && !document.getElementById('folderFilter').value) CURRENT_FOLDER = folder;
@@ -153,6 +161,7 @@ document.getElementById('uploadBtn').addEventListener('click', async ()=>{
     log.textContent = 'Upload failed: network/error';
   }
 });
+
 
 // Delete
 async function del(id){
