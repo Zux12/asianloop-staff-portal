@@ -96,26 +96,26 @@ async function loadFolders(){
 }
 async function loadFiles(){
   const tbody = document.querySelector('#filesTable tbody');
-
-
   const folder = (CURRENT_FOLDER || '').trim();
-const url = folder ? '/api/msbs/files?folder=' + encodeURIComponent(folder) : '/api/msbs/files';
-
+  const url = folder ? '/api/msbs/files?folder=' + encodeURIComponent(folder) : '/api/msbs/files';
 
   const r = await fetch(url,{cache:'no-store'});
   const items = await r.json();
   tbody.innerHTML = '';
   if(!items.length){ tbody.innerHTML = '<tr><td colspan="6" class="placeholder">(No files)</td></tr>'; return; }
+
   items.forEach(f=>{
-   
-
-
-<td>
-<a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
-<button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>
-</td> ;
-
-    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${f.name}</td>
+      <td>${f.folder || ''}</td>
+      <td>${fmtSize(f.size)}</td>
+      <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
+      <td>${f.ownerEmail || ''}</td>
+      <td>
+        <a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
+        <button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>
+      </td>`;
     tbody.appendChild(tr);
   });
 }
@@ -127,31 +127,34 @@ document.getElementById('folderFilter').addEventListener('change', (e)=>{
   loadFiles();
 });
 
-// Upload
+// Upload (tolerant to non-JSON responses)
 document.getElementById('uploadBtn').addEventListener('click', async ()=>{
   const fi = document.getElementById('fileInput');
   const log = document.getElementById('uploadLog');
   const folder = ((document.getElementById('newFolder').value || document.getElementById('folderFilter').value) || '').trim();
-
-  if(!fi.files.length){ log.textContent='No files selected.'; return; }
+  if (!fi.files.length) { log.textContent = 'No files selected.'; return; }
 
   const fd = new FormData();
   Array.from(fi.files).forEach(f => fd.append('file', f));
   fd.append('folder', folder);
 
-  const r = await fetch('/api/msbs/files/upload',{ method:'POST', body: fd });
-  if(!r.ok){ log.textContent='Upload failed.'; return; }
-  const data = await r.json();
-  log.textContent = `Uploaded ${data.uploaded?.length||0} file(s).`;
-  // Reset inputs
-  fi.value='';
-  if (folder && !document.getElementById('folderFilter').value) {
-    CURRENT_FOLDER = folder; // jump to new folder
+  try {
+    const r = await fetch('/api/msbs/files/upload', { method: 'POST', body: fd });
+    const ct = r.headers.get('content-type') || '';
+    const text = await r.text();
+    if (!r.ok) { log.textContent = 'Upload failed: ' + text.slice(0,120); return; }
+    const data = ct.includes('application/json') ? JSON.parse(text) : {};
+    const n = (data && data.uploaded && data.uploaded.length) ? data.uploaded.length : 0;
+    log.textContent = `Uploaded ${n} file(s).`;
+    fi.value = '';
+    if (folder && !document.getElementById('folderFilter').value) CURRENT_FOLDER = folder;
+    await refreshAll();
+  } catch (_) {
+    log.textContent = 'Upload failed: network/error';
   }
-  await refreshAll();
 });
 
-// Delete (owner-only)
+// Delete
 async function del(id){
   id = String(id || '').trim();
   if (!id) { alert('Invalid id'); return; }
@@ -164,9 +167,9 @@ async function del(id){
   }
 }
 
-
 // Bootstrap
 refreshAll();
 </script>
+
 </body>
 </html>
