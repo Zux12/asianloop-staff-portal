@@ -607,6 +607,7 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 // Upload (multi-file). Owner = current user. Optional folder.
 // at top: const Busboy = require('busboy');
 
+
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
 
@@ -620,40 +621,30 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   const reply = (ok, payload) => {
     if (responded) return;
     responded = true;
-    if (ok) res.json({ ok: true, uploaded });
-    else res.status(500).json(payload || { error: 'Upload failed' });
+    return ok ? res.json({ ok: true, uploaded })
+              : res.status(500).json(payload || { error: 'Upload failed' });
   };
+  const maybeReply = () => { if (finished && pending === 0 && !responded) reply(true); };
 
-  const maybeReply = () => {
-    if (!finished || pending > 0 || responded) return;
-    reply(true);
-  };
-
-  bb.on('field', (name, val) => {
-    if (name === 'folder') folder = String(val || '').trim();
-  });
+  bb.on('field', (name, val) => { if (name === 'folder') folder = String(val || '').trim(); });
 
   bb.on('file', (_name, file, info) => {
     const { filename, mimeType } = info || {};
     if (!filename) return;
     pending++;
-
     const up = gfs.openUploadStream(filename, {
       contentType: mimeType || undefined,
       metadata: { folder, ownerEmail }
     });
-
     file.pipe(up)
       .on('error', err => reply(false, { error: err.message }))
-      .on('finish', f => {
-        uploaded.push({ id: String(f._id), name: f.filename });
-        pending--; maybeReply();
-      });
+      .on('finish', f => { uploaded.push({ id: String(f._id), name: f.filename }); pending--; maybeReply(); });
   });
 
   bb.on('finish', () => { finished = true; maybeReply(); });
   req.pipe(bb);
 });
+
 
 
 
