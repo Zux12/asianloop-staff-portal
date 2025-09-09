@@ -96,7 +96,9 @@ async function loadFolders(){
 }
 async function loadFiles(){
   const tbody = document.querySelector('#filesTable tbody');
-  const url = CURRENT_FOLDER ? `/api/msbs/files?folder=${encodeURIComponent(CURRENT_FOLDER)}` : '/api/msbs/files';
+const folder = (CURRENT_FOLDER || '').trim();
+const url = folder ? `/api/msbs/files?folder=${encodeURIComponent(folder)}` : '/api/msbs/files';
+
   const r = await fetch(url,{cache:'no-store'});
   const items = await r.json();
   tbody.innerHTML = '';
@@ -129,7 +131,8 @@ document.getElementById('folderFilter').addEventListener('change', (e)=>{
 document.getElementById('uploadBtn').addEventListener('click', async ()=>{
   const fi = document.getElementById('fileInput');
   const log = document.getElementById('uploadLog');
-  const folder = (document.getElementById('newFolder').value || document.getElementById('folderFilter').value || '').trim();
+  const folder = ((document.getElementById('newFolder').value || document.getElementById('folderFilter').value) || '').trim();
+
   if(!fi.files.length){ log.textContent='No files selected.'; return; }
 
   const fd = new FormData();
