@@ -111,7 +111,7 @@ async function loadFiles(){
       <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
       <td>${f.ownerEmail || ''}</td>
       <td>
-        <a class="btn btn-ghost" href="/files/name/${encodeURIComponent(f.name)}" target="_blank" rel="noopener">Open</a>
+        <a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
         ${mine ? `<button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>` : ''}
       </td>`;
     tbody.appendChild(tr);
@@ -150,11 +150,17 @@ document.getElementById('uploadBtn').addEventListener('click', async ()=>{
 
 // Delete (owner-only)
 async function del(id){
-  if(!confirm('Delete this file?')) return;
-  const r = await fetch(`/api/msbs/files/${encodeURIComponent(id)}`, { method:'DELETE' });
-  if(!r.ok){ alert('Delete failed'); return; }
-  await loadFiles();
+  id = String(id || '').trim();
+  if (!id) { alert('Invalid id'); return; }
+  try {
+    const r = await fetch('/api/msbs/files/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!r.ok){ alert('Delete failed'); return; }
+    await loadFiles();
+  } catch (e) {
+    alert('Delete error');
+  }
 }
+
 
 // Bootstrap
 refreshAll();
