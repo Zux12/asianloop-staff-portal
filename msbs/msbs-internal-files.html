@@ -96,8 +96,11 @@ async function loadFolders(){
 }
 async function loadFiles(){
   const tbody = document.querySelector('#filesTable tbody');
-const folder = (CURRENT_FOLDER || '').trim();
-const url = folder ? `/api/msbs/files?folder=${encodeURIComponent(folder)}` : '/api/msbs/files';
+
+
+  const folder = (CURRENT_FOLDER || '').trim();
+const url = folder ? '/api/msbs/files?folder=' + encodeURIComponent(folder) : '/api/msbs/files';
+
 
   const r = await fetch(url,{cache:'no-store'});
   const items = await r.json();
