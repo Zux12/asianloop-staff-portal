@@ -553,16 +553,39 @@ app.post('/api/msbs/notes/delete', requireAuth, async (req, res) => {
 
 
 // -------- MBS: File hub --------
-app.get('/api/msbs/files', requireAuth, async (req,res)=>{
-  if (!db) return res.status(503).json({error:'DB not ready'});
-  try{
-    const files = await db.collection('msbsFiles.files')
-      .find({}, {projection:{filename:1,length:1,uploadDate:1}})
-      .sort({uploadDate:-1}).toArray();
-    res.json(files.map(f=>({
-      id:f._id, name:f.filename, size:f.length, uploaded:f.uploadDate
-    })));
-  }catch(e){res.status(500).json({error:e.message});}
+// List files (optional folder filter)
+app.get('/api/msbs/files', requireAuth, async (req, res) => {
+  try {
+    const q = {};
+    if (req.query.folder) q['metadata.folder'] = String(req.query.folder).trim();
+
+    const rows = await db.collection('msbsFiles.files')
+      .find(q)
+      .project({
+        filename: 1,
+        length: 1,
+        uploadDate: 1,
+        contentType: 1,
+        'metadata.folder': 1,        // <-- include metadata
+        'metadata.ownerEmail': 1     // <-- include metadata
+      })
+      .sort({ uploadDate: -1 })
+      .toArray();
+
+    const items = rows.map(f => ({
+      id: String(f._id),
+      name: f.filename,
+      size: f.length,
+      uploaded: f.uploadDate,
+      contentType: f.contentType || '',
+      folder: f?.metadata?.folder || '',
+      ownerEmail: f?.metadata?.ownerEmail || ''
+    }));
+
+    res.json(items);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 
