@@ -606,48 +606,52 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 
 
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
-
   if (!gfs && db) gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
-
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
-
-  
 
   const ownerEmail = req.session?.user?.email || '';
   const bb = Busboy({ headers: req.headers });
 
-  let folder = '';
+  // NEW: take folder from query first
+  let folder = String(req.query.folder || '').trim();
+
   let pending = 0, finished = false, responded = false;
   const uploaded = [];
 
   const reply = (ok, payload) => {
-    if (responded) return;
-    responded = true;
+    if (responded) return; responded = true;
     return ok ? res.json({ ok: true, uploaded })
               : res.status(500).json(payload || { error: 'Upload failed' });
   };
   const maybeReply = () => { if (finished && pending === 0 && !responded) reply(true); };
 
-  bb.on('field', (name, val) => { if (name === 'folder') folder = String(val || '').trim(); });
+  // If the form field arrives later, only override if still blank
+  bb.on('field', (name, val) => {
+    if (name === 'folder' && !folder) folder = String(val || '').trim();
+  });
 
   bb.on('file', (_name, file, info) => {
     const { filename, mimeType } = info || {};
     if (!filename) return;
     pending++;
+
     const up = gfs.openUploadStream(filename, {
       contentType: mimeType || undefined,
       metadata: { folder, ownerEmail }
     });
+
     file.pipe(up)
-    .on('error', err => reply(false, { error: err.message }))
-    .on('finish', () => {
-    uploaded.push({ id: String(up.id), name: up.filename });
-    pending--; maybeReply();  });
-    });
+      .on('error', err => reply(false, { error: err.message }))
+      .on('finish', () => {
+        uploaded.push({ id: String(up.id), name: up.filename });
+        pending--; maybeReply();
+      });
+  });
 
   bb.on('finish', () => { finished = true; maybeReply(); });
   req.pipe(bb);
 });
+
 
 
 
