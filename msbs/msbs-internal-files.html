@@ -107,18 +107,15 @@ const url = folder ? '/api/msbs/files?folder=' + encodeURIComponent(folder) : '/
   tbody.innerHTML = '';
   if(!items.length){ tbody.innerHTML = '<tr><td colspan="6" class="placeholder">(No files)</td></tr>'; return; }
   items.forEach(f=>{
-    const mine = (CURRENT_USER||'').toLowerCase()===(f.ownerEmail||'').toLowerCase();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${f.name}</td>
-      <td>${f.folder || ''}</td>
-      <td>${fmtSize(f.size)}</td>
-      <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
-      <td>${f.ownerEmail || ''}</td>
-      <td>
-        <a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
-        ${mine ? `<button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>` : ''}
-      </td>`;
+   
+
+
+<td>
+<a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
+<button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>
+</td> ;
+
+    
     tbody.appendChild(tr);
   });
 }
