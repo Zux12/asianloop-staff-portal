@@ -566,8 +566,9 @@ app.get('/api/msbs/files', requireAuth, async (req, res) => {
         length: 1,
         uploadDate: 1,
         contentType: 1,
-        'metadata.folder': 1,        // <-- include metadata
-        'metadata.ownerEmail': 1     // <-- include metadata
+        'metadata.folder': 1,
+        'metadata.ownerEmail': 1,
+        'metadata.branding': 1
       })
       .sort({ uploadDate: -1 })
       .toArray();
@@ -579,7 +580,8 @@ app.get('/api/msbs/files', requireAuth, async (req, res) => {
       uploaded: f.uploadDate,
       contentType: f.contentType || '',
       folder: f?.metadata?.folder || '',
-      ownerEmail: f?.metadata?.ownerEmail || ''
+      ownerEmail: f?.metadata?.ownerEmail || '',
+      branding: !!(f?.metadata?.branding)
     }));
 
     res.json(items);
@@ -589,8 +591,8 @@ app.get('/api/msbs/files', requireAuth, async (req, res) => {
 });
 
 
-// ===== MBS: Files Hub (GridFS) =====
 
+// ===== MBS: Files Hub (GridFS) =====
 
 // List files (optional folder filter)
 app.get('/api/msbs/files', requireAuth, async (req, res) => {
@@ -599,7 +601,16 @@ app.get('/api/msbs/files', requireAuth, async (req, res) => {
     if (req.query.folder) q['metadata.folder'] = String(req.query.folder).trim();
 
     const rows = await db.collection('msbsFiles.files')
-      .find(q, { projection: { filename:1, length:1, uploadDate:1, contentType:1, metadata:1 } })
+      .find(q)
+      .project({
+        filename: 1,
+        length: 1,
+        uploadDate: 1,
+        contentType: 1,
+        'metadata.folder': 1,
+        'metadata.ownerEmail': 1,
+        'metadata.branding': 1
+      })
       .sort({ uploadDate: -1 })
       .toArray();
 
@@ -610,10 +621,13 @@ app.get('/api/msbs/files', requireAuth, async (req, res) => {
       uploaded: f.uploadDate,
       contentType: f.contentType || '',
       folder: f?.metadata?.folder || '',
-      ownerEmail: f?.metadata?.ownerEmail || ''
+      ownerEmail: f?.metadata?.ownerEmail || '',
+      branding: !!(f?.metadata?.branding)
     }));
     res.json(items);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Distinct folders
@@ -621,13 +635,12 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
   try {
     const folders = await db.collection('msbsFiles.files').distinct('metadata.folder');
     res.json((folders || []).filter(Boolean).sort());
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// Upload (multi-file). Owner = current user. Optional folder.
-// at top: const Busboy = require('busboy');
-
-
+// Upload (multi-file). Owner = current user. Optional folder + branding flag.
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   if (!gfs && db) gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
@@ -635,22 +648,27 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   const ownerEmail = req.session?.user?.email || '';
   const bb = Busboy({ headers: req.headers });
 
-  // NEW: take folder from query first
+  // Prefer query values (works even if fields stream after files)
   let folder = String(req.query.folder || '').trim();
+  let brandingFlag = /^(1|true|on)$/i.test(String(req.query.branding || '').trim());
 
   let pending = 0, finished = false, responded = false;
   const uploaded = [];
 
   const reply = (ok, payload) => {
-    if (responded) return; responded = true;
+    if (responded) return;
+    responded = true;
     return ok ? res.json({ ok: true, uploaded })
               : res.status(500).json(payload || { error: 'Upload failed' });
   };
-  const maybeReply = () => { if (finished && pending === 0 && !responded) reply(true); };
+  const maybeReply = () => {
+    if (finished && pending === 0 && !responded) reply(true);
+  };
 
-  // If the form field arrives later, only override if still blank
+  // If the form field arrives later, only override if still blank/false
   bb.on('field', (name, val) => {
     if (name === 'folder' && !folder) folder = String(val || '').trim();
+    if (name === 'branding' && !brandingFlag) brandingFlag = /^(1|true|on)$/i.test(String(val || '').trim());
   });
 
   bb.on('file', (_name, file, info) => {
@@ -660,20 +678,89 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
 
     const up = gfs.openUploadStream(filename, {
       contentType: mimeType || undefined,
-      metadata: { folder, ownerEmail }
+      metadata: { folder, ownerEmail, branding: brandingFlag }
     });
 
     file.pipe(up)
       .on('error', err => reply(false, { error: err.message }))
-      .on('finish', () => {
+      .on('finish', async () => {
         uploaded.push({ id: String(up.id), name: up.filename });
-        pending--; maybeReply();
+
+        // If marked as branding, upsert into msbs_brand_assets
+        if (brandingFlag) {
+          try {
+            const fn = up.filename || '';
+            const ext = (fn.split('.').pop() || '').toLowerCase();
+            const kind =
+              /pptx?/.test(ext) ? 'slides' :
+              /docx?/.test(ext) ? 'letterhead' :
+              /pdf/.test(ext)   ? 'brochure' :
+              /png|jpe?g|svg|ico/.test(ext) ? 'logo' : 'asset';
+
+            await db.collection('msbs_brand_assets').updateOne(
+              { fileId: up.id },
+              { $set: { title: fn, kind, ext, fileId: up.id, bytes: null, createdAt: new Date() } },
+              { upsert: true }
+            );
+          } catch (e) {
+            // Don't fail the whole upload because branding upsert failed
+            console.warn('Branding upsert failed:', e.message);
+          }
+        }
+
+        pending--;
+        maybeReply();
       });
   });
 
   bb.on('finish', () => { finished = true; maybeReply(); });
+
   req.pipe(bb);
 });
+
+// Mark/Unmark branding on an existing file (owner-only)
+app.post('/api/msbs/files/branding', requireAuth, async (req, res) => {
+  try {
+    const me = (req.session?.user?.email || '').toLowerCase();
+    const { id, on, title } = req.body || {};
+    const _id = new ObjectId(String(id));
+
+    const f = await db.collection('msbsFiles.files').findOne({ _id });
+    if (!f) return res.status(404).json({ error: 'Not found' });
+
+    const owner = (f?.metadata?.ownerEmail || '').toLowerCase();
+    if (owner && owner !== me) return res.status(403).json({ error: 'Not your file' });
+
+    // Update file metadata flag
+    await db.collection('msbsFiles.files').updateOne(
+      { _id },
+      { $set: { 'metadata.branding': !!on } }
+    );
+
+    if (on) {
+      const fn = f.filename || '';
+      const ext = (fn.split('.').pop() || '').toLowerCase();
+      const kind =
+        /pptx?/.test(ext) ? 'slides' :
+        /docx?/.test(ext) ? 'letterhead' :
+        /pdf/.test(ext)   ? 'brochure' :
+        /png|jpe?g|svg|ico/.test(ext) ? 'logo' : 'asset';
+
+      await db.collection('msbs_brand_assets').updateOne(
+        { fileId: _id },
+        { $set: { title: (title || fn), kind, ext, fileId: _id, bytes: null, createdAt: new Date() } },
+        { upsert: true }
+      );
+    } else {
+      await db.collection('msbs_brand_assets').deleteOne({ fileId: _id });
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 
 
@@ -697,6 +784,54 @@ app.delete('/api/msbs/files/:id', requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Mark/Unmark branding on an existing file (owner-only)
+app.post('/api/msbs/files/branding', requireAuth, async (req, res) => {
+  try {
+    const me = (req.session?.user?.email || '').toLowerCase();
+    const { id, on, title } = req.body || {};
+    const _id = new ObjectId(String(id));
+    const f = await db.collection('msbsFiles.files').findOne({ _id });
+    if (!f) return res.status(404).json({ error: 'Not found' });
+
+    const owner = (f?.metadata?.ownerEmail || '').toLowerCase();
+    if (owner && owner !== me) return res.status(403).json({ error: 'Not your file' });
+
+    // Update file metadata flag
+    await db.collection('msbsFiles.files').updateOne(
+      { _id },
+      { $set: { 'metadata.branding': !!on } }
+    );
+
+    if (on) {
+      const fn = f.filename || '';
+      const ext = (fn.split('.').pop() || '').toLowerCase();
+      const kind = /pptx?/.test(ext) ? 'slides' :
+                   /docx?/.test(ext) ? 'letterhead' :
+                   /pdf/.test(ext)   ? 'brochure' :
+                   /png|jpg|jpeg|svg|ico/.test(ext) ? 'logo' : 'asset';
+
+      await db.collection('msbs_brand_assets').updateOne(
+        { fileId: _id },
+        {
+          $set: {
+            title: (title || fn),
+            kind, ext,
+            fileId: _id,
+            bytes: null,
+            createdAt: new Date()
+          }
+        },
+        { upsert: true }
+      );
+    } else {
+      await db.collection('msbs_brand_assets').deleteOne({ fileId: _id });
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 
 // -------- 404 --------
