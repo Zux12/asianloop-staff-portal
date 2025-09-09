@@ -605,23 +605,29 @@ app.get('/api/msbs/files/folders', requireAuth, async (req, res) => {
 });
 
 // Upload (multi-file). Owner = current user. Optional folder.
+// at top: const Busboy = require('busboy');
+
 app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
   if (!db || !gfs) return res.status(503).json({ error: 'DB not ready' });
 
   const ownerEmail = req.session?.user?.email || '';
-  const Busboy = require('busboy');
   const bb = Busboy({ headers: req.headers });
 
   let folder = '';
-  let pending = 0, done = false, responded = false;
+  let pending = 0, finished = false, responded = false;
   const uploaded = [];
 
-  function tryReply(ok = true, payload) {
+  const reply = (ok, payload) => {
     if (responded) return;
-    if (!done || pending > 0) return;
     responded = true;
-    return ok ? res.json({ ok: true, uploaded }) : res.status(500).json(payload || { error: 'Upload failed' });
-  }
+    if (ok) res.json({ ok: true, uploaded });
+    else res.status(500).json(payload || { error: 'Upload failed' });
+  };
+
+  const maybeReply = () => {
+    if (!finished || pending > 0 || responded) return;
+    reply(true);
+  };
 
   bb.on('field', (name, val) => {
     if (name === 'folder') folder = String(val || '').trim();
@@ -638,16 +644,17 @@ app.post('/api/msbs/files/upload', requireAuth, (req, res) => {
     });
 
     file.pipe(up)
-      .on('error', err => { responded = true; res.status(500).json({ error: err.message }); })
+      .on('error', err => reply(false, { error: err.message }))
       .on('finish', f => {
         uploaded.push({ id: String(f._id), name: f.filename });
-        pending--; tryReply();
+        pending--; maybeReply();
       });
   });
 
-  bb.on('finish', () => { done = true; tryReply(); });
+  bb.on('finish', () => { finished = true; maybeReply(); });
   req.pipe(bb);
 });
+
 
 
 
