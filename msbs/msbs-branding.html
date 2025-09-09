@@ -50,5 +50,26 @@
 </div>
 
 <footer class="al-footer">© Asianloop • MBS</footer>
+
+  <script>
+(async function(){
+  const ul = document.getElementById('brandAssetList');
+  if (!ul) return;
+  try {
+    const r = await fetch('/api/msbs/brand-assets', { cache:'no-store', credentials:'same-origin' });
+    if (!r.ok) throw 0;
+    const items = await r.json();
+    if (!items.length) return;
+
+    ul.innerHTML = '';
+    items.forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a class="link" href="${a.href}" target="_blank" rel="noopener">${a.title || 'Download'}</a>`;
+      ul.appendChild(li);
+    });
+  } catch(_){}
+})();
+</script>
+
 </body>
 </html>
