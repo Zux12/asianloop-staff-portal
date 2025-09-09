@@ -44,15 +44,19 @@
       </div>
     </section>
 
-    <section class="card">
-      <h2>Upload</h2>
-      <div class="toolbar-row">
-        <input class="al-input-sm" type="file" id="fileInput" multiple />
-        <button class="btn" id="uploadBtn">Upload</button>
-        <span class="hint" id="uploadHint">Select files, pick folder, then Upload.</span>
-      </div>
-      <div id="uploadLog" class="hint"></div>
-    </section>
+<section class="card">
+  <h2>Upload</h2>
+  <div class="toolbar-row">
+    <input class="al-input-sm" type="file" id="fileInput" multiple />
+    <button class="btn" id="uploadBtn">Upload</button>
+    <label class="hint">
+      <input type="checkbox" id="brandFlag"> Mark as Branding
+    </label>
+    <span class="hint" id="uploadHint">Select files, pick folder, then Upload.</span>
+  </div>
+  <div id="uploadLog" class="hint"></div>
+</section>
+
 
     <section class="card">
       <h2>Files</h2>
@@ -124,16 +128,21 @@ async function loadFiles(){
 
   items.forEach(f=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${f.name}</td>
-      <td>${f.folder || ''}</td>
-      <td>${fmtSize(f.size)}</td>
-      <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
-      <td>${f.ownerEmail || ''}</td>
-      <td>
-        <a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
-        <button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>
-      </td>`;
+  tr.innerHTML = `
+  <td>${f.name} ${f.branding ? '<span class="badge-note note-Info" style="margin-left:6px;">Branding</span>' : ''}</td>
+  <td>${f.folder || ''}</td>
+  <td>${fmtSize(f.size)}</td>
+  <td>${f.uploaded ? new Date(f.uploaded).toLocaleString() : ''}</td>
+  <td>${f.ownerEmail || ''}</td>
+  <td class="actions-row">
+    <a class="btn btn-ghost" href="/files/${f.id}" target="_blank" rel="noopener">Open</a>
+    <button class="btn btn-ghost" onclick="del('${f.id}')">Delete</button>
+    ${f.branding
+      ? `<button class="btn btn-ghost" onclick="toggleBrand('${f.id}', false)">Unmark Branding</button>`
+      : `<button class="btn btn-ghost" onclick="toggleBrand('${f.id}', true)">Mark Branding</button>`
+    }
+  </td>`;
+
     tbody.appendChild(tr);
   });
 }
@@ -204,8 +213,53 @@ async function del(id){
   }
 }
 
+async function toggleBrand(id, on){
+  const title = on ? prompt('Branding title (optional):', '') : '';
+  const r = await fetch('/api/msbs/files/branding', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, on, title })
+  });
+  if (!r.ok) { alert('Branding toggle failed'); return; }
+  await loadFiles();
+}
+
+  
 // Bootstrap
 refreshAll();
+
+  document.getElementById('uploadBtn').addEventListener('click', async ()=>{
+  const fi   = document.getElementById('fileInput');
+  const log  = document.getElementById('uploadLog');
+  const folder = ((document.getElementById('newFolder')?.value || document.getElementById('folderFilter')?.value) || '').trim();
+  if (!fi.files.length) { log.textContent = 'No files selected.'; return; }
+
+  const fd = new FormData();
+  fd.append('folder', folder);
+
+  // ✅ Branding flag
+  const brand = document.getElementById('brandFlag').checked;
+  fd.append('branding', brand ? '1' : '');
+
+  Array.from(fi.files).forEach(f => fd.append('file', f));
+
+  const r = await fetch('/api/msbs/files/upload?folder=' + encodeURIComponent(folder) + (brand ? '&branding=1' : ''), {
+    method: 'POST',
+    body: fd,
+    credentials: 'same-origin'
+  });
+
+  const ct = r.headers.get('content-type') || '';
+  const text = await r.text();
+
+  if (!r.ok) { log.textContent = `Upload failed (HTTP ${r.status}): ` + text.slice(0,140); return; }
+  const data = ct.includes('application/json') ? JSON.parse(text) : {};
+  log.textContent = `Uploaded ${(data.uploaded?.length)||0} file(s).`;
+  fi.value = '';
+  if (folder && !document.getElementById('folderFilter').value) CURRENT_FOLDER = folder;
+  await refreshAll();
+});
+
 </script>
 
 </body>
