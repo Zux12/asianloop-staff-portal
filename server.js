@@ -1,50 +1,61 @@
-// ===== BOOT/CRASH BEACONS (top of server.js) =====
-process.on('uncaughtException', e => { console.error('[UNCAUGHT]', e); process.exit(1); });
-process.on('unhandledRejection', r => { console.error('[UNHANDLED]', r); process.exit(1); });
+// ===== BOOT/CRASH BEACONS (TOP OF FILE) =====
+process.on('uncaughtException', (e) => { console.error('[UNCAUGHT]', e); process.exit(1); });
+process.on('unhandledRejection', (r) => { console.error('[UNHANDLED]', r); process.exit(1); });
 
-console.log(`[BOOT] Node ${process.version} starting…`);
+console.log(`[BOOT] Node ${process.version} starting...`);
+
+require('dotenv').config();                 console.log('[BOOT] dotenv loaded');
+
+// ----- requires (keep exactly one of each) -----
+const path = require('path');               console.log('[BOOT] path loaded');
+const express = require('express');         console.log('[BOOT] express loaded');
+const session = require('express-session'); console.log('[BOOT] session loaded');
+const rateLimit = require('express-rate-limit'); console.log('[BOOT] rate-limit loaded');
+const Busboy = require('busboy');           console.log('[BOOT] busboy loaded');
+
+const { MongoClient, ObjectId, GridFSBucket } = require('mongodb'); console.log('[BOOT] mongodb loaded');
+
+// DB helper + router (must exist on disk)
+const { connect } = require('./server/db'); console.log('[BOOT] db helper loaded');
+const commonFiles = require('./server/routes/commonFiles'); console.log('[BOOT] commonFiles router loaded');
+
+// ----- app + parsers -----
+const app = express();
+app.set('trust proxy', 1);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+console.log('[BOOT] parsers attached');
+
+// ----- quick request logger -----
+app.use((req, res, next) => {
+  const t0 = Date.now();
+  console.log(`[REQ] ${req.method} ${req.originalUrl} referer=${req.get('referer')||'-'}`);
+  res.on('finish', () => console.log(`[RES] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now()-t0}ms)`));
+  next();
+});
+
+// ----- auth helpers -----
+function requireAuth(req, res, next) {
+  if (req.session?.user) return next();
+  return res.redirect('/');
+}
+const maybeRequireAuth = (typeof requireAuth === 'function')
+  ? requireAuth
+  : (req, res, next) => next();
+
+// ----- env snapshot (safe) -----
 console.log('[BOOT] ENV set:', {
   PORT: !!process.env.PORT,
   MONGO_URI: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
   NODE_ENV: process.env.NODE_ENV
 });
 
-
-
-require('dotenv').config(); console.log('[BOOT] express loaded');
-const { MongoClient, ObjectId, GridFSBucket } = require('mongodb'); console.log('[BOOT] express loaded');
-const path = require('path'); console.log('[BOOT] express loaded');
-const express = require('express'); console.log('[BOOT] express loaded');
-const session = require('express-session'); console.log('[BOOT] express loaded');
-const rateLimit = require('express-rate-limit'); console.log('[BOOT] express loaded');
-const Busboy = require('busboy'); console.log('[BOOT] express loaded');
-const { connect } = require('./server/db');   // <-- add this
-const commonFiles = require('./server/routes/commonFiles');
-
-// ===== REQUEST LOGGER (early) =====
-app.use((req, res, next) => {
-  res.locals._t0 = Date.now();
-  console.log(`[REQ] ${req.method} ${req.originalUrl}  referer=${req.get('referer')||'-'}`);
-  res.on('finish', () => console.log(`[RES] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now()-res.locals._t0}ms)`));
-  next();
-});
-
+// ----- connect db ONCE -----
 connect()
   .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
   .catch(err => { console.error('[BOOT] Mongo connect error:', err); process.exit(1); });
 
-
-
-
-
-const app = express();
-console.log('[BOOT] attaching parsers');
-app.set('trust proxy', 1);
-// Log early to help Heroku logs show the real error line
-console.log(`[BOOT] Node ${process.version}, NODE_ENV=${process.env.NODE_ENV || 'development'}`);
-
-
-// -------- Config (from env) --------
+// ----- session (must be before routes that use req.session) -----
 const {
   IMAP_HOST = 'imap.hostinger.com',
   IMAP_PORT = '993',
@@ -56,7 +67,17 @@ const {
   SESSION_SECURE = 'true'
 } = process.env;
 
-const { MONGO_URI = '' } = process.env;  // set in Heroku Config Vars
+const { MONGO_URI = '' } = process.env;
+
+app.use(session({
+  name: SESSION_NAME,
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: 'lax', secure: SESSION_SECURE === 'true' }
+}));
+console.log('[BOOT] session middleware attached');
+
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
