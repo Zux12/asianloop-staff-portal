@@ -5,6 +5,8 @@ const express = require('express');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const Busboy = require('busboy');
+const express = require('express');
+const { connect } = require('./server/db');
 
 
 
@@ -28,6 +30,13 @@ const { MONGO_URI = '' } = process.env;  // set in Heroku Config Vars
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+const commonFiles = require('./server/routes/commonFiles');
+// ensure DB connected on startup
+connect().then(() => console.log("Mongo connected (Asianloop/commonFiles)")).catch(err => {
+  console.error("Mongo connect error:", err);
+  process.exit(1);
+});
+
 const cookieOptionsDisplay = {
   sameSite: 'lax',
   secure: true,          // stays true since HTTPS is active
@@ -48,6 +57,8 @@ app.get('/me', requireAuth, (req, res) => {
   res.json(req.session.user); // { email }
 });
 
+app.use(express.json());
+app.use('/api', commonFiles);
 
 app.use(session({
   name: SESSION_NAME,
