@@ -101,6 +101,70 @@ router.get('/breadcrumbs', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+
+// Delete a folder (recursive). Owner (createdBy) or admin only.
+// WARNING: This permanently deletes the folder, all subfolders, and all files.
+router.delete('/folders/:id', async (req, res, next) => {
+  try {
+    const actor = actorFromReq(req);
+    const id = oid(req.params.id);
+
+    // Root is implicit (null), so you can't delete "root"
+    const folder = await foldersCol().findOne({ _id: id });
+    if (!folder) return res.status(404).json({ error: "Folder not found" });
+
+    const isOwner = (folder.createdBy?.email && folder.createdBy.email === actor.email);
+    const isAdmin = (req.user?.role === 'admin') || (req.headers['x-user-role'] === 'admin');
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: "Not allowed" });
+
+    // Gather subtree
+    const { folderIds, fileIds, filesMeta } = await collectSubtree(id);
+
+    // Delete files from GridFS and metadata
+    if (fileIds.length) {
+      for (const fid of fileIds) {
+        try {
+          await bucket().delete(fid);
+        } catch (e) {
+          // If a chunk/file is missing, continue deleting others
+          console.warn('GridFS delete warning for', String(fid), e.message);
+        }
+      }
+      await filesMetaCol().deleteMany({ _id: { $in: fileIds } });
+    }
+
+    // Delete folders (target + descendants)
+    await foldersCol().deleteMany({ _id: { $in: folderIds } });
+
+    // Audit events
+    await eventsCol().insertOne({
+      ts: new Date(),
+      actor,
+      action: "delete_folder_recursive",
+      target: { type: "folder", id, name: folder.name },
+      fromFolderId: folder.parentId || null,
+      toFolderId: null,
+      counts: { folders: folderIds.length, files: fileIds.length }
+    });
+
+    // Optional: per-file audit (comment out if too chatty)
+    if (filesMeta.length) {
+      const fileEvents = filesMeta.slice(0, 2000).map(f => ({
+        ts: new Date(),
+        actor,
+        action: "delete",
+        target: { type: "file", id: f._id, name: f.name },
+        fromFolderId: f.folderId || null,
+        toFolderId: null
+      }));
+      if (fileEvents.length) await eventsCol().insertMany(fileEvents);
+    }
+
+    res.json({ ok: true, deleted: { folders: folderIds.length, files: fileIds.length } });
+  } catch (e) { next(e); }
+});
+
+
 // --- FILES ---
 
 // Upload file to a folder
