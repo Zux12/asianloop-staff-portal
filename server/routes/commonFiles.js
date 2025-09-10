@@ -28,6 +28,22 @@ function actorFromReq(req) {
   return { id, email: String(email) };
 }
 
+// Collect a folder subtree (target + all descendants)
+// returns: { folderIds: ObjectId[], fileIds: ObjectId[] }
+async function collectSubtree(startId) {
+  const q = foldersCol();
+  const ids = [startId];
+  // BFS through children
+  for (let i = 0; i < ids.length; i++) {
+    const cur = ids[i];
+    const kids = await q.find({ parentId: cur }).project({ _id: 1 }).toArray();
+    for (const k of kids) ids.push(k._id);
+  }
+
+  // All files whose folderId is in the subtree
+  const files = await filesMetaCol().find({ folderId: { $in: ids } }).project({ _id: 1, name: 1, folderId: 1 }).toArray();
+  return { folderIds: ids, fileIds: files.map(f => f._id), filesMeta: files };
+}
 
 // --- FOLDERS ---
 
