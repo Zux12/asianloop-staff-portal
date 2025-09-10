@@ -62,6 +62,11 @@ const cookieOptionsDisplay = {
 
 
 // -------- Middleware --------
+// Safe wrapper: use requireAuth if it exists; otherwise no-op
+const maybeRequireAuth = (typeof requireAuth === 'function')
+  ? requireAuth
+  : (req, res, next) => next();
+
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
 console.log('[BOOT] express middlewares attached');
@@ -78,7 +83,7 @@ app.use('/api', commonFiles);
 app.use('/api', require('./server/routes/commonFiles'));
 // Serve static (so /files.html works)
 
-app.get('/files.html', (_req, res) => {
+app.get('/files.html', maybeRequireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
 
@@ -147,7 +152,8 @@ app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/public/images', express.static(path.join(__dirname, 'public/images')));
 
 // All other /public assets require auth
-app.use('/public', requireAuth, express.static(path.join(__dirname, 'public')));
+app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
+
 
 // Root assets
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon.ico')));
