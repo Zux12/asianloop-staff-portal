@@ -87,7 +87,7 @@ console.log('[BOOT] session middleware attached');
 
 // ===== STATIC & PAGE ROUTES (before any catch-all) =====
 console.log('[BOOT] mount /public static');
-app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
+
 
 console.log('[BOOT] register /files.html');
 app.get('/files.html', maybeRequireAuth, (req, res) => {
