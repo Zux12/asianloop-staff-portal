@@ -70,6 +70,7 @@ const maybeRequireAuth = (typeof requireAuth === 'function')
   ? requireAuth
   : (req, res, next) => next();
 
+
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
 console.log('[BOOT] express middlewares attached');
@@ -87,7 +88,8 @@ app.use('/api', require('./server/routes/commonFiles'));
 // Serve static (so /files.html works)
 
 
-app.get('/files.html', /* maybeRequireAuth */, (req, res) => {
+// serve the Common Files page
+app.get('/files.html', maybeRequireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
 
@@ -157,7 +159,7 @@ app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/public/images', express.static(path.join(__dirname, 'public/images')));
 
 // serve /public assets (CSS/JS/images)
-app.use('/public', /* maybeRequireAuth */, express.static(path.join(__dirname, 'public')));
+app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
 
 
 // Root assets
