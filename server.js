@@ -21,7 +21,13 @@ const Busboy = require('busboy'); console.log('[BOOT] express loaded');
 const { connect } = require('./server/db');   // <-- add this
 const commonFiles = require('./server/routes/commonFiles');
 
-
+// ===== REQUEST LOGGER (early) =====
+app.use((req, res, next) => {
+  res.locals._t0 = Date.now();
+  console.log(`[REQ] ${req.method} ${req.originalUrl}  referer=${req.get('referer')||'-'}`);
+  res.on('finish', () => console.log(`[RES] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now()-res.locals._t0}ms)`));
+  next();
+});
 
 connect()
   .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
