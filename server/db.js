@@ -1,8 +1,17 @@
 // server/db.js
 const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 
-const uri = process.env.MONGO_URI;
-if (!uri) throw new Error("MONGO_URI missing");
+// Accept common env var names
+const uri =
+  process.env.MONGO_URI ||
+  process.env.MONGODB_URI ||
+  process.env.MONGOURL ||
+  process.env.MONGO_URL;
+
+if (!uri) {
+  console.error("[BOOT] No Mongo URI found. Set MONGO_URI (or MONGODB_URI) in Heroku Config Vars.");
+  throw new Error("MONGO_URI missing");
+}
 
 let _client, _db, _bucket;
 
@@ -10,8 +19,8 @@ async function connect() {
   if (_db) return _db;
   _client = new MongoClient(uri);
   await _client.connect();
-  _db = _client.db("Asianloop");              // << your DB name
-  _bucket = new GridFSBucket(_db, { bucketName: "commonFiles" }); // GridFS bucket
+  _db = _client.db("Asianloop"); // your DB name
+  _bucket = new GridFSBucket(_db, { bucketName: "commonFiles" });
   return _db;
 }
 
