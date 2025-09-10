@@ -1,3 +1,11 @@
+console.log(`[BOOT] Node ${process.version} starting…`);
+console.log('[BOOT] Has PORT?', !!process.env.PORT);
+console.log('[BOOT] Has MONGO env?', !!(process.env.MONGO_URI || process.env.MONGODB_URI));
+
+process.on('unhandledRejection', (r) => { console.error('[UNHANDLED REJECTION]', r); process.exit(1); });
+process.on('uncaughtException', (e) => { console.error('[UNCAUGHT EXCEPTION]', e); process.exit(1); });
+
+
 require('dotenv').config();
 const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
 const path = require('path');
