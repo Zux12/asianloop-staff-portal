@@ -13,12 +13,21 @@ const filesMetaCol = () => db().collection('files_meta');
 const eventsCol = () => db().collection('file_events');
 
 function actorFromReq(req) {
-  // Expecting req.user from your existing auth middleware
-  // Fallback to headers for now if not wired everywhere:
-  const email = (req.user?.email || req.headers['x-user-email'] || 'unknown@asian-loop.com').toString();
-  const id = (req.user?.id || req.headers['x-user-id'] || null);
-  return { id, email };
+  const email =
+    (req.session?.user?.email) ||        // ✅ your login session
+    (req.user?.email) ||
+    (req.headers['x-user-email']) ||
+    'unknown@asian-loop.com';
+
+  const id =
+    (req.session?.user?.id) ||
+    (req.user?.id) ||
+    (req.headers['x-user-id']) ||
+    null;
+
+  return { id, email: String(email) };
 }
+
 
 // --- FOLDERS ---
 
