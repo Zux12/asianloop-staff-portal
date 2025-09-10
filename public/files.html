@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Asianloop — Common Files</title>
+  <link rel="stylesheet" href="/public/css/dashboard.css"/>
+  <style>
+    .files-wrap{max-width:1200px;margin:32px auto;padding:0 16px}
+    .bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .crumbs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+    .list{border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden}
+    .row{display:grid;grid-template-columns:32px 1fr 140px 220px 200px;gap:12px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.06)}
+    .row.head{font-weight:600;background:rgba(255,255,255,.03);position:sticky;top:0}
+    .row:hover{background:rgba(255,255,255,.02)}
+    .btn{padding:8px 12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:linear-gradient(180deg,#fff,#f5f7fb);color:#111;font-weight:600}
+    .pill{padding:4px 8px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
+    .muted{opacity:.7}
+    .right{margin-left:auto}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    .danger{background:#2b1010;border-color:#6b1b1b;color:#fff}
+  </style>
+</head>
+<body>
+  <div class="files-wrap">
+    <h1>Common Files</h1>
+
+    <div class="bar">
+      <button class="btn" id="newFolderBtn">New Folder</button>
+      <label class="btn" for="upl">Upload<input id="upl" type="file" hidden></label>
+      <button class="btn danger" id="deleteBtn" disabled>Delete</button>
+      <input id="searchBox" placeholder="Search (name/uploader) — soon" style="margin-left:12px;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;flex:1">
+      <button class="btn right" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div class="crumbs" id="crumbs"></div>
+
+    <div class="list">
+      <div class="row head">
+        <div></div><div>Name</div><div>Size</div><div>Uploaded By / At</div><div>Last Access</div>
+      </div>
+      <div id="rows"></div>
+    </div>
+
+    <div id="props" style="margin-top:18px"></div>
+  </div>
+
+<script>
+const api = (p, init) => fetch(p, init).then(r => r.json());
+let currentFolder = 'root';
+let selected = null; // { type: 'file'|'folder', id, name, ownerEmail? }
+
+function fmtBytes(n){ if(!n&&n!==0) return ''; const u=['B','KB','MB','GB','TB']; let i=0; while(n>=1024&&i<u.length-1){n/=1024;i++;} return n.toFixed(i?1:0)+' '+u[i]; }
+function esc(s){ return (s||'').replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+async function load(folderId='root'){
+  currentFolder = folderId;
+  selected = null; document.getElementById('deleteBtn').disabled = true;
+  const bc = await api(`/api/breadcrumbs?folderId=${folderId}`);
+  document.getElementById('crumbs').innerHTML = bc.breadcrumbs.map((c,i)=>
+    `<a class="pill" href="#" onclick="load('${c._id}')">${esc(c.name)}</a>`).join(' / ');
+
+  const data = await api(`/api/folders/${folderId}/children`);
+  const rows = [];
+
+  // folders
+  for (const f of data.folders){
+    rows.push(`<div class="row" onclick="selectItem('folder','${f._id}','${esc(f.name)}')"
+                 ondblclick="load('${f._id}')">
+      <div>📁</div>
+      <div><strong>${esc(f.name)}</strong></div>
+      <div class="muted">—</div>
+      <div class="muted">by ${esc(f.createdBy?.email||'?')} • ${new Date(f.createdAt).toLocaleString()}</div>
+      <div class="muted">—</div>
+    </div>`);
+  }
+
+  // files
+  for (const file of data.files){
+    rows.push(`<div class="row" onclick="selectItem('file','${file._id}','${esc(file.name)}','${esc(file.uploadedBy?.email||'')}')">
+      <div>📄</div>
+      <div><a class="mono" href="/api/files/${file._id}/download">${esc(file.name)}</a></div>
+      <div>${fmtBytes(file.size)}</div>
+      <div class="muted">${esc(file.uploadedBy?.email||'?')} • ${new Date(file.uploadedAt).toLocaleString()}</div>
+      <div class="muted">${file.lastAccessAt ? (new Date(file.lastAccessAt).toLocaleString() + ' • ' + esc(file.lastAccessBy?.email||'')) : '—'}</div>
+    </div>`);
+  }
+
+  document.getElementById('rows').innerHTML = rows.join('') || `<div class="row"><div></div><div class="muted">Empty</div><div></div><div></div><div></div></div>`;
+  document.getElementById('props').innerHTML = '';
+}
+
+function selectItem(type,id,name,ownerEmail){
+  selected = { type,id,name,ownerEmail };
+  document.getElementById('deleteBtn').disabled = (type!=='file');
+  showProps(id);
+}
+
+async function showProps(id){
+  const r = await api(`/api/files/${id}/properties`);
+  if (r.error){ document.getElementById('props').innerHTML = ''; return; }
+  const f = r.file, ev = r.events||[];
+  document.getElementById('props').innerHTML = `
+    <div style="margin-top:8px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;">
+      <h3>Properties — ${esc(f.name)}</h3>
+      <div class="muted">Type: ${esc(f.mimeType||'n/a')}</div>
+      <div class="muted">Size: ${fmtBytes(f.size)} • Folder: ${f.folderId||'root'}</div>
+      <div class="muted">Uploaded by ${esc(f.uploadedBy?.email||'?')} at ${new Date(f.uploadedAt).toLocaleString()}</div>
+      <div class="muted">Last access: ${f.lastAccessAt ? (new Date(f.lastAccessAt).toLocaleString() + ' by ' + esc(f.lastAccessBy?.email||'')) : '—'}</div>
+      <h4 style="margin-top:10px">Recent Activity</h4>
+      <ul>${ev.map(e=>`<li class="muted">${new Date(e.ts).toLocaleString()} — ${esc(e.action)} by ${esc(e.actor?.email||'?')}</li>`).join('')}</ul>
+    </div>`;
+}
+
+document.getElementById('newFolderBtn').onclick = async ()=>{
+  const name = prompt('Folder name?');
+  if (!name) return;
+  const r = await api('/api/folders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, parentId: currentFolder==='root'?null:currentFolder }) });
+  if (!r.ok) return alert(r.error||'Failed');
+  load(currentFolder);
+};
+
+document.getElementById('upl').onchange = async (e)=>{
+  const file = e.target.files[0]; if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  const r = await fetch(`/api/files/upload?folderId=${currentFolder}`, { method:'POST', body: fd });
+  const j = await r.json(); if (!j.ok) return alert(j.error||'Upload failed');
+  e.target.value = ''; load(currentFolder);
+};
+
+document.getElementById('deleteBtn').onclick = async ()=>{
+  if (!selected || selected.type!=='file') return;
+  if (!confirm(`Delete ${selected.name}? Only owner/admin may delete.`)) return;
+  const r = await api(`/api/files/${selected.id}`, { method:'DELETE' });
+  if (!r.ok) return alert(r.error||'Delete failed');
+  load(currentFolder);
+};
+
+document.getElementById('refreshBtn').onclick = ()=> load(currentFolder);
+
+// initial
+load();
+</script>
+</body>
+</html>
