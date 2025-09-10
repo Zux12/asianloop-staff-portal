@@ -14,11 +14,14 @@ const session = require('express-session'); console.log('[BOOT] express loaded')
 const rateLimit = require('express-rate-limit'); console.log('[BOOT] express loaded');
 const Busboy = require('busboy'); console.log('[BOOT] express loaded');
 const { connect } = require('./server/db');   // <-- add this
+const commonFiles = require('./server/routes/commonFiles');
+
 
 
 connect()
   .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
   .catch(err => { console.error('[BOOT] Mongo connect error:', err); process.exit(1); });
+
 
 
 
@@ -78,7 +81,7 @@ app.get('/me', requireAuth, (req, res) => {
   res.json(req.session.user); // { email }
 });
 
-app.use('/api', commonFiles);
+
 // Mount API (ensure file exists at server/routes/commonFiles.js)
 app.use('/api', require('./server/routes/commonFiles'));
 // Serve static (so /files.html works)
@@ -100,6 +103,7 @@ app.use(session({
 }));
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
+app.use('/api', commonFiles);
 
 // --- MBS pretty URLs -> static HTML files ---
 const fs = require('fs');
