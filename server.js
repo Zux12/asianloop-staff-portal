@@ -13,6 +13,9 @@ const { connect } = require('./server/db');
 
 const app = express();
 app.set('trust proxy', 1);
+// Log early to help Heroku logs show the real error line
+console.log(`[BOOT] Node ${process.version}, NODE_ENV=${process.env.NODE_ENV || 'development'}`);
+
 
 // -------- Config (from env) --------
 const {
@@ -57,8 +60,14 @@ app.get('/me', requireAuth, (req, res) => {
   res.json(req.session.user); // { email }
 });
 
-app.use(express.json());
 app.use('/api', commonFiles);
+// Mount API (ensure file exists at server/routes/commonFiles.js)
+app.use('/api', require('./server/routes/commonFiles'));
+// Serve static (so /files.html works)
+
+app.get('/files.html', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'files.html'));
+});
 
 app.use(session({
   name: SESSION_NAME,
