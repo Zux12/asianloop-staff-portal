@@ -6,13 +6,13 @@ process.on('unhandledRejection', (r) => { console.error('[UNHANDLED REJECTION]',
 process.on('uncaughtException', (e) => { console.error('[UNCAUGHT EXCEPTION]', e); process.exit(1); });
 
 
-require('dotenv').config();
-const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
-const path = require('path');
-const express = require('express');
-const session = require('express-session');
-const rateLimit = require('express-rate-limit');
-const Busboy = require('busboy');
+require('dotenv').config(); console.log('[BOOT] express loaded');
+const { MongoClient, ObjectId, GridFSBucket } = require('mongodb'); console.log('[BOOT] express loaded');
+const path = require('path'); console.log('[BOOT] express loaded');
+const express = require('express'); console.log('[BOOT] express loaded');
+const session = require('express-session'); console.log('[BOOT] express loaded');
+const rateLimit = require('express-rate-limit'); console.log('[BOOT] express loaded');
+const Busboy = require('busboy'); console.log('[BOOT] express loaded');
 
 
 
