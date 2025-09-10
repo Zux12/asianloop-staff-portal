@@ -3,7 +3,6 @@ process.on('uncaughtException', (e) => { console.error('[UNCAUGHT]', e); process
 process.on('unhandledRejection', (r) => { console.error('[UNHANDLED]', r); process.exit(1); });
 
 console.log(`[BOOT] Node ${process.version} starting...`);
-
 require('dotenv').config();                 console.log('[BOOT] dotenv loaded');
 
 // ----- requires (keep exactly one of each) -----
@@ -12,7 +11,6 @@ const express = require('express');         console.log('[BOOT] express loaded')
 const session = require('express-session'); console.log('[BOOT] session loaded');
 const rateLimit = require('express-rate-limit'); console.log('[BOOT] rate-limit loaded');
 const Busboy = require('busboy');           console.log('[BOOT] busboy loaded');
-
 const { MongoClient, ObjectId, GridFSBucket } = require('mongodb'); console.log('[BOOT] mongodb loaded');
 
 // DB helper + router (must exist on disk)
@@ -34,15 +32,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ----- auth helpers -----
-function requireAuth(req, res, next) {
-  if (req.session?.user) return next();
-  return res.redirect('/');
-}
-const maybeRequireAuth = (typeof requireAuth === 'function')
-  ? requireAuth
-  : (req, res, next) => next();
-
 // ----- env snapshot (safe) -----
 console.log('[BOOT] ENV set:', {
   PORT: !!process.env.PORT,
@@ -55,7 +44,7 @@ connect()
   .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
   .catch(err => { console.error('[BOOT] Mongo connect error:', err); process.exit(1); });
 
-// ----- session (must be before routes that use req.session) -----
+// ----- env config you had -----
 const {
   IMAP_HOST = 'imap.hostinger.com',
   IMAP_PORT = '993',
@@ -66,9 +55,27 @@ const {
   SESSION_NAME = 'al_sess',
   SESSION_SECURE = 'true'
 } = process.env;
-
 const { MONGO_URI = '' } = process.env;
 
+const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+const cookieOptionsDisplay = {
+  sameSite: 'lax',
+  secure: true,
+  httpOnly: false,
+  maxAge: 60 * 60 * 1000
+};
+
+// ----- auth helpers -----
+function requireAuth(req, res, next) {
+  if (req.session?.user) return next();
+  return res.redirect('/');
+}
+const maybeRequireAuth = (typeof requireAuth === 'function')
+  ? requireAuth
+  : (req, res, next) => next();
+
+// ----- session (attach ONCE, before routes that use req.session) -----
 app.use(session({
   name: SESSION_NAME,
   secret: SESSION_SECRET,
@@ -78,68 +85,23 @@ app.use(session({
 }));
 console.log('[BOOT] session middleware attached');
 
+// ===== STATIC & PAGE ROUTES (before any catch-all) =====
+console.log('[BOOT] mount /public static');
+app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
 
-const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-//const commonFiles = require('./server/routes/commonFiles');
-// ensure DB connected on startup
-connect().then(() => console.log("Mongo connected (Asianloop/commonFiles)")).catch(err => {
-  console.error("Mongo connect error:", err);
-  process.exit(1);
-});
-
-const cookieOptionsDisplay = {
-  sameSite: 'lax',
-  secure: true,          // stays true since HTTPS is active
-  httpOnly: false,       // must be readable by JS for display
-  maxAge: 60 * 60 * 1000 // 1 hour
-};
-
-
-
-// -------- Middleware --------
-// Safe wrapper: use requireAuth if it exists; otherwise no-op
-const maybeRequireAuth = (typeof requireAuth === 'function')
-  ? requireAuth
-  : (req, res, next) => next();
-
-
-app.use(express.urlencoded({ extended: true })); // handles POST form
-app.use(express.json());
-console.log('[BOOT] express middlewares attached');
-app.get('/error', (req, res) => {
-  res.status(401).sendFile(require('path').join(__dirname, 'error.html'));
-});
-
-app.get('/me', requireAuth, (req, res) => {
-  res.json(req.session.user); // { email }
-});
-
-
-// Mount API (ensure file exists at server/routes/commonFiles.js)
-app.use('/api', require('./server/routes/commonFiles'));
-// Serve static (so /files.html works)
-
-
-// serve the Common Files page
+console.log('[BOOT] register /files.html');
 app.get('/files.html', maybeRequireAuth, (req, res) => {
+  console.log('[HIT] /files.html handler');
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
 
-app.use(session({
-  name: SESSION_NAME,
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: SESSION_SECURE === 'true' // set true once HTTPS works (it does now ✅)
-  }
-}));
+// ===== API ROUTES =====
+console.log('[BOOT] mount /api/commonFiles');
+app.use('/api', (req, _res, next) => { console.log(`[HIT] API ${req.method} ${req.originalUrl}`); next(); }, commonFiles);
+
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
-app.use('/api', commonFiles);
+
 
 // --- MBS pretty URLs -> static HTML files ---
 const fs = require('fs');
