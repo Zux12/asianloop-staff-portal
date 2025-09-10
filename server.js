@@ -13,7 +13,12 @@ const express = require('express'); console.log('[BOOT] express loaded');
 const session = require('express-session'); console.log('[BOOT] express loaded');
 const rateLimit = require('express-rate-limit'); console.log('[BOOT] express loaded');
 const Busboy = require('busboy'); console.log('[BOOT] express loaded');
+const { connect } = require('./server/db');   // <-- add this
 
+
+connect()
+  .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
+  .catch(err => { console.error('[BOOT] Mongo connect error:', err); process.exit(1); });
 
 
 
