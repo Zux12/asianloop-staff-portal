@@ -86,7 +86,8 @@ app.get('/me', requireAuth, (req, res) => {
 app.use('/api', require('./server/routes/commonFiles'));
 // Serve static (so /files.html works)
 
-app.get('/files.html', maybeRequireAuth, (req, res) => {
+
+app.get('/files.html', /* maybeRequireAuth */, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
 
@@ -155,8 +156,8 @@ function requireAuth(req, res, next) {
 app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/public/images', express.static(path.join(__dirname, 'public/images')));
 
-// All other /public assets require auth
-app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
+// serve /public assets (CSS/JS/images)
+app.use('/public', /* maybeRequireAuth */, express.static(path.join(__dirname, 'public')));
 
 
 // Root assets
