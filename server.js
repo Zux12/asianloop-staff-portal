@@ -59,6 +59,7 @@ const cookieOptionsDisplay = {
 // -------- Middleware --------
 app.use(express.urlencoded({ extended: true })); // handles POST form
 app.use(express.json());
+console.log('[BOOT] express middlewares attached');
 app.get('/error', (req, res) => {
   res.status(401).sendFile(require('path').join(__dirname, 'error.html'));
 });
