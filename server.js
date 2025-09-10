@@ -1,9 +1,14 @@
-console.log(`[BOOT] Node ${process.version} starting…`);
-console.log('[BOOT] Has PORT?', !!process.env.PORT);
-console.log('[BOOT] Has MONGO env?', !!(process.env.MONGO_URI || process.env.MONGODB_URI));
+// ===== BOOT/CRASH BEACONS (top of server.js) =====
+process.on('uncaughtException', e => { console.error('[UNCAUGHT]', e); process.exit(1); });
+process.on('unhandledRejection', r => { console.error('[UNHANDLED]', r); process.exit(1); });
 
-process.on('unhandledRejection', (r) => { console.error('[UNHANDLED REJECTION]', r); process.exit(1); });
-process.on('uncaughtException', (e) => { console.error('[UNCAUGHT EXCEPTION]', e); process.exit(1); });
+console.log(`[BOOT] Node ${process.version} starting…`);
+console.log('[BOOT] ENV set:', {
+  PORT: !!process.env.PORT,
+  MONGO_URI: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
+  NODE_ENV: process.env.NODE_ENV
+});
+
 
 
 require('dotenv').config(); console.log('[BOOT] express loaded');
@@ -27,6 +32,7 @@ connect()
 
 
 const app = express();
+console.log('[BOOT] attaching parsers');
 app.set('trust proxy', 1);
 // Log early to help Heroku logs show the real error line
 console.log(`[BOOT] Node ${process.version}, NODE_ENV=${process.env.NODE_ENV || 'development'}`);
