@@ -32,7 +32,7 @@ const { MONGO_URI = '' } = process.env;  // set in Heroku Config Vars
 
 const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-const commonFiles = require('./server/routes/commonFiles');
+//const commonFiles = require('./server/routes/commonFiles');
 // ensure DB connected on startup
 connect().then(() => console.log("Mongo connected (Asianloop/commonFiles)")).catch(err => {
   console.error("Mongo connect error:", err);
