@@ -159,11 +159,25 @@ const titleMain = mine
 const remarksPreview = (n.remarks && n.remarks.trim())
   ? `<div class="note-remarks-preview" onclick="toggleRow('${n._id}', this)" title="Click to expand">
        📝 ${safe(n.remarks)}
-     </div>
-     <div class="note-remarks-full">${safe(n.remarks).replace(/\n/g,'<br>')}</div>`
-  : '';
+     </div>`
+  : (mine
+     ? `<div class="note-remarks-preview" onclick="toggleRow('${n._id}', this)" title="Click to add remarks">
+          📝 (add remarks)
+        </div>`
+     : '');
 
-const titleEl = `<div class="note-title">${titleMain}${remarksPreview}</div>`;
+// Full area: textarea for owner, read-only for others
+const remarksFull = mine
+  ? `<div class="note-remarks-full">
+       <textarea class="al-input-sm al-remarks" id="r_${n._id}" rows="3"
+         placeholder="Edit remarks…">${safe(n.remarks || '')}</textarea>
+     </div>`
+  : (n.remarks && n.remarks.trim()
+     ? `<div class="note-remarks-full">${safe(n.remarks).replace(/\n/g,'<br>')}</div>`
+     : '');
+
+const titleEl = `<div class="note-title">${titleMain}${remarksPreview}${remarksFull}</div>`;
+
 
 
       const dueISO = n.due ? new Date(n.due).toISOString().slice(0,10) : '';
@@ -211,7 +225,9 @@ async function saveNote(id){
     title:  document.getElementById('t_'+id)?.value || '',
     due:    document.getElementById('d_'+id)?.value || null,
     picStaff: document.getElementById('p_'+id)?.value || '',
-    status: document.getElementById('s_'+id)?.value || 'Open'
+    status: document.getElementById('s_'+id)?.value || 'Open',
+    // NEW:
+    remarks: document.getElementById('r_'+id)?.value ?? ''
   };
   const r = await fetch('/api/msbs/notes/upsert',{
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -232,11 +248,15 @@ async function createNote(){
   const due = document.getElementById('new_due').value || null;
   const picStaff = document.getElementById('new_pic').value.trim();
   const status = document.getElementById('new_status').value;
+  const remarks = document.getElementById('new_remarks').value.trim();
+
+  
 
   // create (defaults to Open)
   let r = await fetch('/api/msbs/notes/upsert',{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ title, due, picStaff })
+    body: JSON.stringify({ title, due, picStaff, remarks })
+
   });
   if (!r.ok){ alert('Create failed'); return; }
 
@@ -252,7 +272,9 @@ async function createNote(){
   document.getElementById('new_due').value = '';
   document.getElementById('new_pic').value = '';
   document.getElementById('new_status').value = 'Open';
+  document.getElementById('new_remarks').value = '';
   await loadNotes();
+  
 }
 
 // Delete (owner)
