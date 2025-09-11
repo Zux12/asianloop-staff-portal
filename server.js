@@ -525,7 +525,8 @@ app.post('/api/msbs/events/add', requireAuth, async (req, res) => {
 app.get('/api/msbs/notes', requireAuth, async (req, res) => {
   try {
     const rows = await db.collection('msbs_notes')
-      .find({}, { projection: { _id:1, title:1, due:1, ownerEmail:1, picStaff:1, status:1, createdAt:1 } })
+      .find({}, { projection: { _id:1, title:1, due:1, ownerEmail:1, picStaff:1, status:1, createdAt:1, /* add: */ remarks:1 } })
+
       .sort({ due: 1 })
       .toArray();
 
@@ -555,6 +556,7 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
       if (typeof b.picStaff === 'string')update.picStaff = b.picStaff.trim();
       if (typeof b.status === 'string' && ['Open','Close','Overdue','Urgent','Completed','Info'].includes(b.status))
         update.status = b.status;
+      if (typeof b.remarks === 'string') update.remarks = b.remarks.trim().slice(0, 1000);
 
       await db.collection('msbs_notes').updateOne({ _id }, { $set: update });
       return res.json({ ok: true, updated: true });
@@ -571,7 +573,8 @@ app.post('/api/msbs/notes/upsert', requireAuth, async (req, res) => {
       picStaff: (b.picStaff || '').trim(),
       status: 'Open',
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      remarks: (typeof b.remarks === 'string' ? b.remarks.trim().slice(0, 1000) : null)
     });
     res.json({ ok: true, created: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
