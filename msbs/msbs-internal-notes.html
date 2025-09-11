@@ -112,6 +112,21 @@ let FILTER = 'All';
 function isOwner(email){ return (CURRENT_USER||'').toLowerCase() === (email||'').toLowerCase(); }
 function badge(status){ return `<span class="badge-note note-${status}">${status}</span>`; }
 
+
+  function safe(t){ 
+  return String(t||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function toggleRow(id, el){
+  const tr = el.closest('tr');
+  if (!tr) return;
+  tr.classList.toggle('expanded');
+}
+
+  
 // Load & render
 async function loadNotes(){
   const ul = document.getElementById('notesList');
@@ -137,9 +152,19 @@ async function loadNotes(){
       const mine = isOwner(n.ownerEmail||'');
       const tr = document.createElement('tr');
 
-      const titleEl = mine
-        ? `<input class="al-input-sm" value="${(n.title||'').replace(/"/g,'&quot;')}" id="t_${n._id}">`
-        : `${n.title||''}`;
+const titleMain = mine
+  ? `<input class="al-input-sm" value="${safe(n.title)}" id="t_${n._id}">`
+  : `${safe(n.title||'')}`;
+
+const remarksPreview = (n.remarks && n.remarks.trim())
+  ? `<div class="note-remarks-preview" onclick="toggleRow('${n._id}', this)" title="Click to expand">
+       📝 ${safe(n.remarks)}
+     </div>
+     <div class="note-remarks-full">${safe(n.remarks).replace(/\n/g,'<br>')}</div>`
+  : '';
+
+const titleEl = `<div class="note-title">${titleMain}${remarksPreview}</div>`;
+
 
       const dueISO = n.due ? new Date(n.due).toISOString().slice(0,10) : '';
       const dueEl  = mine
@@ -162,6 +187,11 @@ async function loadNotes(){
           <button class="btn btn-ghost" onclick="deleteNote('${n._id}')">Delete</button>
         </div>` : '';
 
+
+
+
+tr.classList.add('note-row');  // add this before setting innerHTML
+      
       tr.innerHTML = `
         <td>${titleEl}</td>
         <td>${created}</td>
