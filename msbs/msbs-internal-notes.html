@@ -136,13 +136,20 @@ async function loadNotes(){
   const r = await fetch('/api/msbs/notes',{cache:'no-store'});
   const items = await r.json();
 
-  // top list (simple)
-  ul.innerHTML = '';
-  items.slice(0, 5).forEach(n=>{
-    const li = document.createElement('li');
-    li.textContent = `${n.title} — ${n.status || 'Open'}`;
-    ul.appendChild(li);
-  });
+// top list (Title — PIC — Status with colored badge)
+ul.innerHTML = '';
+items.slice(0, 5).forEach(n=>{
+  const li = document.createElement('li');
+  li.className = 'notes-mini';
+  const hasPic = !!(n.picStaff && n.picStaff.trim());
+  const picChip = hasPic ? `<span class="al-chip pic-chip">${safe(n.picStaff)}</span>` : '';
+  const mid = hasPic ? ` — ${picChip} — ` : ' — ';
+  li.innerHTML = `<span class="mini-row">
+    <span class="mini-title">${safe(n.title)}</span>${mid}${badge(n.status || 'Open')}
+  </span>`;
+  ul.appendChild(li);
+});
+
 
   // table
   tbody.innerHTML = '';
