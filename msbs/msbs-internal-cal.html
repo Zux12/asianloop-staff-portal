@@ -7,6 +7,27 @@
 <link rel="icon" href="/favicon.ico" />
 <link rel="stylesheet" href="/public/css/mbsdashboard.css" />
 <style>
+
+  /* Toolbar alignment + consistent control heights */
+.cal-toolbar { align-items: flex-end; } /* bottom-align everything */
+.cal-toolbar .btn,
+.cal-toolbar .pill,
+.cal-toolbar select,
+.cal-toolbar input { height: 36px; }
+
+.cal-toolbar .btn.btn-sm { height: 36px; padding: 0 12px; }
+.cal-toolbar .pill { display:inline-flex; align-items:center; padding:0 12px; border-radius:999px; }
+.cal-toolbar .field label { font-size:.78rem; margin-bottom:4px; opacity:.85; }
+
+  /* "Today" highlight */
+.day-cell.is-today { outline:2px solid rgba(37,99,235,.15); outline-offset:-2px; }
+.day-cell.is-today .date-num{
+  background:#2563eb; color:#fff; padding:2px 8px; border-radius:999px;
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+
+  
   /* --- Compact calendar styles that sit nicely on top of your dashboard CSS --- */
   .cal-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .cal-toolbar .spacer { flex:1; }
@@ -325,17 +346,22 @@ function renderSkeleton(){
     mg.appendChild(el);
   });
   const first = new Date(CURRENT.start);
-  for (let i=0;i<42;i++){
-    const d = new Date(first); d.setDate(first.getDate()+i);
-    const cell = document.createElement('div');
-    cell.className = 'day-cell';
-    const inMonth = d.getMonth()===CURRENT.month;
-    if (!inMonth) cell.classList.add('out-month');
-    cell.dataset.date = ymd(d);
-    cell.innerHTML = `<div class="date-num">${d.getDate()}</div><div class="chips"></div>`;
-    cell.addEventListener('click', () => openDrawer(d));
-    mg.appendChild(cell);
-  }
+for (let i=0;i<42;i++){
+  const d = new Date(first); d.setDate(first.getDate()+i);
+  const cell = document.createElement('div');
+  cell.className = 'day-cell';
+  const inMonth = d.getMonth()===CURRENT.month;
+  if (!inMonth) cell.classList.add('out-month');
+
+  // NEW: flag today's cell
+  if (ymd(d) === ymd(new Date())) cell.classList.add('is-today');
+
+  cell.dataset.date = ymd(d);
+  cell.innerHTML = `<div class="date-num">${d.getDate()}</div><div class="chips"></div>`;
+  cell.addEventListener('click', () => openDrawer(d));
+  mg.appendChild(cell);
+}
+
 }
 function redraw(){
   byDayMap();
