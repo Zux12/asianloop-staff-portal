@@ -171,6 +171,10 @@ let db, gfs;
   await client.connect();
   db = client.db();
   gfs = new GridFSBucket(db, { bucketName: 'msbsFiles' });
+  await db.collection('msbs_cal_events').createIndex({ start: 1 });
+await db.collection('msbs_cal_events').createIndex({ end: 1 });
+await db.collection('msbs_cal_events').createIndex({ staffEmail: 1 });
+
   console.log('Mongo connected • db:', db.databaseName);
 })();
 
@@ -874,6 +878,133 @@ app.post('/api/msbs/files/branding', requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+// -------- MBS: Team Calendar (CRUD) --------
+const CAL_TYPES = ['WFH','Onsite','Travel','Leave','Conf','Meeting'];
+
+// Optional admin override (comma-separated emails). If unset, only owners can edit/delete.
+const ADMIN_LIST = String(process.env.MSBS_ADMIN_EMAILS || '')
+  .toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+const isAdmin = (email) => email && ADMIN_LIST.includes(String(email).toLowerCase());
+
+function sanitizeCalInput(body){
+  const type = String(body.type || '').trim();
+  if (!CAL_TYPES.includes(type)) throw new Error('Invalid type');
+
+  const start = new Date(body.start);
+  const end   = new Date(body.end);
+  if (!(start instanceof Date) || isNaN(+start)) throw new Error('Invalid start');
+  if (!(end instanceof Date)   || isNaN(+end))   throw new Error('Invalid end');
+  if (end < start) throw new Error('End before start');
+
+  return {
+    type,
+    start,
+    end,
+    allday: !!body.allday,
+    location: String(body.location || '').trim().slice(0,64),
+    note: String(body.note || '').trim().slice(0,140),
+    title: String(body.title || '').trim().slice(0,60)
+  };
+}
+
+// List events overlapping a range
+app.get('/api/msbs/cal/events', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: 'DB not ready' });
+    const start = new Date(req.query.start);
+    const end   = new Date(req.query.end);
+    if (isNaN(+start) || isNaN(+end)) return res.status(400).send('Invalid range');
+
+    const rows = await db.collection('msbs_cal_events')
+      .find({ $and: [ { start: { $lte: end } }, { end: { $gte: start } } ] })
+      .sort({ start: 1 })
+      .toArray();
+
+    res.json(rows.map(d => ({
+      _id: String(d._id),
+      staffEmail: d.staffEmail,
+      staffName: d.staffName || '',
+      type: d.type,
+      location: d.location || '',
+      start: d.start,
+      end: d.end,
+      allday: !!d.allday,
+      note: d.note || '',
+      title: d.title || ''
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Create (owner = logged-in user)
+app.post('/api/msbs/cal/events', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: 'DB not ready' });
+    const me = req.session?.user?.email || '';
+    if (!me) return res.status(401).send('Auth required');
+
+    const input = sanitizeCalInput(req.body || {});
+    const now = new Date();
+    const doc = {
+      staffEmail: String(me),
+      staffName: '', // your login creates session with { email } only
+      ...input,
+      createdAt: now,
+      updatedAt: now
+    };
+    const r = await db.collection('msbs_cal_events').insertOne(doc);
+    res.json({ ok: true, _id: String(r.insertedId) });
+  } catch (e) {
+    res.status(400).send(e.message || 'Bad request');
+  }
+});
+
+// Update (owner or admin)
+app.patch('/api/msbs/cal/events/:id', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: 'DB not ready' });
+    const me = (req.session?.user?.email || '').toLowerCase();
+    if (!me) return res.status(401).send('Auth required');
+
+    const id = new ObjectId(req.params.id);
+    const input = sanitizeCalInput(req.body || {});
+    const col = db.collection('msbs_cal_events');
+    const doc = await col.findOne({ _id: id });
+    if (!doc) return res.status(404).send('Not found');
+
+    const owner = String(doc.staffEmail || '').toLowerCase();
+    if (owner !== me && !isAdmin(me)) return res.status(403).send('Not allowed');
+
+    await col.updateOne({ _id: id }, { $set: { ...input, updatedAt: new Date() } });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).send(e.message || 'Bad request');
+  }
+});
+
+// Delete (owner or admin)
+app.delete('/api/msbs/cal/events/:id', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: 'DB not ready' });
+    const me = (req.session?.user?.email || '').toLowerCase();
+    if (!me) return res.status(401).send('Auth required');
+
+    const id = new ObjectId(req.params.id);
+    const col = db.collection('msbs_cal_events');
+    const doc = await col.findOne({ _id: id });
+    if (!doc) return res.status(404).send('Not found');
+
+    const owner = String(doc.staffEmail || '').toLowerCase();
+    if (owner !== me && !isAdmin(me)) return res.status(403).send('Not allowed');
+
+    await col.deleteOne({ _id: id });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).send(e.message || 'Bad request');
   }
 });
 
