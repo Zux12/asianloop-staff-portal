@@ -69,6 +69,28 @@
     .day-cell { min-height:120px; }
     .field-row { grid-template-columns: 1fr; }
   }
+
+  /* Calendar fixes (overflow + contrast + delete btn) */
+.al-main { overflow-x: hidden; }
+#calendarCard { overflow: hidden; }
+.month-grid { width:100%; max-width:100%; }
+.day-cell { overflow: hidden; }
+.chip, .chip .txt { min-width: 0; } /* let text ellipsis instead of stretching */
+.chip { color:#111827; background:#F8FAFC; border-color:rgba(0,0,0,.10); }
+.weekday-head, .day-cell .date-num, .entry-item { color:#111827; }
+.legend .lg, .pill { color:#111827; }
+#calendarCard .month-grid { background:#fff; }
+#calendarCard .weekday-head { background:linear-gradient(180deg,#f9fafb,#f3f4f6); }
+#drawer .panel, #drawer .panel * { color:#111827; background:#fff; }
+.cal-toolbar, .cal-toolbar * { color:#111827; }
+.cal-toolbar input::placeholder { color:#6b7280; opacity:1; }
+
+.btn-danger {
+  background:#ef4444; color:#fff; border:1px solid #b91c1c;
+  padding:6px 10px; border-radius:10px; font-size:.9rem;
+}
+.btn-danger:hover { filter:brightness(.95); }
+
 </style>
 </head>
 
@@ -192,6 +214,7 @@
   <button class="btn-danger" type="button" id="btnDelete" style="display:none;">Delete</button>
 </div>
 
+
       </form>
     </div>
   </div>
@@ -227,8 +250,6 @@ let CURRENT_USER = { email:null, name:null };
 
 function pad(n){ return (n<10?'0':'')+n; }
 function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
-function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999); }
 function startOfGrid(year, month){ // Monday-based
   const first = new Date(year, month, 1);
   const day = (first.getDay()+6)%7; // Mon=0..Sun=6
@@ -264,12 +285,10 @@ function overlapsDay(ev, d){
 function byDayMap(){
   BYDAY.clear();
   if (!EVENTS) return;
-  // Expand events to each overlapping day
   const min = CURRENT.start, max = CURRENT.end;
   for (const ev of EVENTS){
     let d = new Date(ev.start);
     const end = new Date(ev.end);
-    // clamp to current month grid range for speed
     const first = new Date(min);
     if (d < first) d = first;
     while (d <= max){
@@ -281,7 +300,6 @@ function byDayMap(){
       d.setDate(d.getDate()+1);
     }
   }
-  // sort each day by start time then person
   for (const [k, arr] of BYDAY.entries()){
     arr.sort((a,b)=> new Date(a.start)-new Date(b.start) || String(a.staffEmail).localeCompare(String(b.staffEmail)));
   }
@@ -291,13 +309,14 @@ function setMonth(year, month){
   const gridStart = startOfGrid(year, month);
   const gridEnd = new Date(gridStart); gridEnd.setDate(gridStart.getDate()+41); gridEnd.setHours(23,59,59,999);
   CURRENT.start = gridStart; CURRENT.end = gridEnd;
-  document.getElementById('monthTitle').textContent =
-    new Intl.DateTimeFormat(undefined, { month:'long', year:'numeric' }).format(new Date(year, month, 1));
+  const mt = document.getElementById('monthTitle');
+  if (mt) mt.textContent = new Intl.DateTimeFormat(undefined, { month:'long', year:'numeric' }).format(new Date(year, month, 1));
   renderSkeleton();
   loadEvents();
 }
 function renderSkeleton(){
   const mg = document.getElementById('monthGrid');
+  if (!mg) return;
   const wd = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   mg.innerHTML = '';
   wd.forEach(w => {
@@ -320,29 +339,29 @@ function renderSkeleton(){
 }
 function redraw(){
   byDayMap();
-  // Simple legend: show up to ~10 users this month
   const lg = document.getElementById('legend');
-  lg.innerHTML = '';
-  const seen = new Map();
-  (EVENTS||[]).forEach(ev=>{
-    if (!seen.has(ev.staffEmail)) seen.set(ev.staffEmail, {email:ev.staffEmail, name:ev.staffName||''});
-  });
-  [...seen.values()].slice(0,12).forEach(p=>{
-    const el = document.createElement('div'); el.className = 'lg';
-    const dot = document.createElement('span'); dot.className='dot'; dot.style.background = hashColor(p.email||'');
-    el.appendChild(dot);
-    const txt = document.createElement('span'); txt.textContent = (p.name||p.email||'').trim();
-    el.appendChild(txt);
-    lg.appendChild(el);
-  });
+  if (lg) {
+    lg.innerHTML = '';
+    const seen = new Map();
+    (EVENTS||[]).forEach(ev=>{
+      if (!seen.has(ev.staffEmail)) seen.set(ev.staffEmail, {email:ev.staffEmail, name:ev.staffName||''});
+    });
+    [...seen.values()].slice(0,12).forEach(p=>{
+      const el = document.createElement('div'); el.className = 'lg';
+      const dot = document.createElement('span'); dot.className='dot'; dot.style.background = hashColor(p.email||'');
+      el.appendChild(dot);
+      const txt = document.createElement('span'); txt.textContent = (p.name||p.email||'').trim();
+      el.appendChild(txt);
+      lg.appendChild(el);
+    });
+  }
 
-  // Filters
-  const ftxt = (document.getElementById('filterText').value || '').toLowerCase();
-  const ftype = document.getElementById('filterType').value;
+  const ftxt = (document.getElementById('filterText')?.value || '').toLowerCase();
+  const ftype = document.getElementById('filterType')?.value;
 
-  // Fill cells
   document.querySelectorAll('.day-cell').forEach(cell=>{
-    const box = cell.querySelector('.chips'); box.innerHTML='';
+    const box = cell.querySelector('.chips'); if (!box) return;
+    box.innerHTML='';
     const day = cell.dataset.date;
     const events = (BYDAY.get(day)||[]).filter(ev=>{
       const hitType = !ftype || ev.type===ftype;
@@ -350,7 +369,7 @@ function redraw(){
       const hitTxt = !ftxt || who.includes(ftxt);
       return hitType && hitTxt;
     });
-const MAX = (window.innerWidth < 900 ? 3 : 4); // mobile shows 3, desktop 4
+    const MAX = (window.innerWidth < 900 ? 3 : 4); // mobile 3, desktop 4
 
     events.slice(0,MAX).forEach(ev=>{
       const chip = document.createElement('div'); chip.className='chip';
@@ -390,12 +409,13 @@ async function loadEvents(){
 }
 function openDrawer(date, editingEvent){
   const dr = document.getElementById('drawer');
+  if (!dr) return;
   const dLabel = new Intl.DateTimeFormat(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'}).format(date);
-  document.getElementById('drawerDate').textContent = dLabel;
-  document.getElementById('drawerTitle').textContent = ymd(date);
+  const dd = document.getElementById('drawerDate'); if (dd) dd.textContent = dLabel;
+  const dt = document.getElementById('drawerTitle'); if (dt) dt.textContent = ymd(date);
   dr.classList.add('open');
-  // List entries for that day
-  const list = document.getElementById('entryList'); list.innerHTML='';
+
+  const list = document.getElementById('entryList'); if (list) list.innerHTML='';
   const evs = (BYDAY.get(ymd(date))||[]);
   evs.forEach(ev=>{
     const item = document.createElement('div'); item.className='entry-item';
@@ -417,34 +437,18 @@ function openDrawer(date, editingEvent){
       actions.appendChild(be); actions.appendChild(bd);
     }
     item.appendChild(left); item.appendChild(actions);
-    list.appendChild(item);
+    const listEl = document.getElementById('entryList'); if (listEl) listEl.appendChild(item);
   });
-  // Prefill form new/edit
+
   if (editingEvent) {
     prefillForm(editingEvent);
   } else {
-    // default new entry on this date
     const s = new Date(date); s.setHours(9,0,0,0);
     const e = new Date(date); e.setHours(17,0,0,0);
     fillForm({ _id:'', type:'Onsite', location:'', start:s, end:e, allday:false, note:'' });
   }
 }
-function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); }
-document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer);
-document.getElementById('btnAddBlank').addEventListener('click', ()=>{
-  const d = new Date(); openDrawer(d);
-});
-document.getElementById('btnToday').addEventListener('click', ()=>{
-  const d = new Date(); setMonth(d.getFullYear(), d.getMonth());
-});
-document.getElementById('btnPrev').addEventListener('click', ()=>{
-  const y = CURRENT.year, m = CURRENT.month-1; setMonth(y + Math.floor(m/12), (m+12)%12);
-});
-document.getElementById('btnNext').addEventListener('click', ()=>{
-  const y = CURRENT.year, m = CURRENT.month+1; setMonth(y + Math.floor(m/12), (m+12)%12);
-});
-document.getElementById('filterText').addEventListener('input', redraw);
-document.getElementById('filterType').addEventListener('change', redraw);
+function closeDrawer(){ const dr = document.getElementById('drawer'); if (dr) dr.classList.remove('open'); }
 
 function fillForm(ev){
   document.getElementById('eventId').value = ev._id||'';
@@ -456,37 +460,59 @@ function fillForm(ev){
   document.getElementById('fEnd').value   = new Date(e.getTime()-e.getTimezoneOffset()*60000).toISOString().slice(0,16);
   document.getElementById('fNote').value = ev.note||'';
 
-    // NEW: toggle Delete visibility
+  // Toggle Delete visibility
   const delBtn = document.getElementById('btnDelete');
   if (delBtn) delBtn.style.display = (ev._id ? 'inline-block' : 'none');
-  
 }
 function prefillForm(ev){ fillForm(ev); }
 
-document.getElementById('btnReset').addEventListener('click', ()=>{
-  document.getElementById('entryForm').reset();
-  document.getElementById('eventId').value='';
-});
-
-// NEW: Delete from the form (only when editing)
-document.getElementById('btnDelete').addEventListener('click', async ()=>{
-  const id = (document.getElementById('eventId').value || '').trim();
-  if (!id) return;
+async function deleteEvent(id){
   if (!confirm('Delete this entry?')) return;
-  const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), {
-    method:'DELETE', credentials:'same-origin'
-  });
+  const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), { method:'DELETE', credentials:'same-origin' });
   if (!r.ok) { const t = await r.text(); alert('Delete failed: '+t.slice(0,200)); return; }
   await loadEvents();
   closeDrawer();
-});
+}
 
+// Attach listeners safely (elements must exist)
+function attachListeners(){
+  const btnClose = document.getElementById('btnCloseDrawer'); if (btnClose) btnClose.addEventListener('click', closeDrawer);
+  const btnAdd   = document.getElementById('btnAddBlank');    if (btnAdd)   btnAdd.addEventListener('click', ()=>openDrawer(new Date()));
+  const btnToday = document.getElementById('btnToday');       if (btnToday) btnToday.addEventListener('click', ()=>{ const d=new Date(); setMonth(d.getFullYear(), d.getMonth()); });
+  const btnPrev  = document.getElementById('btnPrev');        if (btnPrev)  btnPrev.addEventListener('click', ()=>{ const y=CURRENT.year, m=CURRENT.month-1; setMonth(y + Math.floor(m/12), (m+12)%12); });
+  const btnNext  = document.getElementById('btnNext');        if (btnNext)  btnNext.addEventListener('click', ()=>{ const y=CURRENT.year, m=CURRENT.month+1; setMonth(y + Math.floor(m/12), (m+12)%12); });
+  const fTxt     = document.getElementById('filterText');     if (fTxt)     fTxt.addEventListener('input', redraw);
+  const fType    = document.getElementById('filterType');     if (fType)    fType.addEventListener('change', redraw);
+  const frm      = document.getElementById('entryForm');      if (frm)      frm.addEventListener('submit', onSubmitForm);
 
-  
-  
-document.getElementById('entryForm').addEventListener('submit', async (e)=>{
+  // Guarded Delete button listener
+  const delBtn = document.getElementById('btnDelete');
+  if (delBtn){
+    delBtn.addEventListener('click', async ()=>{
+      const id = (document.getElementById('eventId').value || '').trim();
+      if (!id) return;
+      if (!confirm('Delete this entry?')) return;
+      const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), { method:'DELETE', credentials:'same-origin' });
+      if (!r.ok) { const t = await r.text(); alert('Delete failed: '+t.slice(0,200)); return; }
+      await loadEvents();
+      closeDrawer();
+    });
+  }
+
+  const btnReset = document.getElementById('btnReset');
+  if (btnReset){
+    btnReset.addEventListener('click', ()=>{
+      document.getElementById('entryForm').reset();
+      document.getElementById('eventId').value='';
+      const delBtn = document.getElementById('btnDelete');
+      if (delBtn) delBtn.style.display = 'none';
+    });
+  }
+}
+
+async function onSubmitForm(e){
   e.preventDefault();
-  const id = document.getElementById('eventId').value.trim();
+  const id = (document.getElementById('eventId').value || '').trim();
   const payload = {
     type: document.getElementById('fType').value,
     location: document.getElementById('fLocation').value.trim(),
@@ -508,44 +534,17 @@ document.getElementById('entryForm').addEventListener('submit', async (e)=>{
   if (!r.ok) { const t = await r.text(); alert('Save failed: '+t.slice(0,200)); return; }
   await loadEvents();
   closeDrawer();
-});
-
-async function deleteEvent(id){
-  if (!confirm('Delete this entry?')) return;
-  const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), { method:'DELETE', credentials:'same-origin' });
-  if (!r.ok) { const t = await r.text(); alert('Delete failed: '+t.slice(0,200)); return; }
-  await loadEvents();
 }
 
-// Init
-(async function(){
-  await loadMe();
+// Init after DOM is ready (Safari-safe)
+window.addEventListener('DOMContentLoaded', async ()=>{
+  attachListeners();
+  try { await loadMe(); } catch(e){}
   const d = new Date();
   setMonth(d.getFullYear(), d.getMonth());
-})();
-
-
-/* === Calendar fixes (overflow + contrast + delete btn) === */
-.al-main { overflow-x: hidden; }                 /* prevent page-wide horizontal scroll */
-#calendarCard { overflow: hidden; }              /* keep calendar inside the card */
-.month-grid { width:100%; max-width:100%; }      /* clamp grid width to container */
-.day-cell { overflow: hidden; }                  /* chips can’t push cell wider */
-.chip, .chip .txt { min-width: 0; }              /* CRITICAL: let text shrink/ellipsis */
-.chip { color:#111827; background:#F8FAFC; border-color:rgba(0,0,0,.10); }
-.weekday-head, .day-cell .date-num, .entry-item { color:#111827; }
-
-/* Optional: tiny tone tweak for the legend and “pill” label */
-.legend .lg { color:#111827; }
-.pill { color:#111827; }
-
-/* Delete button style */
-.btn-danger {
-  background:#ef4444; color:#fff; border:1px solid #b91c1c;
-  padding:6px 10px; border-radius:10px; font-size:.9rem;
-}
-.btn-danger:hover { filter:brightness(.95); }
-  
+});
 </script>
+
 </body>
 </html>
 
