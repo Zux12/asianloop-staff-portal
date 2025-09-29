@@ -112,6 +112,34 @@
 }
 .btn-danger:hover { filter:brightness(.95); }
 
+
+/* === Toolbar: single-line, aligned, readable === */
+.cal-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+
+/* keep left group tidy */
+.cal-toolbar .btn.btn-sm { height:36px; padding:0 12px; }
+.cal-toolbar .pill      { display:inline-flex; align-items:center; height:36px; padding:0 12px; border-radius:999px; }
+
+/* make label + control inline (no stacked label) */
+.cal-toolbar .field{
+  display:flex; flex-direction:row; align-items:center; gap:8px; margin:0;
+}
+.cal-toolbar .field label{
+  margin:0; white-space:nowrap; font-size:.9rem; font-weight:600;
+  color:#e5e7eb; /* visible on dark */
+  opacity:1;     /* override "muted" */
+}
+
+/* consistent control heights and widths so nothing drops to a second line */
+.cal-toolbar input,
+.cal-toolbar select{ height:36px; line-height:36px; }
+.cal-toolbar #filterText{ width:280px; max-width:36vw; min-width:180px; }
+
+/* keep left/right groups apart on one row */
+.cal-toolbar .spacer{ flex:1 1 auto; }
+
+
+  
 </style>
 </head>
 
