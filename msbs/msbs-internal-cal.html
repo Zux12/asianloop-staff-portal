@@ -1,1 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MBS — Team Calendar</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="stylesheet" href="/public/css/mbsdashboard.css" />
+<style>
+  /* --- Compact calendar styles that sit nicely on top of your dashboard CSS --- */
+  .cal-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .cal-toolbar .spacer { flex:1; }
+  .cal-toolbar .field { display:flex; align-items:center; gap:6px; }
+  .month-grid { 
+    display:grid; grid-template-columns: repeat(7, 1fr); 
+    border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden; 
+    background:#fff;
+  }
+  .weekday-head { 
+    font-weight:600; font-size:.9rem; padding:8px 10px; text-align:center; 
+    background:linear-gradient(180deg,#f9fafb,#f3f4f6); border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .day-cell {
+    min-height:140px; border-right:1px solid rgba(0,0,0,.06); border-bottom:1px solid rgba(0,0,0,.06);
+    position:relative; padding:8px 6px 6px 6px; background:#fff;
+  }
+  .day-cell:nth-child(7n){ border-right:0; }
+  .day-cell .date-num { position:absolute; top:6px; right:8px; font-weight:600; font-size:.9rem; color:#374151; }
+  .day-cell.out-month { background:#fafafa; color:#6b7280; }
+  .chip { 
+    display:flex; align-items:center; gap:6px; 
+    background:#f8fafc; border:1px solid rgba(0,0,0,.07); border-radius:10px; 
+    padding:3px 8px; font-size:.82rem; line-height:1.2; margin-bottom:4px; 
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;
+  }
+  .chip .dot { width:8px; height:8px; border-radius:50%; flex:0 0 8px; }
+  .chip .txt { overflow:hidden; text-overflow:ellipsis; }
+  .more-link { font-size:.82rem; color:#2563eb; cursor:pointer; }
+  .legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .legend .lg { display:flex; align-items:center; gap:6px; font-size:.82rem; }
+  .legend .dot { width:10px; height:10px; border-radius:50%; }
+  .pill { padding:2px 8px; border-radius:999px; background:#eef2ff; border:1px solid rgba(0,0,0,.06); font-size:.78rem; }
+  .btn-sm { font-size:.9rem; padding:6px 10px; }
+  .drawer {
+    position:fixed; inset:0; display:none; z-index:50;
+    background:rgba(0,0,0,.25);
+  }
+  .drawer.open { display:block; }
+  .drawer .panel {
+    position:absolute; right:0; top:0; bottom:0; width:min(520px, 92vw);
+    background:#fff; box-shadow:-6px 0 18px rgba(0,0,0,.15); padding:16px; overflow:auto;
+  }
+  .entry-list { display:flex; flex-direction:column; gap:8px; margin:10px 0 14px; }
+  .entry-item { 
+    border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:8px 10px; background:#fafafa; 
+    display:flex; gap:8px; align-items:flex-start; justify-content:space-between;
+  }
+  .entry-head { display:flex; align-items:center; gap:8px; font-weight:600; }
+  .entry-meta { font-size:.85rem; color:#444; }
+  .entry-actions { display:flex; gap:6px; }
+  .field-row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin:6px 0; }
+  .field label { font-size:.86rem; color:#374151; }
+  .field input[type="text"], .field input[type="datetime-local"], .field select, .field textarea {
+    border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:8px 10px; font-size:.95rem;
+  }
+  .muted { color:#6b7280; }
+  @media (max-width: 900px){
+    .day-cell { min-height:120px; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+
+<body data-page="internal-cal">
+<header class="al-header">
+  <div class="al-inner">
+    <a class="al-brand" href="/">Asianloop Staff Portal</a>
+    <nav class="al-topnav">
+      <span id="welcomeUser">Welcome, {{userEmail}}</span>
+      <a href="/logout" class="btn btn-ghost">Logout</a>
+    </nav>
+  </div>
+</header>
+
+<div class="al-shell">
+  <aside class="al-sidemenu">
+    <div class="al-sidemenu-title">MBS Workspace</div>
+    <a class="item" href="/msbs/internal">Team Home</a>
+    <a class="item" href="/msbs/internal/social">Social</a>
+    <a class="item" href="/msbs/internal/conferences">Conferences</a>
+    <a class="item" href="/msbs/internal/strategy">Strategy</a>
+    <a class="item" href="/msbs/internal/files">Files</a>
+    <a class="item" href="/msbs/internal/notes">Team Notes</a>
+    <a class="item active" href="/msbs/internal/cal">Team Calendar</a>
+    <div class="divider"></div>
+    <a class="item" href="/msbs">Back to Public</a>
+  </aside>
+
+  <main class="al-main">
+    <h1>Team Calendar</h1>
+
+    <section class="card">
+      <div class="cal-toolbar">
+        <button class="btn btn-sm" id="btnPrev">‹ Prev</button>
+        <div id="monthTitle" class="pill">Month YYYY</div>
+        <button class="btn btn-sm" id="btnNext">Next ›</button>
+        <button class="btn btn-sm" id="btnToday">Today</button>
+        <div class="spacer"></div>
+        <div class="field">
+          <label class="muted">Filter (name/email)</label>
+          <input type="text" id="filterText" placeholder="e.g. zurix@... or Zurix"/>
+        </div>
+        <div class="field">
+          <label class="muted">Type</label>
+          <select id="filterType">
+            <option value="">All</option>
+            <option>WFH</option><option>Onsite</option><option>Travel</option>
+            <option>Leave</option><option>Conf</option><option>Meeting</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" id="btnAddBlank">+ Add</button>
+      </div>
+    </section>
+
+    <section class="card" id="calendarCard">
+      <div class="month-grid" id="monthGrid">
+        <!-- Weekday headers -->
+      </div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="al-footer">© Asianloop • MBS</footer>
+
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+      <div>
+        <div class="muted" id="drawerDate">Date</div>
+        <h3 id="drawerTitle" style="margin:4px 0 0 0;">Day details</h3>
+      </div>
+      <button class="btn btn-ghost" id="btnCloseDrawer">✕</button>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div class="entry-list" id="entryList"></div>
+
+      <h3 style="margin-top:8px;">Add / Edit</h3>
+      <form id="entryForm">
+        <input type="hidden" id="eventId" value=""/>
+        <div class="field-row">
+          <div class="field">
+            <label>Type</label>
+            <select id="fType" required>
+              <option>WFH</option><option>Onsite</option><option>Travel</option>
+              <option>Leave</option><option>Conf</option><option>Meeting</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Location (short)</label>
+            <input type="text" id="fLocation" placeholder="e.g. MRCSB, KLCC, UTP" maxlength="32"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Start</label>
+            <input type="datetime-local" id="fStart" required/>
+          </div>
+          <div class="field">
+            <label>End</label>
+            <input type="datetime-local" id="fEnd" required/>
+          </div>
+        </div>
+
+        <div class="field">
+          <label><input type="checkbox" id="fAllDay"/> All day</label>
+        </div>
+
+        <div class="field">
+          <label>Note (optional, 140 chars)</label>
+          <textarea id="fNote" rows="2" maxlength="140" placeholder="e.g., vendor visit / room / quick note"></textarea>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn" type="submit" id="btnSave">Save</button>
+          <button class="btn btn-ghost" type="button" id="btnReset">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+/* === Welcome fill (copied from msbs-internal-files.html) === */
+(function () {
+  var span = document.getElementById('welcomeUser');
+  if (!span) return;
+  function readCookie(n){
+    var parts = (document.cookie || '').split('; ');
+    for (var i=0;i<parts.length;i++){
+      var p = parts[i], eq = p.indexOf('=');
+      if (eq>-1 && decodeURIComponent(p.slice(0,eq))===n) return decodeURIComponent(p.slice(eq+1));
+    }
+    return null;
+  }
+  var email = readCookie('al_user_email');
+  if (email) { span.textContent = 'Welcome, ' + email; return; }
+  fetch('/me', { cache:'no-store', credentials:'same-origin' })
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(u){ if (u && u.email) span.textContent = 'Welcome, ' + u.email; })
+    .catch(function(){});
+})();
+
+/* === Calendar app === */
+const EVENT_TYPES = ['WFH','Onsite','Travel','Leave','Conf','Meeting'];
+let CURRENT = { year:0, month:0, start:null, end:null };
+let EVENTS = [];                 // array of events fetched
+let BYDAY = new Map();           // yyyy-mm-dd -> events[]
+let CURRENT_USER = { email:null, name:null };
+
+function pad(n){ return (n<10?'0':'')+n; }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999); }
+function startOfGrid(year, month){ // Monday-based
+  const first = new Date(year, month, 1);
+  const day = (first.getDay()+6)%7; // Mon=0..Sun=6
+  const grid = new Date(first); grid.setDate(first.getDate()-day); grid.setHours(0,0,0,0);
+  return grid;
+}
+function hashColor(s){
+  let h=0; for (let i=0;i<s.length;i++) h=(h*31 + s.charCodeAt(i))|0;
+  h = Math.abs(h)%360;
+  return `hsl(${h},65%,55%)`;
+}
+function initialsFrom(user){
+  if (!user) return '??';
+  if (user.name) {
+    const parts = String(user.name).trim().split(/\s+/);
+    if (parts.length===1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+  }
+  const e = String(user.email||'').split('@')[0].replace(/[^a-z0-9]+/ig,' ');
+  const parts = e.trim().split(/\s+/);
+  if (parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+}
+function fmtTime(d){
+  const hr = d.getHours(), mi = d.getMinutes();
+  return pad(hr)+':'+pad(mi);
+}
+function overlapsDay(ev, d){
+  const ds = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0);
+  const de = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999);
+  return new Date(ev.start) <= de && new Date(ev.end) >= ds;
+}
+function byDayMap(){
+  BYDAY.clear();
+  if (!EVENTS) return;
+  // Expand events to each overlapping day
+  const min = CURRENT.start, max = CURRENT.end;
+  for (const ev of EVENTS){
+    let d = new Date(ev.start);
+    const end = new Date(ev.end);
+    // clamp to current month grid range for speed
+    const first = new Date(min);
+    if (d < first) d = first;
+    while (d <= max){
+      if (overlapsDay(ev, d)) {
+        const k = ymd(d);
+        if (!BYDAY.has(k)) BYDAY.set(k, []);
+        BYDAY.get(k).push(ev);
+      }
+      d.setDate(d.getDate()+1);
+    }
+  }
+  // sort each day by start time then person
+  for (const [k, arr] of BYDAY.entries()){
+    arr.sort((a,b)=> new Date(a.start)-new Date(b.start) || String(a.staffEmail).localeCompare(String(b.staffEmail)));
+  }
+}
+function setMonth(year, month){
+  CURRENT.year = year; CURRENT.month = month;
+  const gridStart = startOfGrid(year, month);
+  const gridEnd = new Date(gridStart); gridEnd.setDate(gridStart.getDate()+41); gridEnd.setHours(23,59,59,999);
+  CURRENT.start = gridStart; CURRENT.end = gridEnd;
+  document.getElementById('monthTitle').textContent =
+    new Intl.DateTimeFormat(undefined, { month:'long', year:'numeric' }).format(new Date(year, month, 1));
+  renderSkeleton();
+  loadEvents();
+}
+function renderSkeleton(){
+  const mg = document.getElementById('monthGrid');
+  const wd = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  mg.innerHTML = '';
+  wd.forEach(w => {
+    const el = document.createElement('div');
+    el.className = 'weekday-head'; el.textContent = w;
+    mg.appendChild(el);
+  });
+  const first = new Date(CURRENT.start);
+  for (let i=0;i<42;i++){
+    const d = new Date(first); d.setDate(first.getDate()+i);
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    const inMonth = d.getMonth()===CURRENT.month;
+    if (!inMonth) cell.classList.add('out-month');
+    cell.dataset.date = ymd(d);
+    cell.innerHTML = `<div class="date-num">${d.getDate()}</div><div class="chips"></div>`;
+    cell.addEventListener('click', () => openDrawer(d));
+    mg.appendChild(cell);
+  }
+}
+function redraw(){
+  byDayMap();
+  // Simple legend: show up to ~10 users this month
+  const lg = document.getElementById('legend');
+  lg.innerHTML = '';
+  const seen = new Map();
+  (EVENTS||[]).forEach(ev=>{
+    if (!seen.has(ev.staffEmail)) seen.set(ev.staffEmail, {email:ev.staffEmail, name:ev.staffName||''});
+  });
+  [...seen.values()].slice(0,12).forEach(p=>{
+    const el = document.createElement('div'); el.className = 'lg';
+    const dot = document.createElement('span'); dot.className='dot'; dot.style.background = hashColor(p.email||'');
+    el.appendChild(dot);
+    const txt = document.createElement('span'); txt.textContent = (p.name||p.email||'').trim();
+    el.appendChild(txt);
+    lg.appendChild(el);
+  });
+
+  // Filters
+  const ftxt = (document.getElementById('filterText').value || '').toLowerCase();
+  const ftype = document.getElementById('filterType').value;
+
+  // Fill cells
+  document.querySelectorAll('.day-cell').forEach(cell=>{
+    const box = cell.querySelector('.chips'); box.innerHTML='';
+    const day = cell.dataset.date;
+    const events = (BYDAY.get(day)||[]).filter(ev=>{
+      const hitType = !ftype || ev.type===ftype;
+      const who = (String(ev.staffName||'') + ' ' + String(ev.staffEmail||'')).toLowerCase();
+      const hitTxt = !ftxt || who.includes(ftxt);
+      return hitType && hitTxt;
+    });
+    const MAX = 4; // visible chips
+    events.slice(0,MAX).forEach(ev=>{
+      const chip = document.createElement('div'); chip.className='chip';
+      chip.title = `${ev.staffName||ev.staffEmail} • ${ev.type}${ev.location?(' @ '+ev.location):''} • ${new Date(ev.start).toLocaleString()} – ${new Date(ev.end).toLocaleString()}`;
+      chip.addEventListener('click', (e)=>{ e.stopPropagation(); openDrawer(new Date(day), ev); });
+      const dot = document.createElement('span'); dot.className='dot'; dot.style.background = hashColor(ev.staffEmail||'');
+      const inits = initialsFrom({name:ev.staffName, email:ev.staffEmail});
+      const timeLabel = ev.allday ? 'All-day' : `${fmtTime(new Date(ev.start))}–${fmtTime(new Date(ev.end))}`;
+      const txt = document.createElement('span'); txt.className='txt';
+      txt.textContent = `${inits} · ${ev.location||ev.type} (${timeLabel})`;
+      chip.appendChild(dot); chip.appendChild(txt);
+      box.appendChild(chip);
+    });
+    if (events.length>MAX){
+      const more = document.createElement('div'); more.className='more-link';
+      more.textContent = `+${events.length-MAX} more`;
+      more.addEventListener('click', (e)=>{ e.stopPropagation(); openDrawer(new Date(day)); });
+      box.appendChild(more);
+    }
+  });
+}
+async function loadMe(){
+  try{
+    const r = await fetch('/me', {cache:'no-store', credentials:'same-origin'});
+    if (r.ok){ const u = await r.json(); CURRENT_USER.email = u.email||null; CURRENT_USER.name = u.name||null; }
+  }catch(e){}
+}
+async function loadEvents(){
+  const qs = new URLSearchParams({
+    start: CURRENT.start.toISOString(),
+    end:   CURRENT.end.toISOString()
+  });
+  const r = await fetch('/api/msbs/cal/events?'+qs.toString(), {cache:'no-store', credentials:'same-origin'});
+  const data = r.ok ? await r.json() : [];
+  EVENTS = Array.isArray(data) ? data : [];
+  redraw();
+}
+function openDrawer(date, editingEvent){
+  const dr = document.getElementById('drawer');
+  const dLabel = new Intl.DateTimeFormat(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'}).format(date);
+  document.getElementById('drawerDate').textContent = dLabel;
+  document.getElementById('drawerTitle').textContent = ymd(date);
+  dr.classList.add('open');
+  // List entries for that day
+  const list = document.getElementById('entryList'); list.innerHTML='';
+  const evs = (BYDAY.get(ymd(date))||[]);
+  evs.forEach(ev=>{
+    const item = document.createElement('div'); item.className='entry-item';
+    const head = document.createElement('div'); head.className='entry-head';
+    const dot = document.createElement('span'); dot.className='dot'; dot.style.background=hashColor(ev.staffEmail||''); dot.style.width='12px'; dot.style.height='12px';
+    const who = document.createElement('span'); who.textContent = (ev.staffName||ev.staffEmail||'').trim();
+    head.appendChild(dot); head.appendChild(who);
+    const meta = document.createElement('div'); meta.className='entry-meta';
+    const time = ev.allday ? 'All-day' : (new Date(ev.start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' – ' + new Date(ev.end).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+    meta.textContent = `${ev.type}${ev.location?(' @ '+ev.location):''} • ${time}${ev.title?(' • '+ev.title):''}${ev.note?(' — '+ev.note):''}`;
+    const left = document.createElement('div');
+    left.appendChild(head); left.appendChild(meta);
+    const actions = document.createElement('div'); actions.className='entry-actions';
+    if (CURRENT_USER.email && String(CURRENT_USER.email).toLowerCase() === String(ev.staffEmail||'').toLowerCase()){
+      const be = document.createElement('button'); be.className='btn btn-sm'; be.textContent='Edit';
+      be.addEventListener('click', ()=>prefillForm(ev));
+      const bd = document.createElement('button'); bd.className='btn btn-ghost btn-sm'; bd.textContent='Delete';
+      bd.addEventListener('click', ()=>deleteEvent(ev._id));
+      actions.appendChild(be); actions.appendChild(bd);
+    }
+    item.appendChild(left); item.appendChild(actions);
+    list.appendChild(item);
+  });
+  // Prefill form new/edit
+  if (editingEvent) {
+    prefillForm(editingEvent);
+  } else {
+    // default new entry on this date
+    const s = new Date(date); s.setHours(9,0,0,0);
+    const e = new Date(date); e.setHours(17,0,0,0);
+    fillForm({ _id:'', type:'Onsite', location:'', start:s, end:e, allday:false, note:'' });
+  }
+}
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); }
+document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer);
+document.getElementById('btnAddBlank').addEventListener('click', ()=>{
+  const d = new Date(); openDrawer(d);
+});
+document.getElementById('btnToday').addEventListener('click', ()=>{
+  const d = new Date(); setMonth(d.getFullYear(), d.getMonth());
+});
+document.getElementById('btnPrev').addEventListener('click', ()=>{
+  const y = CURRENT.year, m = CURRENT.month-1; setMonth(y + Math.floor(m/12), (m+12)%12);
+});
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  const y = CURRENT.year, m = CURRENT.month+1; setMonth(y + Math.floor(m/12), (m+12)%12);
+});
+document.getElementById('filterText').addEventListener('input', redraw);
+document.getElementById('filterType').addEventListener('change', redraw);
+
+function fillForm(ev){
+  document.getElementById('eventId').value = ev._id||'';
+  document.getElementById('fType').value = ev.type||'Onsite';
+  document.getElementById('fLocation').value = ev.location||'';
+  document.getElementById('fAllDay').checked = !!ev.allday;
+  const s = new Date(ev.start), e = new Date(ev.end);
+  document.getElementById('fStart').value = new Date(s.getTime()-s.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('fEnd').value   = new Date(e.getTime()-e.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('fNote').value = ev.note||'';
+}
+function prefillForm(ev){ fillForm(ev); }
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  document.getElementById('entryForm').reset();
+  document.getElementById('eventId').value='';
+});
+
+document.getElementById('entryForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('eventId').value.trim();
+  const payload = {
+    type: document.getElementById('fType').value,
+    location: document.getElementById('fLocation').value.trim(),
+    start: new Date(document.getElementById('fStart').value).toISOString(),
+    end: new Date(document.getElementById('fEnd').value).toISOString(),
+    allday: document.getElementById('fAllDay').checked,
+    note: document.getElementById('fNote').value.trim()
+  };
+  if (!EVENT_TYPES.includes(payload.type)) { alert('Invalid type'); return; }
+  if (!payload.start || !payload.end) { alert('Start/End required'); return; }
+
+  const url = id ? '/api/msbs/cal/events/'+encodeURIComponent(id) : '/api/msbs/cal/events';
+  const r = await fetch(url, {
+    method: id ? 'PATCH':'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials:'same-origin',
+    body: JSON.stringify(payload)
+  });
+  if (!r.ok) { const t = await r.text(); alert('Save failed: '+t.slice(0,200)); return; }
+  await loadEvents();
+  closeDrawer();
+});
+
+async function deleteEvent(id){
+  if (!confirm('Delete this entry?')) return;
+  const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), { method:'DELETE', credentials:'same-origin' });
+  if (!r.ok) { const t = await r.text(); alert('Delete failed: '+t.slice(0,200)); return; }
+  await loadEvents();
+}
+
+// Init
+(async function(){
+  await loadMe();
+  const d = new Date();
+  setMonth(d.getFullYear(), d.getMonth());
+})();
+</script>
+</body>
+</html>
 
