@@ -186,10 +186,12 @@
           <textarea id="fNote" rows="2" maxlength="140" placeholder="e.g., vendor visit / room / quick note"></textarea>
         </div>
 
-        <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="btn" type="submit" id="btnSave">Save</button>
-          <button class="btn btn-ghost" type="button" id="btnReset">Reset</button>
-        </div>
+<div style="display:flex; gap:8px; margin-top:10px;">
+  <button class="btn" type="submit" id="btnSave">Save</button>
+  <button class="btn btn-ghost" type="button" id="btnReset">Reset</button>
+  <button class="btn-danger" type="button" id="btnDelete" style="display:none;">Delete</button>
+</div>
+
       </form>
     </div>
   </div>
@@ -348,7 +350,8 @@ function redraw(){
       const hitTxt = !ftxt || who.includes(ftxt);
       return hitType && hitTxt;
     });
-    const MAX = 4; // visible chips
+const MAX = (window.innerWidth < 900 ? 3 : 4); // mobile shows 3, desktop 4
+
     events.slice(0,MAX).forEach(ev=>{
       const chip = document.createElement('div'); chip.className='chip';
       chip.title = `${ev.staffName||ev.staffEmail} • ${ev.type}${ev.location?(' @ '+ev.location):''} • ${new Date(ev.start).toLocaleString()} – ${new Date(ev.end).toLocaleString()}`;
@@ -452,6 +455,11 @@ function fillForm(ev){
   document.getElementById('fStart').value = new Date(s.getTime()-s.getTimezoneOffset()*60000).toISOString().slice(0,16);
   document.getElementById('fEnd').value   = new Date(e.getTime()-e.getTimezoneOffset()*60000).toISOString().slice(0,16);
   document.getElementById('fNote').value = ev.note||'';
+
+    // NEW: toggle Delete visibility
+  const delBtn = document.getElementById('btnDelete');
+  if (delBtn) delBtn.style.display = (ev._id ? 'inline-block' : 'none');
+  
 }
 function prefillForm(ev){ fillForm(ev); }
 
@@ -460,6 +468,22 @@ document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('eventId').value='';
 });
 
+// NEW: Delete from the form (only when editing)
+document.getElementById('btnDelete').addEventListener('click', async ()=>{
+  const id = (document.getElementById('eventId').value || '').trim();
+  if (!id) return;
+  if (!confirm('Delete this entry?')) return;
+  const r = await fetch('/api/msbs/cal/events/'+encodeURIComponent(id), {
+    method:'DELETE', credentials:'same-origin'
+  });
+  if (!r.ok) { const t = await r.text(); alert('Delete failed: '+t.slice(0,200)); return; }
+  await loadEvents();
+  closeDrawer();
+});
+
+
+  
+  
 document.getElementById('entryForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const id = document.getElementById('eventId').value.trim();
@@ -499,6 +523,28 @@ async function deleteEvent(id){
   const d = new Date();
   setMonth(d.getFullYear(), d.getMonth());
 })();
+
+
+/* === Calendar fixes (overflow + contrast + delete btn) === */
+.al-main { overflow-x: hidden; }                 /* prevent page-wide horizontal scroll */
+#calendarCard { overflow: hidden; }              /* keep calendar inside the card */
+.month-grid { width:100%; max-width:100%; }      /* clamp grid width to container */
+.day-cell { overflow: hidden; }                  /* chips can’t push cell wider */
+.chip, .chip .txt { min-width: 0; }              /* CRITICAL: let text shrink/ellipsis */
+.chip { color:#111827; background:#F8FAFC; border-color:rgba(0,0,0,.10); }
+.weekday-head, .day-cell .date-num, .entry-item { color:#111827; }
+
+/* Optional: tiny tone tweak for the legend and “pill” label */
+.legend .lg { color:#111827; }
+.pill { color:#111827; }
+
+/* Delete button style */
+.btn-danger {
+  background:#ef4444; color:#fff; border:1px solid #b91c1c;
+  padding:6px 10px; border-radius:10px; font-size:.9rem;
+}
+.btn-danger:hover { filter:brightness(.95); }
+  
 </script>
 </body>
 </html>
