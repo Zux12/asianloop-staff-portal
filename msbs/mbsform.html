@@ -1,1 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Marketing & Business Dev Form — Asianloop</title>
+
+  <!-- Base dashboard styles (leave as-is) -->
+  <link rel="stylesheet" href="/public/css/mbsdashboard.css" />
+
+  <!-- Form-specific, conflict-free scoped styles -->
+  <link rel="stylesheet" href="/public/css/mbsform.css" />
+</head>
+<body>
+  <!-- Page Header (same logo as dashboard) -->
+  <header class="al-header">
+    <div class="al-header-inner">
+      <a href="/asianloop-staff-portal/testdash.html" class="al-logo-link" aria-label="Back to Dashboard">
+        <img class="al-logo" src="/public/images/logo.jpg" alt="Asianloop" />
+      </a>
+      <div class="al-spacer"></div>
+      <div class="al-welcome">
+        <span id="welcomeUser">Welcome</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- App wrapper: all CSS is scoped under this ID -->
+  <main id="mbsformApp">
+    <section class="mbsform-hero card">
+      <h1>Marketing &amp; Business Development Form</h1>
+      <p class="muted">
+        Use this form to submit new leads, partnerships, events, and marketing assets for MSBS review.
+      </p>
+    </section>
+
+    <!-- Stepper -->
+    <nav class="mbs-stepper card" aria-label="Form steps">
+      <ol>
+        <li class="active"><span class="dot"></span><span class="label">Basics</span></li>
+        <li><span class="dot"></span><span class="label">Details</span></li>
+        <li><span class="dot"></span><span class="label">Attachments</span></li>
+        <li><span class="dot"></span><span class="label">Review &amp; Submit</span></li>
+      </ol>
+    </nav>
+
+    <!-- Form: Basics -->
+    <section class="mbs-section card" data-step="1">
+      <h2>1) Basics</h2>
+      <div class="grid two">
+        <label class="fld">
+          <span class="lbl">Title</span>
+          <input type="text" class="inp" id="mbs_title" placeholder="e.g., PETRONAS Partnerships Outreach" required>
+        </label>
+        <label class="fld">
+          <span class="lbl">Type</span>
+          <select class="inp" id="mbs_type">
+            <option value="">Select…</option>
+            <option>Partnership</option>
+            <option>Lead / Prospect</option>
+            <option>Event</option>
+            <option>Branding / Asset</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label class="fld">
+          <span class="lbl">Owner</span>
+          <input type="text" class="inp" id="mbs_owner" placeholder="Your name">
+        </label>
+        <label class="fld">
+          <span class="lbl">Priority</span>
+          <select class="inp" id="mbs_priority">
+            <option>Normal</option>
+            <option>High</option>
+            <option>Urgent</option>
+          </select>
+        </label>
+      </div>
+      <label class="fld">
+        <span class="lbl">Short Summary</span>
+        <textarea class="inp" id="mbs_summary" rows="3" placeholder="One–two lines on the objective and desired outcome"></textarea>
+      </label>
+      <div class="toolbar">
+        <button class="btn next" data-next="2">Next: Details →</button>
+      </div>
+    </section>
+
+    <!-- Form: Details -->
+    <section class="mbs-section card" data-step="2" hidden>
+      <h2>2) Details</h2>
+      <div class="grid two">
+        <label class="fld">
+          <span class="lbl">Target Company / Org</span>
+          <input class="inp" id="mbs_company" placeholder="e.g., PERTAMINA, PETRONAS, etc.">
+        </label>
+        <label class="fld">
+          <span class="lbl">Target Country</span>
+          <input class="inp" id="mbs_country" placeholder="e.g., Malaysia">
+        </label>
+        <label class="fld">
+          <span class="lbl">Expected Value (MYR)</span>
+          <input class="inp" id="mbs_value" inputmode="decimal" placeholder="e.g., 2500000">
+        </label>
+        <label class="fld">
+          <span class="lbl">Timeline</span>
+          <input class="inp" id="mbs_timeline" placeholder="e.g., Q4 2025">
+        </label>
+      </div>
+      <label class="fld">
+        <span class="lbl">Notes / Talking Points</span>
+        <textarea class="inp" id="mbs_notes" rows="5" placeholder="Key angles, stakeholders, constraints, approvals, etc."></textarea>
+      </label>
+      <div class="toolbar">
+        <button class="btn prev" data-prev="1">← Back</button>
+        <button class="btn next" data-next="3">Next: Attachments →</button>
+      </div>
+    </section>
+
+    <!-- Form: Attachments -->
+    <section class="mbs-section card" data-step="3" hidden>
+      <h2>3) Attachments</h2>
+      <p class="muted">Upload decks, one-pagers, photos, or MoUs that support this submission.</p>
+
+      <div class="uploader">
+        <div class="row">
+          <input type="file" id="mbs_files" multiple />
+          <button class="btn" id="mbs_uploadBtn" type="button">Upload</button>
+        </div>
+        <div id="mbs_uploadLog" class="hint"></div>
+        <label class="hint"><input type="checkbox" id="mbs_brandFlag" /> Mark as Branding Asset</label>
+      </div>
+
+      <h3>Photo Grid</h3>
+      <div class="photo-grid" id="mbs_photos">
+        <!-- thumbnails appended here -->
+      </div>
+
+      <div class="toolbar">
+        <button class="btn prev" data-prev="2">← Back</button>
+        <button class="btn next" data-next="4">Next: Review →</button>
+      </div>
+    </section>
+
+    <!-- Form: Review -->
+    <section class="mbs-section card" data-step="4" hidden>
+      <h2>4) Review &amp; Submit</h2>
+
+      <div class="review-pairs">
+        <div><span class="k">Title</span><span class="v" id="rv_title">—</span></div>
+        <div><span class="k">Type</span><span class="v" id="rv_type">—</span></div>
+        <div><span class="k">Owner</span><span class="v" id="rv_owner">—</span></div>
+        <div><span class="k">Priority</span><span class="v" id="rv_priority">—</span></div>
+        <div class="full"><span class="k">Summary</span><span class="v" id="rv_summary">—</span></div>
+        <div><span class="k">Company</span><span class="v" id="rv_company">—</span></div>
+        <div><span class="k">Country</span><span class="v" id="rv_country">—</span></div>
+        <div><span class="k">Value (MYR)</span><span class="v" id="rv_value">—</span></div>
+        <div><span class="k">Timeline</span><span class="v" id="rv_timeline">—</span></div>
+        <div class="full"><span class="k">Notes</span><span class="v" id="rv_notes">—</span></div>
+      </div>
+
+      <h3>Photos</h3>
+      <div class="review-photos" id="rv_photos">
+        <!-- uniform review thumbnails (locked aspect) -->
+      </div>
+
+      <div class="toolbar end">
+        <button class="btn prev" data-prev="3">← Back</button>
+        <button class="btn primary" id="mbs_submitBtn" type="button">Submit</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="al-footer">
+    <small>© Asianloop</small>
+  </footer>
+
+  <script>
+    // --- Welcome chip (cookie-based; silent if absent) ---
+    (function () {
+      var span = document.getElementById('welcomeUser');
+      if (!span) return;
+
+      function readCookie(n) {
+        var parts = (document.cookie || '').split('; ');
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i], eq = p.indexOf('=');
+          if (eq > -1 && decodeURIComponent(p.slice(0, eq)) === n) {
+            return decodeURIComponent(p.slice(eq + 1));
+          }
+        }
+        return null;
+      }
+
+      var email = readCookie('al_user_email');
+      if (email) span.textContent = 'Welcome, ' + email;
+    })();
+
+    // --- Stepper navigation (pure client-side) ---
+    (function () {
+      var steps = Array.from(document.querySelectorAll('.mbs-section'));
+      var dots  = Array.from(document.querySelectorAll('.mbs-stepper li'));
+
+      function showStep(n) {
+        steps.forEach(function (sec) {
+          sec.hidden = (sec.getAttribute('data-step') !== String(n));
+        });
+        dots.forEach(function (li, idx) {
+          li.classList.toggle('active', (idx + 1) === n);
+          li.classList.toggle('done',   (idx + 1) <  n);
+        });
+        // update review values when entering step 4
+        if (n === 4) {
+          copyReview('mbs_title','rv_title');
+          copyReview('mbs_type','rv_type');
+          copyReview('mbs_owner','rv_owner');
+          copyReview('mbs_priority','rv_priority');
+          copyReview('mbs_summary','rv_summary');
+          copyReview('mbs_company','rv_company');
+          copyReview('mbs_country','rv_country');
+          copyReview('mbs_value','rv_value');
+          copyReview('mbs_timeline','rv_timeline');
+          copyReview('mbs_notes','rv_notes');
+        }
+      }
+
+      function copyReview(srcId, dstId) {
+        var src = document.getElementById(srcId);
+        var dst = document.getElementById(dstId);
+        if (!dst) return;
+        dst.textContent = src ? (src.value || src.options?.[src.selectedIndex]?.text || '—') : '—';
+      }
+
+      document.addEventListener('click', function (e) {
+        var nextBtn = e.target.closest('.next');
+        if (nextBtn) {
+          var n = parseInt(nextBtn.getAttribute('data-next'), 10);
+          showStep(n);
+        }
+        var prevBtn = e.target.closest('.prev');
+        if (prevBtn) {
+          var p = parseInt(prevBtn.getAttribute('data-prev'), 10);
+          showStep(p);
+        }
+      });
+
+      // initial
+      showStep(1);
+    })();
+
+    // --- Attachments mock handlers (UI only; connect to your upload API if needed) ---
+    (function () {
+      var fileInput = document.getElementById('mbs_files');
+      var uploadBtn = document.getElementById('mbs_uploadBtn');
+      var logEl     = document.getElementById('mbs_uploadLog');
+      var gridEl    = document.getElementById('mbs_photos');
+      var rvEl      = document.getElementById('rv_photos');
+
+      if (!fileInput || !uploadBtn) return;
+
+      uploadBtn.addEventListener('click', function () {
+        var files = Array.from(fileInput.files || []);
+        if (!files.length) { logEl.textContent = 'No files selected.'; return; }
+        files.forEach(function (f) {
+          var url = URL.createObjectURL(f);
+          var t   = document.createElement('div');
+          t.className = 'thumb';
+          t.innerHTML = '<img src="'+url+'" alt="">';
+          gridEl.appendChild(t);
+
+          var r = document.createElement('div');
+          r.className = 'thumb';
+          r.innerHTML = '<img src="'+url+'" alt="">';
+          rvEl.appendChild(r);
+        });
+        logEl.textContent = files.length + ' file(s) staged (not uploaded).';
+        fileInput.value = '';
+      });
+    })();
+
+    // --- Submit (stub) ---
+    (function () {
+      var submitBtn = document.getElementById('mbs_submitBtn');
+      if (!submitBtn) return;
+      submitBtn.addEventListener('click', function () {
+        alert('Submitted! (Wire this to your API when ready.)');
+      });
+    })();
+  </script>
+</body>
+</html>
 
