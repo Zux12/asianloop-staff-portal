@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Asianloop — Staff FAQ (Custody Metering)</title>
+  <link rel="icon" href="public/images/logo.jpg">
+  <style>
+    :root{
+      --bg:#f7f8fb; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --accent:#2563eb;
+      --chip:#eef2ff; --chip-b:#c7d2fe; --pill:#f1f5f9; --bd:#e5e7eb; --ok:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    header.al{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    header.al img{height:44px;width:auto;border-radius:8px}
+    header.al h1{font-size:22px;margin:0}
+    .sub{color:var(--muted);font-size:14px;margin-top:2px}
+
+    .search-bar{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;box-shadow:0 6px 16px rgba(10,20,40,.06)}
+    .search-row{display:flex;gap:12px;align-items:center}
+    .search-row input[type="search"]{
+      flex:1;padding:14px 16px;border:1px solid var(--bd);border-radius:12px;font-size:16px;
+      outline:none
+    }
+    .search-row input[type="search"]::placeholder{color:#9aa4b2}
+    .btn-clear{border:1px solid var(--bd);background:var(--pill);border-radius:10px;padding:10px 12px;cursor:pointer}
+    .hint{font-size:13px;color:var(--muted);margin-top:10px}
+
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .chip{
+      border:1px solid var(--bd);background:var(--chip); color:#1e293b;
+      padding:7px 10px;border-radius:999px;font-size:13px;cursor:pointer;user-select:none
+    }
+    .chip[data-active="1"]{outline:2px solid var(--chip-b); background:#eef2ff}
+    .pill{background:var(--pill);border:1px solid var(--bd);padding:6px 9px;border-radius:8px;font-size:12px;color:var(--muted)}
+
+    .results{margin-top:18px;display:grid;grid-template-columns:1fr;gap:12px}
+    .card{
+      background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;
+      box-shadow:0 6px 16px rgba(10,20,40,.05)
+    }
+    .q{font-weight:700;margin:0 0 6px 0;font-size:16px}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px}
+    .badge{font-size:12px;background:#eef2ff;border:1px solid var(--chip-b);color:#1e293b;padding:4px 8px;border-radius:999px}
+    .std{font-size:12px;background:#ecfeff;border:1px solid #bae6fd;color:#075985;padding:4px 8px;border-radius:999px}
+    .ans{font-size:15px}
+    mark{background:#fff3a3;padding:0 2px;border-radius:2px}
+    .row-end{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .small{font-size:12px;color:var(--muted)}
+    .copy{border:1px solid var(--bd);background:var(--pill);border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer}
+    .counter{margin:10px 2px 0;color:var(--muted);font-size:13px}
+    .nores{padding:18px;border:1px dashed var(--bd);border-radius:12px;background:#fafafa;color:var(--muted)}
+    .ok{color:var(--ok);font-weight:600}
+
+    @media(min-width:900px){
+      .results{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="al">
+      <img src="public/images/logo.jpg" alt="Asianloop logo" />
+      <div>
+        <h1>Asianloop Staff FAQ — Custody Metering & Calibration</h1>
+        <div class="sub">Type a keyword: <em>“piston prover leak check”</em>, <em>“ultrasonic straight runs”</em>, <em>“Coriolis zero”</em>, <em>“turndown”</em></div>
+      </div>
+    </header>
+
+    <section class="search-bar">
+      <div class="search-row">
+        <input id="q" type="search" placeholder="Search FAQs… (e.g., meter factor drift, API 4.8 repeatability, DP orifice ISO 5167)" autofocus>
+        <button class="btn-clear" id="clearBtn" title="Clear">Clear</button>
+      </div>
+
+      <div class="filters" id="filters">
+        <span class="pill">Filter by:</span>
+        <!-- Meter types -->
+        <span class="chip" data-field="tags" data-value="coriolis">Coriolis</span>
+        <span class="chip" data-field="tags" data-value="ultrasonic">Ultrasonic</span>
+        <span class="chip" data-field="tags" data-value="turbine">Turbine</span>
+        <span class="chip" data-field="tags" data-value="pd">PD</span>
+        <span class="chip" data-field="tags" data-value="orifice">Orifice/DP</span>
+        <span class="chip" data-field="tags" data-value="vortex">Vortex</span>
+        <!-- Topics -->
+        <span class="chip" data-field="tags" data-value="proving">Proving</span>
+        <span class="chip" data-field="tags" data-value="turndown">Turndown</span>
+        <span class="chip" data-field="tags" data-value="installation">Installation</span>
+        <span class="chip" data-field="tags" data-value="standards">Standards</span>
+        <span class="chip" data-field="tags" data-value="uncertainty">Uncertainty</span>
+      </div>
+
+      <div class="hint">Tip: synonyms are supported — try “rangeability” for turndown, “K-factor” or “pulses per unit”, “MF” for meter factor.</div>
+    </section>
+
+    <div class="counter" id="counter"></div>
+    <section class="results" id="results"></section>
+    <div id="empty" class="nores" style="display:none">
+      No direct matches. Try different words (e.g., “prover leak”, “meter factor stability”, “flow conditioner”).<br/>
+      <span class="small">Later we can enable an AI fallback when needed.</span>
+    </div>
+  </div>
+
+  <!-- Lunr.js (client-side full text search) -->
+  <script src="https://unpkg.com/lunr/lunr.js"></script>
+  <script>
+    // --- tiny utilities ---
+    const $ = (s, p=document)=>p.querySelector(s);
+    const $$ = (s, p=document)=>Array.from(p.querySelectorAll(s));
+    const debounce = (fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+
+    // Synonym/expansion table (very simple)
+    const EXPAND = {
+      'turndown':['rangeability'],
+      'rangeability':['turndown'],
+      'mf':['meter factor','meterfactor'],
+      'k-factor':['k factor','pulses per unit','kfactor'],
+      'prover':['pipe prover','ball prover','piston prover','compact prover','mobile prover'],
+      'dp':['differential pressure','orifice'],
+      'orifice':['dp','differential pressure','iso 5167'],
+      'ultrasonic':['path','chord']
+    };
+
+    // State
+    let DATA=[], IDX=null, byId=new Map(), activeTags=new Set();
+
+    // Render helpers
+    function highlight(text, terms){
+      if(!terms || !terms.length) return text;
+      // escape regex
+      const esc = s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const rx = new RegExp('(' + terms.map(esc).join('|') + ')','ig');
+      return text.replace(rx,'<mark>$1</mark>');
+    }
+
+    function render(results, terms){
+      const resEl = $('#results');
+      resEl.innerHTML = '';
+      if(!results.length){
+        $('#empty').style.display='block';
+        $('#counter').textContent = '';
+        return;
+      }
+      $('#empty').style.display='none';
+      $('#counter').textContent = results.length + ' result' + (results.length>1?'s':'');
+
+      results.forEach(r=>{
+        const item = byId.get(r.ref);
+        const ans = item.answer;
+        const q = item.question;
+        const tags = item.tags||[];
+        const stds = item.standards||[];
+        const card = document.createElement('article');
+        card.className='card';
+        card.innerHTML = `
+          <h3 class="q">${highlight(q, terms)}</h3>
+          <div class="meta">
+            ${tags.map(t=>`<span class="badge">${t}</span>`).join('')}
+            ${stds.map(s=>`<span class="std">${s}</span>`).join('')}
+          </div>
+          <div class="ans">${highlight(ans, terms)}</div>
+          <div class="row-end">
+            <div class="small">Last reviewed: ${item.lastReviewed||'—'}</div>
+            <button class="copy" data-id="${item.id}">Copy</button>
+          </div>
+        `;
+        resEl.appendChild(card);
+      });
+
+      // copy buttons
+      $$('.copy', resEl).forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const item = byId.get(btn.dataset.id);
+          const txt = `${item.question}\n\n${item.answer.replace(/<[^>]+>/g,'')}\n\nTags: ${item.tags?.join(', ')||'-'}\nStandards: ${item.standards?.join(', ')||'-'}`;
+          navigator.clipboard.writeText(txt).then(()=>{
+            btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Copy',1200);
+          });
+        });
+      });
+    }
+
+    function applyFilters(ids){
+      if(activeTags.size===0) return ids;
+      return ids.filter(id=>{
+        const it = byId.get(id);
+        return it.tags?.some(t=>activeTags.has(t));
+      });
+    }
+
+    function buildTerms(q){
+      if(!q) return [];
+      const base = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      const expanded = new Set(base);
+      // simple synonym expansion
+      base.forEach(w=>{
+        (EXPAND[w]||[]).forEach(x=>x.split(/\s+/).forEach(y=>expanded.add(y)));
+      });
+      return Array.from(expanded).filter(w=>w.length>1);
+    }
+
+    const doSearch = debounce((raw)=>{
+      if(!IDX){ return; }
+      const terms = buildTerms(raw);
+      let query = '';
+      if(terms.length){
+        // boost question > tags > answer > standards
+        terms.forEach(t=>{
+          query += ` question:${t}^4 tags:${t}^2 answer:${t} standards:${t} `;
+        });
+      } else {
+        // empty search shows everything (filtered)
+        const filteredAll = applyFilters(DATA.map(d=>d.id));
+        render(filteredAll.map(id=>({ref:id})), []);
+        return;
+      }
+
+      let results = IDX.search(query); // lunr results
+      // keep only docs that match active tag filters
+      let ids = results.map(r=>r.ref);
+      ids = applyFilters(ids);
+      results = ids.map(id=>({ref:id}));
+      render(results, terms);
+    }, 150);
+
+    async function init(){
+      // Load data
+      const res = await fetch('data/faq.json', {cache:'no-store'});
+      DATA = await res.json();
+      DATA.forEach(it=>byId.set(it.id, it));
+
+      // Build index
+      IDX = lunr(function () {
+        this.ref('id');
+        this.field('question', { boost:4 });
+        this.field('tags', { boost:2 });
+        this.field('answer');
+        this.field('standards');
+
+        DATA.forEach(doc=>this.add({
+          id: doc.id,
+          question: doc.question,
+          answer: doc.answer.replace(/<[^>]+>/g,' '),
+          tags: (doc.tags||[]).join(' '),
+          standards: (doc.standards||[]).join(' ')
+        }), this);
+      });
+
+      // Default view: show all (respect filters)
+      const allIds = applyFilters(DATA.map(d=>d.id));
+      render(allIds.map(id=>({ref:id})), []);
+
+      // Wire search
+      const input = $('#q');
+      input.addEventListener('input', e=>doSearch(e.target.value));
+
+      // Clear button
+      $('#clearBtn').addEventListener('click', ()=>{
+        $('#q').value=''; doSearch('');
+        activeTags.clear(); $$('.chip').forEach(c=>c.dataset.active='0');
+      });
+
+      // Filters
+      $$('.chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          const v = chip.dataset.value;
+          if(chip.dataset.active==='1'){ chip.dataset.active='0'; activeTags.delete(v); }
+          else { chip.dataset.active='1'; activeTags.add(v); }
+          doSearch($('#q').value);
+        });
+      });
+    }
+    init();
+  </script>
+</body>
+</html>
