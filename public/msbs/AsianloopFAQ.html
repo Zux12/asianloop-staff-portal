@@ -62,7 +62,7 @@
 <body>
   <div class="wrap">
     <header class="al">
-      <img src="/public/images/logo.jpg" alt="Asianloop logo" onerror="this.onerror=null;this.src='../images/logo.jpg'"/>
+      <img src="/public/images/logo.jpg" alt="Asianloop logo"/>
       <div>
         <h1>Asianloop Staff FAQ — Custody Metering & Calibration</h1>
         <div class="sub">Type a keyword: <em>“piston prover leak check”</em>, <em>“ultrasonic straight runs”</em>, <em>“Coriolis zero”</em>, <em>“turndown”</em></div>
@@ -108,21 +108,21 @@
     const debounce = (fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
 
     const EXPAND = {
-      'turndown':['rangeability'],
-      'rangeability':['turndown'],
-      'mf':['meter factor','meterfactor'],
+      turndown:['rangeability'],
+      rangeability:['turndown'],
+      mf:['meter factor','meterfactor'],
       'k-factor':['k factor','pulses per unit','kfactor'],
-      'prover':['pipe prover','ball prover','piston prover','compact prover','mobile prover'],
-      'dp':['differential pressure','orifice'],
-      'orifice':['dp','differential pressure','iso 5167'],
-      'ultrasonic':['path','chord']
+      prover:['pipe prover','ball prover','piston prover','compact prover','mobile prover'],
+      dp:['differential pressure','orifice'],
+      orifice:['dp','differential pressure','iso 5167'],
+      ultrasonic:['path','chord']
     };
 
     let DATA=[], IDX=null, byId=new Map(), activeTags=new Set();
 
     function highlight(text, terms){
       if(!terms || !terms.length) return text;
-      const esc = s=>s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&');
+      const esc = s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
       const rx = new RegExp('(' + terms.map(esc).join('|') + ')','ig');
       return text.replace(rx,'<mark>$1</mark>');
     }
@@ -176,10 +176,10 @@
 
     function buildTerms(q){
       if(!q) return [];
-      const base = q.toLowerCase().trim().split(/\\s+/).filter(Boolean);
+      const base = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
       const expanded = new Set(base);
       base.forEach(w=>{
-        (EXPAND[w]||[]).forEach(x=>x.split(/\\s+/).forEach(y=>expanded.add(y)));
+        (EXPAND[w]||[]).forEach(x=>x.split(/\s+/).forEach(y=>expanded.add(y)));
       });
       return Array.from(expanded).filter(w=>w.length>1);
     }
@@ -203,32 +203,22 @@
       render(results, terms);
     }, 150);
 
-    async function loadJsonWithFallback(){
-      // Primary: absolute path (repo-root): /data/faq.json
-      const tries = ['/data/faq.json', 'data/faq.json'];
-      for(const url of tries){
-        try{
-          const r = await fetch(url, {cache:'no-store'});
-          if(r.ok){
-            const j = await r.json();
-            return j;
-          }
-        }catch(e){
-          console.warn('FAQ fetch failed for', url, e);
-        }
-      }
-      throw new Error('Could not load faq.json from /data/faq.json or data/faq.json. Check file location and path.');
-    }
-
     async function init(){
+      // IMPORTANT: Load JSON from the same /public subtree
+      const url = '/public/msbs/data/faq.json';
+      let r;
       try{
-        DATA = await loadJsonWithFallback();
-      }catch(err){
-        console.error('[FAQ] Load error:', err.message);
+        r = await fetch(url, {cache:'no-store'});
+      }catch(e){
+        console.error('Fetch failed:', e);
+      }
+      if(!r || !r.ok){
+        console.error('[FAQ] Could not load', url, r && r.status);
         $('#empty').style.display='block';
-        $('#empty').innerHTML = 'Could not load <b>faq.json</b>. Place it at <code>/data/faq.json</code> (recommended) or in this folder as <code>data/faq.json</code>.';
+        $('#empty').innerHTML = 'Could not load <b>faq.json</b> at <code>/public/msbs/data/faq.json</code>. Make sure the file exists.';
         return;
       }
+      DATA = await r.json();
       DATA.forEach(it=>byId.set(it.id, it));
 
       IDX = lunr(function () {
