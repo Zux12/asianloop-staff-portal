@@ -1,0 +1,250 @@
+[
+  {
+    "id": "turndown-coriolis",
+    "question": "What is a typical turndown ratio for Coriolis meters?",
+    "answer": "<p>Commonly 8:1 to 20:1 in custody applications, depending on fluid, viscosity, and model. Verify against the specific datasheet and applicable standard/contract requirements.</p>",
+    "tags": ["turndown","coriolis","liquid","custody"],
+    "standards": ["OIML R117","API MPMS Ch. 5.6"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "turndown-ultrasonic",
+    "question": "What turndown can I expect on custody ultrasonic meters?",
+    "answer": "<p>20:1 or higher is common for multi-path designs. Actual range depends on path/chord configuration, Reynolds number, and installation effects (conditioning, straight runs).</p>",
+    "tags": ["turndown","ultrasonic","gas","liquid","installation"],
+    "standards": ["OIML R117","API MPMS Ch. 5.8/5.9"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "turndown-turbine",
+    "question": "What is a typical turndown for turbine meters?",
+    "answer": "<p>About 10:1 is common in custody service. Sensitivity to viscosity, contamination, and bearing wear reduces practical range. Maintain filters and strainers.</p>",
+    "tags": ["turndown","turbine","liquid","maintenance"],
+    "standards": ["API MPMS Ch. 5.3"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "turndown-pd",
+    "question": "What about PD meter turndown?",
+    "answer": "<p>PD meters can claim 10:1 to 100:1, but custody windows are often narrower. Pressure drop and slip become limiting at low flow; check manufacturer curves.</p>",
+    "tags": ["turndown","pd","liquid","dp"],
+    "standards": ["API MPMS Ch. 5.2"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "turndown-dp-orifice",
+    "question": "Turndown for orifice (DP) systems?",
+    "answer": "<p>DP systems don't have a fixed turndown like velocity/volumetric meters. Range is governed by β-ratio, DP transmitter span, and Reynolds number; accuracy falls off at very low Re.</p>",
+    "tags": ["turndown","orifice","dp","gas","liquid"],
+    "standards": ["ISO 5167"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "how-coriolis-works",
+    "question": "How does a Coriolis meter work?",
+    "answer": "<p>It measures mass flow by detecting the phase shift caused by Coriolis forces in vibrating tubes. Density is derived from resonant frequency; temperature compensation is applied.</p>",
+    "tags": ["coriolis","principle","density","temperature"],
+    "standards": ["OIML R117"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "how-ultrasonic-works",
+    "question": "How does an ultrasonic custody meter work?",
+    "answer": "<p>Transit-time measurement across multiple paths determines velocity profile; integrating paths yields volumetric flow. Diagnostics detect swirl/asymmetry/contamination.</p>",
+    "tags": ["ultrasonic","principle","diagnostics","installation"],
+    "standards": ["API MPMS Ch. 5.8/5.9"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "how-turbine-works",
+    "question": "How does a turbine meter work?",
+    "answer": "<p>Flow turns a rotor; rotational speed (pulses) is proportional to volumetric flow. K-factor converts pulses→volume. Sensitive to viscosity and contamination.</p>",
+    "tags": ["turbine","k-factor","pulses","maintenance"],
+    "standards": ["API MPMS Ch. 5.3"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "how-pd-works",
+    "question": "How does a PD meter work?",
+    "answer": "<p>Positive displacement chambers trap and pass discrete volumes; counting chamber cycles gives totalized volume. Slip and differential pressure define limits.</p>",
+    "tags": ["pd","dp","principle"],
+    "standards": ["API MPMS Ch. 5.2","OIML R117"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "how-orifice-works",
+    "question": "How does an orifice (DP) system measure flow?",
+    "answer": "<p>Differential pressure across a restriction correlates with flow via ISO 5167 equations. Requires accurate tap geometry, β-ratio, density, and expansibility factors.</p>",
+    "tags": ["orifice","dp","iso 5167","gas","liquid"],
+    "standards": ["ISO 5167"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "proving-overview",
+    "question": "What is proving and why is it required?",
+    "answer": "<p>Proving determines a meter factor (MF) that corrects indicated flow to reference volume. Custody transfer requires periodic proving to ensure traceability and uncertainty compliance.</p>",
+    "tags": ["proving","meter factor","custody","uncertainty"],
+    "standards": ["API MPMS Ch. 4.x","OIML R117"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "prover-types",
+    "question": "Ball vs piston vs pipe vs compact/mobile prover — what's the difference?",
+    "answer": "<p><b>Ball/Piston (pipe provers):</b> Displacement prover with calibrated volume between detectors. <b>Compact/Mobile:</b> Smaller footprint with precise volume section; mobile units for field use. Selection depends on flow, footprint, accuracy, and fluid.</p>",
+    "tags": ["proving","ball prover","piston prover","pipe prover","compact prover","mobile prover"],
+    "standards": ["API MPMS Ch. 4.2/4.6/4.8"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "proving-repeatability",
+    "question": "What repeatability is acceptable in proving?",
+    "answer": "<p>Typical liquid proving targets ≤ ±0.02% to ±0.05% agreement among runs (per procedure/contract). Investigate leaks, temperature stability, detector timing if not met.</p>",
+    "tags": ["proving","repeatability","quality"],
+    "standards": ["API MPMS Ch. 4.8"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "mf-stability",
+    "question": "How do I judge meter factor (MF) stability?",
+    "answer": "<p>Trend MF over time vs operating conditions. Stability within the specified band (e.g., ±0.05%) indicates healthy system. Sudden shifts suggest fouling, electronics, or process changes.</p>",
+    "tags": ["meter factor","proving","trend","quality"],
+    "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 5.x"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "prover-leak-check",
+    "question": "How is a prover leak check performed?",
+    "answer": "<p>Pressurize and isolate the calibrated section, hold for specified time, and confirm pressure decay within limits. Inspect seals, sphere condition, valves if decay exceeds limits.</p>",
+    "tags": ["proving","leak check","pipe prover","ball prover","piston prover"],
+    "standards": ["API MPMS Ch. 4.2/4.6"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "detector-spacing",
+    "question": "What is detector spacing and why does it matter?",
+    "answer": "<p>Distance between detector switches defining calibrated volume. Accurate spacing and volume certification are essential to reduce systematic error.</p>",
+    "tags": ["proving","detector spacing","volume certification"],
+    "standards": ["API MPMS Ch. 4.9"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "installation-straight-runs",
+    "question": "What straight runs do I need before/after meters?",
+    "answer": "<p>Depends on meter type and conditioning. Ultrasonic often requires flow conditioner + reduced straight runs; turbine/orifice typically need more. Follow the meter standard and datasheet site-specific guidance.</p>",
+    "tags": ["installation","straight runs","flow conditioner","ultrasonic","turbine","orifice"],
+    "standards": ["API MPMS Ch. 5.x","ISO 5167"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "flow-conditioning",
+    "question": "When should I use a flow conditioner?",
+    "answer": "<p>Use to mitigate swirl/asymmetry from elbows, valves, tees, or limited straight runs. Improves profile for ultrasonic/turbine/orifice measurement and repeatability.</p>",
+    "tags": ["installation","flow conditioner","ultrasonic","turbine","orifice"],
+    "standards": ["API MPMS Ch. 5.x"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "cavitation-avoidance",
+    "question": "How do I avoid cavitation in liquid metering?",
+    "answer": "<p>Maintain sufficient backpressure, avoid excessive temperature rise, ensure NPSH margins on pumps, and check for flashing across restrictions.</p>",
+    "tags": ["installation","cavitation","liquid","quality"],
+    "standards": ["API MPMS Ch. 5.x"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "density-temp-comp",
+    "question": "Do I need density and temperature compensation?",
+    "answer": "<p>For custody, yes. Mass-based (Coriolis) may still output volume at base conditions using density/temperature; volumetric meters require T/P compensation to base conditions.</p>",
+    "tags": ["compensation","density","temperature","base conditions"],
+    "standards": ["API MPMS Ch. 11.x"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "base-conditions",
+    "question": "What are base conditions?",
+    "answer": "<p>Reference temperature and pressure for volume (e.g., 15 °C and 1 atm). All billing volumes are corrected to base using recognized tables/equations.</p>",
+    "tags": ["base conditions","correction","custody"],
+    "standards": ["API MPMS Ch. 11.x","OIML R117"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "uncertainty-stack",
+    "question": "What drives measurement uncertainty in custody systems?",
+    "answer": "<p>Meter performance, proving uncertainty, fluid property measurement (T/P/density), installation effects, data acquisition, and repeatability. Combine using root-sum-square (RSS) where independent.</p>",
+    "tags": ["uncertainty","rss","quality","custody"],
+    "standards": ["API MPMS General","ISO/IEC 17025 (context)"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "reprove-when",
+    "question": "When should I re-prove a meter?",
+    "answer": "<p>Per contract/standard intervals, and whenever MF shifts beyond limits, after maintenance, fluid property changes, or significant operating range changes.</p>",
+    "tags": ["proving","meter factor","maintenance","quality"],
+    "standards": ["API MPMS Ch. 4.8","Contractual SOP"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "coriolis-zero",
+    "question": "How to zero a Coriolis meter correctly?",
+    "answer": "<p>Stop flow, stabilize temperature/pressure, ensure full liquid (no bubbles), follow device procedure for zero trim. Recheck across low-flow cutoffs.</p>",
+    "tags": ["coriolis","maintenance","zeroing","quality"],
+    "standards": ["Manufacturer SOP","OIML R117 (context)"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "ultrasonic-diagnostics",
+    "question": "Which ultrasonic diagnostics should I watch?",
+    "answer": "<p>Path SNR, gain, speed-of-sound check vs reference, asymmetry/swirl indicators, path velocity ratio, and fouling alarms. Trend them over time.</p>",
+    "tags": ["ultrasonic","diagnostics","maintenance","trend"],
+    "standards": ["API MPMS Ch. 5.8/5.9"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "turbine-kfactor",
+    "question": "What is a K-factor and how is it used?",
+    "answer": "<p>K-factor is pulses per unit volume (or mass). Totalized pulses ÷ K-factor = measured volume. Recalibrate if MF drifts or after maintenance.</p>",
+    "tags": ["turbine","k-factor","pulses","calibration"],
+    "standards": ["API MPMS Ch. 5.3"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "orifice-beta",
+    "question": "What is β-ratio in an orifice plate and why is it important?",
+    "answer": "<p>β = d/D (orifice bore/pipe ID). It sets DP vs flow sensitivity and Reynolds regime limits. Incorrect β or plate damage skews indicated flow.</p>",
+    "tags": ["orifice","dp","beta ratio","iso 5167"],
+    "standards": ["ISO 5167"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "compact-prover-when",
+    "question": "When to choose a compact or mobile prover?",
+    "answer": "<p>When footprint is limited, flow is moderate, or frequent field proving is needed. Ensure certified base volume and temperature control are adequate for target uncertainty.</p>",
+    "tags": ["compact prover","mobile prover","proving","uncertainty"],
+    "standards": ["API MPMS Ch. 4.2/4.6/4.8"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "mf-limits",
+    "question": "What MF drift is acceptable before investigation?",
+    "answer": "<p>Site-specific, but many custodial systems flag beyond ±0.05% to ±0.1% from baseline. Confirm process changes, fouling, electronics, and re-prove if needed.</p>",
+    "tags": ["meter factor","drift","proving","quality"],
+    "standards": ["API MPMS Ch. 4.8"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "viscosity-effects",
+    "question": "How does viscosity affect meters?",
+    "answer": "<p>Turbine: significant; higher viscosity reduces rotor response. PD: slip changes. Ultrasonic: profile changes; use conditioning. Coriolis: generally robust but pressure drop rises.</p>",
+    "tags": ["viscosity","turbine","pd","ultrasonic","coriolis"],
+    "standards": ["API MPMS Ch. 5.x"],
+    "lastReviewed": "2025-10-06"
+  },
+  {
+    "id": "wet-gas-note",
+    "question": "Any special notes for wet-gas measurement?",
+    "answer": "<p>Multiphase effects bias velocity and diagnostics. Consider wet-gas corrections, separation, or specialized meters. Uncertainty increases vs dry gas custody.</p>",
+    "tags": ["wet gas","gas","uncertainty","ultrasonic","dp"],
+    "standards": ["API MPMS (wet gas guidance)"],
+    "lastReviewed": "2025-10-06"
+  }
+]
