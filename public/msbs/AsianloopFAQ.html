@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Asianloop — Staff FAQ (Custody Metering)</title>
-  <link rel="icon" href="public/images/logo.jpg">
+  <link rel="icon" href="/public/images/logo.jpg">
   <style>
     :root{
       --bg:#f7f8fb; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --accent:#2563eb;
@@ -62,7 +62,7 @@
 <body>
   <div class="wrap">
     <header class="al">
-      <img src="public/images/logo.jpg" alt="Asianloop logo" />
+      <img src="/public/images/logo.jpg" alt="Asianloop logo" onerror="this.onerror=null;this.src='../images/logo.jpg'"/>
       <div>
         <h1>Asianloop Staff FAQ — Custody Metering & Calibration</h1>
         <div class="sub">Type a keyword: <em>“piston prover leak check”</em>, <em>“ultrasonic straight runs”</em>, <em>“Coriolis zero”</em>, <em>“turndown”</em></div>
@@ -77,14 +77,12 @@
 
       <div class="filters" id="filters">
         <span class="pill">Filter by:</span>
-        <!-- Meter types -->
         <span class="chip" data-field="tags" data-value="coriolis">Coriolis</span>
         <span class="chip" data-field="tags" data-value="ultrasonic">Ultrasonic</span>
         <span class="chip" data-field="tags" data-value="turbine">Turbine</span>
         <span class="chip" data-field="tags" data-value="pd">PD</span>
         <span class="chip" data-field="tags" data-value="orifice">Orifice/DP</span>
         <span class="chip" data-field="tags" data-value="vortex">Vortex</span>
-        <!-- Topics -->
         <span class="chip" data-field="tags" data-value="proving">Proving</span>
         <span class="chip" data-field="tags" data-value="turndown">Turndown</span>
         <span class="chip" data-field="tags" data-value="installation">Installation</span>
@@ -103,15 +101,12 @@
     </div>
   </div>
 
-  <!-- Lunr.js (client-side full text search) -->
   <script src="https://unpkg.com/lunr/lunr.js"></script>
   <script>
-    // --- tiny utilities ---
     const $ = (s, p=document)=>p.querySelector(s);
     const $$ = (s, p=document)=>Array.from(p.querySelectorAll(s));
     const debounce = (fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
 
-    // Synonym/expansion table (very simple)
     const EXPAND = {
       'turndown':['rangeability'],
       'rangeability':['turndown'],
@@ -123,14 +118,11 @@
       'ultrasonic':['path','chord']
     };
 
-    // State
     let DATA=[], IDX=null, byId=new Map(), activeTags=new Set();
 
-    // Render helpers
     function highlight(text, terms){
       if(!terms || !terms.length) return text;
-      // escape regex
-      const esc = s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const esc = s=>s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&');
       const rx = new RegExp('(' + terms.map(esc).join('|') + ')','ig');
       return text.replace(rx,'<mark>$1</mark>');
     }
@@ -145,22 +137,17 @@
       }
       $('#empty').style.display='none';
       $('#counter').textContent = results.length + ' result' + (results.length>1?'s':'');
-
       results.forEach(r=>{
         const item = byId.get(r.ref);
-        const ans = item.answer;
-        const q = item.question;
-        const tags = item.tags||[];
-        const stds = item.standards||[];
         const card = document.createElement('article');
         card.className='card';
         card.innerHTML = `
-          <h3 class="q">${highlight(q, terms)}</h3>
+          <h3 class="q">${highlight(item.question, terms)}</h3>
           <div class="meta">
-            ${tags.map(t=>`<span class="badge">${t}</span>`).join('')}
-            ${stds.map(s=>`<span class="std">${s}</span>`).join('')}
+            ${(item.tags||[]).map(t=>`<span class="badge">${t}</span>`).join('')}
+            ${(item.standards||[]).map(s=>`<span class="std">${s}</span>`).join('')}
           </div>
-          <div class="ans">${highlight(ans, terms)}</div>
+          <div class="ans">${highlight(item.answer, terms)}</div>
           <div class="row-end">
             <div class="small">Last reviewed: ${item.lastReviewed||'—'}</div>
             <button class="copy" data-id="${item.id}">Copy</button>
@@ -168,8 +155,6 @@
         `;
         resEl.appendChild(card);
       });
-
-      // copy buttons
       $$('.copy', resEl).forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const item = byId.get(btn.dataset.id);
@@ -191,11 +176,10 @@
 
     function buildTerms(q){
       if(!q) return [];
-      const base = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      const base = q.toLowerCase().trim().split(/\\s+/).filter(Boolean);
       const expanded = new Set(base);
-      // simple synonym expansion
       base.forEach(w=>{
-        (EXPAND[w]||[]).forEach(x=>x.split(/\s+/).forEach(y=>expanded.add(y)));
+        (EXPAND[w]||[]).forEach(x=>x.split(/\\s+/).forEach(y=>expanded.add(y)));
       });
       return Array.from(expanded).filter(w=>w.length>1);
     }
@@ -203,41 +187,56 @@
     const doSearch = debounce((raw)=>{
       if(!IDX){ return; }
       const terms = buildTerms(raw);
-      let query = '';
-      if(terms.length){
-        // boost question > tags > answer > standards
-        terms.forEach(t=>{
-          query += ` question:${t}^4 tags:${t}^2 answer:${t} standards:${t} `;
-        });
-      } else {
-        // empty search shows everything (filtered)
-        const filteredAll = applyFilters(DATA.map(d=>d.id));
-        render(filteredAll.map(id=>({ref:id})), []);
+      if(!terms.length){
+        const allIds = applyFilters(DATA.map(d=>d.id));
+        render(allIds.map(id=>({ref:id})), []);
         return;
       }
-
-      let results = IDX.search(query); // lunr results
-      // keep only docs that match active tag filters
+      let query = '';
+      terms.forEach(t=>{
+        query += ` question:${t}^4 tags:${t}^2 answer:${t} standards:${t} `;
+      });
+      let results = IDX.search(query);
       let ids = results.map(r=>r.ref);
       ids = applyFilters(ids);
       results = ids.map(id=>({ref:id}));
       render(results, terms);
     }, 150);
 
+    async function loadJsonWithFallback(){
+      // Primary: absolute path (repo-root): /data/faq.json
+      const tries = ['/data/faq.json', 'data/faq.json'];
+      for(const url of tries){
+        try{
+          const r = await fetch(url, {cache:'no-store'});
+          if(r.ok){
+            const j = await r.json();
+            return j;
+          }
+        }catch(e){
+          console.warn('FAQ fetch failed for', url, e);
+        }
+      }
+      throw new Error('Could not load faq.json from /data/faq.json or data/faq.json. Check file location and path.');
+    }
+
     async function init(){
-      // Load data
-      const res = await fetch('data/faq.json', {cache:'no-store'});
-      DATA = await res.json();
+      try{
+        DATA = await loadJsonWithFallback();
+      }catch(err){
+        console.error('[FAQ] Load error:', err.message);
+        $('#empty').style.display='block';
+        $('#empty').innerHTML = 'Could not load <b>faq.json</b>. Place it at <code>/data/faq.json</code> (recommended) or in this folder as <code>data/faq.json</code>.';
+        return;
+      }
       DATA.forEach(it=>byId.set(it.id, it));
 
-      // Build index
       IDX = lunr(function () {
         this.ref('id');
         this.field('question', { boost:4 });
         this.field('tags', { boost:2 });
         this.field('answer');
         this.field('standards');
-
         DATA.forEach(doc=>this.add({
           id: doc.id,
           question: doc.question,
@@ -247,21 +246,15 @@
         }), this);
       });
 
-      // Default view: show all (respect filters)
       const allIds = applyFilters(DATA.map(d=>d.id));
       render(allIds.map(id=>({ref:id})), []);
 
-      // Wire search
       const input = $('#q');
       input.addEventListener('input', e=>doSearch(e.target.value));
-
-      // Clear button
       $('#clearBtn').addEventListener('click', ()=>{
         $('#q').value=''; doSearch('');
         activeTags.clear(); $$('.chip').forEach(c=>c.dataset.active='0');
       });
-
-      // Filters
       $$('.chip').forEach(chip=>{
         chip.addEventListener('click', ()=>{
           const v = chip.dataset.value;
