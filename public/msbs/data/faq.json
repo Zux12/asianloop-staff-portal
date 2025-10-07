@@ -2991,7 +2991,161 @@
   "tags": ["allocation","reconciliation","variance","shrinkage"],
   "standards": ["API MPMS Ch. 20.1","API MPMS Ch. 21.2"],
   "lastReviewed": "2025-10-07"
+},
+
+{
+  "id": "std-api-mpms-definition",
+  "question": "What are API and API MPMS, and how do they relate to custody transfer?",
+  "answer": "<p><b>API</b> is the American Petroleum Institute. <b>API MPMS</b> (Manual of Petroleum Measurement Standards) is its multi-chapter standard for petroleum measurement (e.g., Ch. 4 proving, 5.x meter types, 11.x volume correction, 21.1/21.2 EGM/ELM). MPMS is a primary global reference for custody transfer requirements and procedures.</p>",
+  "tags": ["standards","API","MPMS","custody"],
+  "standards": ["API MPMS Ch. 4.x","API MPMS Ch. 5.x","API MPMS Ch. 11.x","API MPMS Ch. 21.1/21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "std-aga-definition",
+  "question": "What is AGA and which AGA reports are used in custody gas metering?",
+  "answer": "<p><b>AGA</b> is the American Gas Association. Key custody references include <b>AGA 7</b> (turbine gas meters), <b>AGA 8</b> (compressibility/Z-factor), <b>AGA 9</b> (multipath ultrasonic meters), and <b>AGA 10</b> (speed-of-sound validation). They define performance, installation, and property calculations for fiscal gas measurement.</p>",
+  "tags": ["standards","AGA","gas","custody"],
+  "standards": ["AGA 7","AGA 8","AGA 9","AGA 10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "std-oiml-definition",
+  "question": "What is OIML and which recommendations apply to custody transfer?",
+  "answer": "<p><b>OIML</b> (International Organization of Legal Metrology) issues <b>R117</b> for measuring systems for liquids other than water (custody transfer) and <b>R137</b> for gas meters. OIML recommendations underpin legal metrology acceptance in many countries.</p>",
+  "tags": ["standards","OIML","R117","R137","legal metrology"],
+  "standards": ["OIML R117","OIML R137"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "std-iso-suite-definition",
+  "question": "Which ISO standards are most relevant to custody transfer?",
+  "answer": "<p>Commonly cited ISO documents include: <b>ISO 5167</b> (DP/orifice/venturi nozzles), <b>ISO 6976</b> (gas properties & heating value), <b>ISO 17089</b> (ultrasonic gas meters), <b>ISO 4185</b> & <b>ISO 9300</b> (liquid gravimetric & sonic nozzle calibrations), and <b>ISO/IEC 17025</b> (lab competence & uncertainty).</p>",
+  "tags": ["standards","ISO 5167","ISO 6976","ISO 17089","ISO 17025"],
+  "standards": ["ISO 5167","ISO 6976","ISO 17089","ISO 4185","ISO 9300","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "std-welmec-mid",
+  "question": "What are WELMEC and EU MID, and why do they matter?",
+  "answer": "<p><b>WELMEC</b> is the European cooperation in legal metrology that publishes guidance (e.g., software & conformity). The EU <b>Measuring Instruments Directive (MID) 2014/32/EU</b> harmonizes approval of custody measuring systems (e.g., MI-002 gas meters, MI-005 liquids other than water). Many EU custody systems require MID conformity plus national oversight.</p>",
+  "tags": ["WELMEC","MID","EU","legal metrology"],
+  "standards": ["MID 2014/32/EU","WELMEC 7.2/8.8 (guidance)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "std-gpa-midstream",
+  "question": "What is GPA Midstream and which GPA standards are used?",
+  "answer": "<p><b>GPA Midstream</b> issues standards for gas/liquid properties and analysis (e.g., <b>GPA 2145</b> gas physical properties; <b>GPA 2172</b> calculating heating value/relative density). These complement AGA/ISO calculations in custody & allocation reporting.</p>",
+  "tags": ["GPA","properties","GHV","gas"],
+  "standards": ["GPA 2145","GPA 2172","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gov-my-legal-metrology",
+  "question": "Malaysia: who governs legal metrology and traceability?",
+  "answer": "<p><b>NMIM</b> (National Metrology Institute of Malaysia) under SIRIM maintains national standards and traceability per the <b>National Measurement System Act 2007 (Act 675)</b> and supports weights & measures per the <b>Weights and Measures Act 1972 (Act 71)</b>. Custody systems reference API/ISO/OIML but legal metrology falls under these Acts and related agencies.</p>",
+  "tags": ["Malaysia","SIRIM","NMIM","legal metrology"],
+  "standards": ["Act 675 (NMSA 2007)","Act 71 (WMA 1972)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gov-my-miti-customs",
+  "question": "Malaysia: roles of MITI and Royal Malaysian Customs in custody-related trade?",
+  "answer": "<p><b>MITI</b> oversees trade/permits and export controls; <b>Royal Malaysian Customs (RMCD)</b> administers customs duties/SST and processes import/export of petroleum & measuring systems. Declarations must comply with Customs Act & Orders; wrong declarations are penalized. For labs/equipment, compliance with NMIM/SIRIM traceability is expected.</p>",
+  "tags": ["Malaysia","MITI","Customs","SST","permits"],
+  "standards": ["Customs Act 1967","SST guides (RMCD)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gov-us-eu-frameworks",
+  "question": "Who are the key governance bodies in the US and EU for custody metering?",
+  "answer": "<p><b>US:</b> NIST (national standards), API/AGA (industry), plus state Weights & Measures. <b>EU:</b> MID (2014/32/EU) and national authorities; WELMEC issues guidance; NMIs like PTB (DE), VSL (NL), TÜV SÜD NEL (UK) support traceability and approvals.</p>",
+  "tags": ["US","EU","NIST","MID","WELMEC","PTB","VSL","NEL"],
+  "standards": ["NIST services","MID 2014/32/EU","WELMEC Guides","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-euroloop-profile",
+  "question": "EuroLoop (Rotterdam): capabilities and ranges",
+  "answer": "<p><b>GasCal:</b> 2–30\"; 5–30,000 m³/h at 1–78 bar; uncertainty ≤0.20% (0.10% possible, k=2). Media: air, natural gas, CO₂.<br><b>HyCal (liquid):</b> 4–24\"; 10–5,000 m³/h; viscosity 1–100 cSt (up to 1200 cSt); piston provers (≈40 m), temperature stability ≤0.5 °C; capacity up to ~600 liquid calibrations/year. ISO/IEC 17025 traceability via piston provers and master meters.</p>",
+  "tags": ["EuroLoop","VSL","high-pressure gas","hydrocarbon","calibration"],
+  "standards": ["ISO/IEC 17025","ISO 9300","ISO 4185","AGA 9 (context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-ceesi-profile",
+  "question": "CEESI (USA): what can they calibrate and at what scale?",
+  "answer": "<p>CEESI Iowa high-pressure gas facility calibrates up to ~30\" meters with test sections of 20–30\" and operating pressures up to ~1200 psi. The array uses multiple turbine reference meters/critical flow venturis traceable to NIST. CEESI is ISO/IEC 17025 accredited and provides broad gas & liquid calibration services.</p>",
+  "tags": ["CEESI","high-pressure gas","calibration","NIST traceable"],
+  "standards": ["ISO/IEC 17025","ISO 9300"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-tuv-nel-profile",
+  "question": "TÜV SÜD NEL (UK): liquid & multiphase flow capabilities",
+  "answer": "<p>UK’s national flow standards holder: oil flow facility with four lines and advanced temperature/viscosity control; accredited ISO/IEC 17025. Also operates multiphase test loops (oil/water/gas) for metering evaluation and R&D. Used widely for custody liquid and MPFM characterization.</p>",
+  "tags": ["NEL","UK","oil flow","multiphase","accredited"],
+  "standards": ["ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-kriss-profile",
+  "question": "KRISS (Korea): metrology support for custody applications",
+  "answer": "<p><b>KRISS</b> (Korea Research Institute of Standards and Science) maintains national flow standards supporting gas/liquid calibrations and legal metrology traceability. Operators in North Asia reference KRISS certificates when seeking regional traceability links to primary standards.</p>",
+  "tags": ["KRISS","Korea","national metrology","flow standards"],
+  "standards": ["ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-nmij-profile",
+  "question": "NMIJ (Japan): hydrocarbon & cryogenic flow facilities",
+  "answer": "<p><b>NMIJ</b> built large hydrocarbon flow calibration with expanded uncertainty on the order of ~0.03% (volume) / ~0.02% (mass) in certain ranges, and publishes R&D on cryogenic/liquefied gas calibration system design—important for LNG custody verification and research use.</p>",
+  "tags": ["NMIJ","Japan","hydrocarbon","cryogenic","uncertainty"],
+  "standards": ["ISO/IEC 17025","ISO 4185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gov-eu-mid-acceptance",
+  "question": "How does EU MID approval affect custody systems shipped into Europe?",
+  "answer": "<p>Meters/systems used for trade must comply with MID modules (e.g., MI-002 gas, MI-005 liquids). Many vendors ship MID-approved meters/flow computers (e.g., Flow-X, Micro Motion 5700) enabling faster national acceptance; WELMEC guides cover software/sealing requirements.</p>",
+  "tags": ["MID","EU","acceptance","flow computers"],
+  "standards": ["MID 2014/32/EU","WELMEC guidance"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gov-us-nist-services",
+  "question": "What NIST services support high-pressure gas custody calibration in the US?",
+  "answer": "<p>NIST underpins CEESI Iowa via critical flow venturi standards and PVT-t primary systems, enabling traceable calibration at operating line pressure for large-diameter meters used in custody gas pipelines.</p>",
+  "tags": ["NIST","US","critical flow venturi","traceability"],
+  "standards": ["ISO 9300","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "asia-distribution-by-service",
+  "question": "Add-on: What is the estimated distribution of custody meters in Asia by service (gas/liquid/wet-gas)?",
+  "answer": "<p><b>Indicative split (triangulated from APAC market reports and global custody trends):</b> Gas custody (USM/orifice/turbine) ≈ <b>55–65%</b>; Liquid custody (Coriolis/USM/PD) ≈ <b>30–40%</b>; Wet-gas/multiphase in fiscal service &lt; <b>5%</b> (typically allocation, not custody). Asia-Pacific currently leads global ultrasonic adoption, with strong LNG/LPG/gas pipeline investments; liquids custody (refined products/crude) remains large but second to gas by count.</p>",
+  "tags": ["market","Asia","distribution","gas","liquid"],
+  "standards": ["AGA 9 (context)","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "asia-operators-distribution",
+  "question": "Which operators drive custody metering deployments in Asia, and in what areas?",
+  "answer": "<p><b>Regional leaders (illustrative):</b> <b>PETRONAS</b> (Malaysia): LNG/gas send-out, offshore gas/liquids—USM & Coriolis; <b>Sinopec/CNPC</b> (China): trunk gas & products pipelines—USM/orifice; <b>Pertamina</b> (Indonesia): crude/products terminals—PD/Coriolis & USM; <b>Shell</b> (regional): LNG terminals & gas pipelines—USM; <b>Indian majors (GAIL/IOCL)</b>: gas city-gate & pipelines—USM/orifice; <b>Singapore/Thai refiners</b>: refined product custody—Coriolis/USM. Mix varies by asset class and contract; LNG growth keeps USM share high across APAC.</p>",
+  "tags": ["operators","Asia","PETRONAS","Shell","Sinopec","Pertamina"],
+  "standards": ["AGA 9 (context)","API MPMS Ch. 5.6/5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lng-governance-giignl",
+  "question": "Who publishes guidance for LNG custody transfer?",
+  "answer": "<p><b>GIIGNL</b> (International Group of LNG Importers) publishes the LNG Custody Transfer Handbook used with supplier/terminal contracts. It complements API/ISO property calculations and sets best practices for ship/shore measurement and energy reporting.</p>",
+  "tags": ["LNG","GIIGNL","custody","handbook"],
+  "standards": ["GIIGNL LNG Custody Transfer Handbook","ISO 6976","API MPMS Ch. 14.5"],
+  "lastReviewed": "2025-10-07"
 }
 
+  
   
 ]
