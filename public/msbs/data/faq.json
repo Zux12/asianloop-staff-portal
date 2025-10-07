@@ -2122,6 +2122,875 @@
   "tags": ["Asia","labs","capacity","schedule"],
   "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
   "lastReviewed": "2025-10-07"
+},
+
+{
+  "id": "case-lng-usm-sos",
+  "question": "Case study: LNG terminal—ultrasonic SOS cross-check prevents custody error",
+  "answer": "<p><b>Scenario:</b> Multi-path USM on LNG send-out showed stable MF but rising SOS deviation (+0.18%). GC composition later found N₂ bias.<br><b>Action:</b> AGA-10 SOS check triggered validation; GC re-calibrated and EFMs reprocessed ticket.<br><b>Result:</b> Corrected base volume shift of 0.12% avoided under-billing. Lesson: keep SOS deviation ≤±0.1% and treat rising trends as composition alarms.</p>",
+  "tags": ["case","ultrasonic","LNG","AGA 10","GC"],
+  "standards": ["AGA 9","AGA 10","ISO 6976","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-wetgas-alert",
+  "question": "Case study: Wet-gas alarm averts fiscal transfer on gas pipeline",
+  "answer": "<p><b>Scenario:</b> After a pressure letdown, USM diagnostics showed turbulence/asymmetry spikes and SOS mismatch; separators upstream were bypassed.<br><b>Action:</b> Transfer paused, separators returned to service, verification against check meter performed.<br><b>Result:</b> Prevented low-biased readings (estimated −0.4%). Contracts updated to require separator status in EFM audit.</p>",
+  "tags": ["case","wet gas","ultrasonic","diagnostics"],
+  "standards": ["AGA 9","API MPMS Ch. 21.1","ISO 5167 (limits)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-coriolis-entrained-gas",
+  "question": "Case study: Coriolis with entrained-gas detection during marine loading",
+  "answer": "<p><b>Scenario:</b> Loading arm induced micro-bubbles; Coriolis two-phase diagnostics flagged instability at low backpressure.<br><b>Action:</b> Increased backpressure and enabled two-phase detection limits; re-proved post-stabilization.<br><b>Result:</b> Restored repeatability from ±0.08% to ±0.02% and MF within historical band.</p>",
+  "tags": ["case","Coriolis","entrained gas","backpressure"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-master-meter-check",
+  "question": "Case study: Master-meter verification identifies prover detector offset",
+  "answer": "<p><b>Scenario:</b> Pipe prover runs met repeatability, but MM comparison showed consistent +0.06% bias vs history.<br><b>Action:</b> Detector alignment survey revealed 0.7 mm offset; recertified base volume.<br><b>Result:</b> Bias removed; underscores value of parallel MM checks even when repeatability passes.</p>",
+  "tags": ["case","master meter","pipe prover","detector spacing"],
+  "standards": ["API MPMS Ch. 4.5","API MPMS Ch. 4.9","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-compact-prover-offshore",
+  "question": "Case study: Offshore compact prover thermal control",
+  "answer": "<p><b>Scenario:</b> Skid with compact prover failed repeatability (±0.07%) during noon heat load.<br><b>Action:</b> Added inline heat exchanger and insulated prover shell; stabilized temperature within ±0.1 °C.<br><b>Result:</b> Repeatability improved to ±0.02%; field proving became viable offshore.</p>",
+  "tags": ["case","compact prover","temperature","offshore"],
+  "standards": ["API MPMS Ch. 4.6","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-bidirectional-proving",
+  "question": "Case study: Bidirectional proving exposes valve bias",
+  "answer": "<p><b>Scenario:</b> Unidirectional runs passed; reverse runs showed +0.04% shift.<br><b>Action:</b> Found DBB passing leakage in one direction; replaced seats and re-tested.<br><b>Result:</b> Forward/reverse agreement within ±0.01%; contractual requirement for bi-directional checks added.</p>",
+  "tags": ["case","bidirectional","DBB","leak test"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.8","API 6D"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-temperature-stratification",
+  "question": "Case study: Temperature stratification bias in large-bore crude line",
+  "answer": "<p><b>Scenario:</b> Vertical riser caused 0.4 °C top-bottom gradient; RTD in short thermowell read low.<br><b>Action:</b> Installed longer thermowell and insulation; added mixing spool.<br><b>Result:</b> CTL correction stabilized; MF moved by 0.11% toward historical mean.</p>",
+  "tags": ["case","temperature","CTL","installation"],
+  "standards": ["API MPMS Ch. 11.1","API MPMS Ch. 21.2","IEC 60751"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-kfactor-misscaling",
+  "question": "Case study: K-factor mis-scaling in turbine meter after transmitter swap",
+  "answer": "<p><b>Scenario:</b> New pulse transmitter output 2× frequency; EFM kept old K-factor.<br><b>Action:</b> Detected by mismatch with mechanical index; corrected K and resealed.<br><b>Result:</b> Prevented 50% over-read; highlights index cross-check and seal control.</p>",
+  "tags": ["case","turbine","K-factor","EFM"],
+  "standards": ["API MPMS Ch. 5.3","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-orifice-beta-plate",
+  "question": "Case study: Orifice plate β-ratio error due to spare plate mix-up",
+  "answer": "<p><b>Scenario:</b> Plate with wrong bore installed during turnaround; β increased 0.03.<br><b>Action:</b> EFM audit showed DP vs flow anomaly; plate replaced; tickets reprocessed.<br><b>Result:</b> Eliminated +0.6% volume bias; instituted plate barcode tracking.</p>",
+  "tags": ["case","orifice","β-ratio","audit"],
+  "standards": ["ISO 5167","API MPMS Ch. 14.3","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-sampling-bias-watercut",
+  "question": "Case study: Sampling bias drives water cut error",
+  "answer": "<p><b>Scenario:</b> Intermittent sampler fired only at high flow; composite skewed low on water.<br><b>Action:</b> Switched to proportional sampling and added mixing energy.<br><b>Result:</b> Water cut agreement within ±0.05% absolute; reduced custody disputes.</p>",
+  "tags": ["case","sampling","water cut","mixing"],
+  "standards": ["API MPMS Ch. 8.2","ISO 3171"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-redundant-tx-switchover",
+  "question": "Case study: Redundant transmitters prevent downtime",
+  "answer": "<p><b>Scenario:</b> Primary PT drifted +0.2 bar; EFM auto-switched to secondary within limits.<br><b>Action:</b> Drift confirmed, transmitter recalibrated; audit trail captured switchover.<br><b>Result:</b> No custody interruption; pressure uncertainty maintained.</p>",
+  "tags": ["case","redundancy","pressure","audit"],
+  "standards": ["API MPMS Ch. 21.2","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-time-drift",
+  "question": "Case study: Time drift reconciliation between EFM and SCADA",
+  "answer": "<p><b>Scenario:</b> SCADA clock lagged 90 s; batch totals mismatched by 0.03%.<br><b>Action:</b> Enforced NTP sync; retimed historian import.<br><b>Result:</b> Batch alignment achieved; ticket remains EFM source of truth.</p>",
+  "tags": ["case","timestamp","EFM","SCADA"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-leak-repeatability",
+  "question": "Case study: Minor leak destroys proving repeatability",
+  "answer": "<p><b>Scenario:</b> Pipe prover passed leak test at ambient, failed under hot product; seals hardened at temperature.<br><b>Action:</b> Replaced O-rings with high-temp elastomer; leak re-test passed.<br><b>Result:</b> Repeatability improved from ±0.09% to ±0.02%.</p>",
+  "tags": ["case","pipe prover","leak test","seals"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-viscosity-mismatch",
+  "question": "Case study: Viscosity mismatch between lab and field proving",
+  "answer": "<p><b>Scenario:</b> PD meter proved with low-vis test oil while process was heavy crude; MF shifted +0.3% in service.<br><b>Action:</b> Re-proved at matched viscosity/temperature; updated curves in EFM.<br><b>Result:</b> Stable MF across operating range; contracts amended to specify proving fluid window.</p>",
+  "tags": ["case","viscosity","PD","proving fluid"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-usm-path-failure",
+  "question": "Case study: Ultrasonic path failure and uncertainty escalation",
+  "answer": "<p><b>Scenario:</b> One chord failed; meter continued with reduced-path algorithm.<br><b>Action:</b> Declared degraded mode, limited to operational monitoring; repair expedited; custody paused.<br><b>Result:</b> Restored full-path operation; reinforced spare-transducer policy.</p>",
+  "tags": ["case","ultrasonic","path","uncertainty"],
+  "standards": ["AGA 9","ISO 17089-1","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-cavitation-low-backpressure",
+  "question": "Case study: Cavitation from inadequate backpressure in product line",
+  "answer": "<p><b>Scenario:</b> Control valve set too low; noise/vibration increased; Coriolis density oscillated.<br><b>Action:</b> Raised backpressure, verified vapor pressure margin; re-proved.<br><b>Result:</b> Removed low bias and restored repeatability.</p>",
+  "tags": ["case","cavitation","backpressure","Coriolis"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 11.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-remote-proving-cyber",
+  "question": "Case study: Remote proving with cyber hardening",
+  "answer": "<p><b>Scenario:</b> Remote field with compact prover used VPN for supervised proving.<br><b>Action:</b> Implemented read-only SCADA path, role-based access, and dual sign-off workflow; all steps captured in audit trail.<br><b>Result:</b> Safe remote operations without compromising seal integrity or data provenance.</p>",
+  "tags": ["case","remote proving","security","audit"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2","IEC 62443"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-bayesian-reconciliation",
+  "question": "Case study: Bayesian reconciliation across parallel meters",
+  "answer": "<p><b>Scenario:</b> Two USMs and a Coriolis showed small divergences (±0.2%).<br><b>Action:</b> Applied Bayesian data reconciliation using transmitter uncertainties; flagged one PT drift.<br><b>Result:</b> Corrected PT restored agreement; proved value of uncertainty-informed cross-checks between provings.</p>",
+  "tags": ["case","reconciliation","uncertainty","cross-check"],
+  "standards": ["ISO 5168","API MPMS Ch. 21.2","AGA 9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-digital-twin-preproving",
+  "question": "Case study: Digital twin predicts bad proving window",
+  "answer": "<p><b>Scenario:</b> Model of skid predicted temperature drift during solar peak; operations planned proving at night shift.<br><b>Action:</b> Night proving achieved steady ΔT &lt;0.1 °C.<br><b>Result:</b> First-pass acceptance (five valid runs) saved 4 hours of downtime.</p>",
+  "tags": ["case","digital twin","scheduling","thermal"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-flow-conditioner-retrofit",
+  "question": "Case study: Flow conditioner retrofit for limited straight run",
+  "answer": "<p><b>Scenario:</b> Tight layout around USM created swirl; repeatability marginal.<br><b>Action:</b> Installed certified conditioner; reduced upstream length; re-proved.<br><b>Result:</b> Repeatability improved from ±0.05% to ±0.02%; diagnostics (asymmetry) normalized.</p>",
+  "tags": ["case","flow conditioner","ultrasonic","installation"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-prover-recert-impact",
+  "question": "Case study: Prover base-volume recertification shifts MF",
+  "answer": "<p><b>Scenario:</b> Recertified prover returned with −0.015% volume correction update.<br><b>Action:</b> Site MF decreased accordingly; historical variance explained in reconciliation.<br><b>Result:</b> Transparent audit closes the loop on small but material shifts after recertification.</p>",
+  "tags": ["case","prover","recertification","MF"],
+  "standards": ["API MPMS Ch. 4.9","ISO/IEC 17025","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "case-gc-drift-correction",
+  "question": "Case study: GC drift identified via SOS and density disagreement",
+  "answer": "<p><b>Scenario:</b> Calculated density from GC diverged from Coriolis density by 0.4 kg/m³; SOS dev rose to +0.12%.<br><b>Action:</b> GC recalibrated; composition corrected.<br><b>Result:</b> Restored agreement; added monthly GC vs Coriolis density cross-check in SOP.</p>",
+  "tags": ["case","GC","density","SOS"],
+  "standards": ["ISO 6976","AGA 10","API MPMS Ch. 14.1"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "lab-design-hydraulics",
+  "question": "What are the core hydraulic design blocks of a metering calibration lab?",
+  "answer": "<p>Typical liquid loop: <b>storage tank → circulation pump → heat exchanger → filter/strainer → flow control valve → reference standard (prover/reference meter) → DUT test bench → return</b>. Gas loop: <b>compressor/bottle rack → pressure control → temperature conditioning → reference (sonic nozzle or reference meter) → DUT → vent/return</b>. Each loop includes certified P/T instrumentation and bypasses for stabilization and degassing.</p>",
+  "tags": ["lab design","hydraulics","liquid","gas"],
+  "standards": ["API MPMS Ch. 4.9","ISO 4185","ISO 9300"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-uncertainty-budget",
+  "question": "How do labs structure an uncertainty budget for calibration?",
+  "answer": "<p>Identify contributors: reference standard uncertainty, temperature, pressure, density/viscosity, timing/pulse resolution, repeatability, and environmental effects. Combine independent components using RSS, apply <i>k</i>=2 for expanded uncertainty, and document sensitivity coefficients. Include drift and stability terms derived from control charts.</p>",
+  "tags": ["uncertainty","budget","RSS","traceability"],
+  "standards": ["ISO/IEC 17025","ISO 5168","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-reference-hierarchy",
+  "question": "What reference standard hierarchy should a lab maintain?",
+  "answer": "<p>Maintain a <b>primary</b> reference (e.g., gravimetric tank, piston prover, sonic nozzle bank) certified by an NMI, <b>working</b> standards (transfer meters/provers) calibrated against the primary, and <b>field</b> standards for on-site checks traced to the working standards. Control intervals with drift trend analysis.</p>",
+  "tags": ["reference standards","hierarchy","traceability"],
+  "standards": ["ISO/IEC 17025","OIML R117","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-thermal-control",
+  "question": "How much thermal control is required in a calibration bay?",
+  "answer": "<p>Keep fluid temperature stability within <b>±0.1 °C</b> during runs for custody-grade liquid work. Use plate heat exchangers, insulated piping, and temperature-controlled rooms for benches. Monitor and log ambient and fluid temperatures for each run.</p>",
+  "tags": ["thermal control","temperature","stability","liquid"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.8","ISO 4185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-filtration-degassing",
+  "question": "Why are filtration and degassing mandatory in lab loops?",
+  "answer": "<p>Particulates and micro-bubbles degrade repeatability and bias mass/volume readings. Provide staged filtration (e.g., 100–50 µm) and install <b>degasser/air eliminator</b> upstream of the DUT. Verify bubble-free condition via density stability or sight glasses before runs.</p>",
+  "tags": ["filtration","degassing","repeatability","quality"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-npsh-viscosity",
+  "question": "How do NPSH and viscosity influence lab pump selection?",
+  "answer": "<p>Ensure NPSH<sub>available</sub> &gt; NPSH<sub>required</sub> with margin to avoid cavitation and density fluctuation. Select pumps covering the lab’s viscosity envelope (e.g., water to 200 cSt) without excessive shearing. Use variable-speed drives for stable setpoints.</p>",
+  "tags": ["NPSH","pumps","viscosity","design"],
+  "standards": ["API 610 (context)","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-reynolds-similarity",
+  "question": "Why is Reynolds number similarity important in calibration?",
+  "answer": "<p>Meter performance depends on flow regime. Calibration should cover the DUT’s intended Reynolds range to ensure transferability. When full similarity is impossible, document limitations and provide correction curves from reference standards.</p>",
+  "tags": ["Reynolds number","similarity","performance"],
+  "standards": ["API MPMS Ch. 5.x","ISO 5167","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-pressure-capability",
+  "question": "What pressure capability should a gas lab target?",
+  "answer": "<p>High-pressure calibration facilities typically operate at <b>30–100 bar</b> to represent custody conditions. Reference systems include sonic nozzles per ISO 9300 and high-accuracy reference meters (USM/turbine) with traceable P/T and GC composition inputs.</p>",
+  "tags": ["gas","pressure","sonic nozzle","reference"],
+  "standards": ["ISO 9300","AGA 9","API MPMS Ch. 14.10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-hazardous-area",
+  "question": "How should hazardous area requirements be addressed in labs?",
+  "answer": "<p>Classify zones and apply explosion protection: Ex d/Ex e enclosures, purged panels (Ex p), certified glands, and equipotential bonding. Maintain compliance documents and periodic inspections for all Ex-rated equipment.</p>",
+  "tags": ["hazardous area","ATEX","IECEx","safety"],
+  "standards": ["IEC 60079-14","ATEX 2014/34/EU","API RP 500"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-data-systems",
+  "question": "What data systems should a calibration lab implement?",
+  "answer": "<p>Use a LIMS/quality system to manage <b>procedures, certificates, uncertainty budgets, and audit trails</b>. Automate bench acquisition (pulses, P/T, density) with secure time-stamped storage and checksum verification. Provide e-signature workflows for certificates.</p>",
+  "tags": ["LIMS","data integrity","audit","certificates"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.2","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-sops-mte",
+  "question": "How are SOPs and measuring & test equipment (M&TE) controlled?",
+  "answer": "<p>Each bench has controlled SOPs with revision history. All M&TE carry calibration status labels, certificates, and due dates. A recall system prevents use of expired instruments and records as-left/as-found results.</p>",
+  "tags": ["SOP","M&TE","calibration control","quality"],
+  "standards": ["ISO/IEC 17025","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-proficiency-testing",
+  "question": "How does proficiency testing support accreditation?",
+  "answer": "<p>Participate in inter-laboratory comparisons to demonstrate measurement equivalence. Analyze z-scores, investigate outliers, and update uncertainty models. Keep records for surveillance assessments by the accreditation body.</p>",
+  "tags": ["proficiency testing","inter-lab","accreditation"],
+  "standards": ["ISO/IEC 17025","ILAC P9/G13"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-instrument-benches",
+  "question": "What auxiliary instrument benches are needed?",
+  "answer": "<p>Temperature: stirred baths and dry-wells with reference PRTs. Pressure: deadweight testers/piston gauges. Density: oscillating U-tube references. Flow pulse simulators and timer/counter calibrators. Each with traceable certificates.</p>",
+  "tags": ["benches","temperature","pressure","density"],
+  "standards": ["IEC 60751","ISO 12185","ISO 4185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-cleanliness-materials",
+  "question": "How do cleanliness and materials compatibility affect results?",
+  "answer": "<p>Contamination and incompatible elastomers bias density/viscosity and damage meters. Adopt cleaning SOPs, compatible seals (FKM/FKM-FEP/EPDM as applicable), and corrosion-resistant materials. Flush between fluids and document cleanliness checks.</p>",
+  "tags": ["cleanliness","materials","compatibility","quality"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-scheduling-turnaround",
+  "question": "How should a lab manage scheduling and turnaround?",
+  "answer": "<p>Use a booking system with defined service levels per meter size/range. Provide pre-receipt checks (documentation, fittings), target turnaround windows, and expedite options. Communicate hold points for customer witnessing.</p>",
+  "tags": ["operations","scheduling","turnaround","witness"],
+  "standards": ["ISO/IEC 17025","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-chain-of-custody",
+  "question": "What is the chain-of-custody for devices under test?",
+  "answer": "<p>Track receipt, storage location, seal status, work-in-progress, and release with serialized forms. Photograph seals and nameplates. Maintain secure storage and environmental protection until dispatch.</p>",
+  "tags": ["chain of custody","seals","security","records"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-gas-composition",
+  "question": "How should gas composition be handled in a high-pressure lab?",
+  "answer": "<p>Provide certified calibration gases and an on-site GC for composition, heating value, and density (ISO 6976). Use heated sample lines, regulators, and moisture control to prevent condensation.</p>",
+  "tags": ["gas","composition","GC","properties"],
+  "standards": ["ISO 6976","API MPMS Ch. 14.1","AGA 10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-safety-systems",
+  "question": "What safety systems are required in calibration labs?",
+  "answer": "<p>Gas detection, emergency shutdown (ESD), fire & gas panels, pressure relief, spill containment, eyewash/showers, and documented HAZOP/LOPA. Train staff on permits-to-work and LOTO procedures.</p>",
+  "tags": ["safety","ESD","HAZOP","F&G"],
+  "standards": ["IEC 61511 (context)","OSHA 1910","IEC 60079-14"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-certificates-content",
+  "question": "What must a calibration certificate include?",
+  "answer": "<p>Device ID, as-found/as-left data, reference standards and certificates, environmental conditions, uncertainty statement (k=2), validity period, and accreditation mark. Digital signatures and hash values strengthen data integrity.</p>",
+  "tags": ["certificate","content","uncertainty","digital"],
+  "standards": ["ISO/IEC 17025","ILAC P8","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-management-review",
+  "question": "How is management review conducted for an accredited lab?",
+  "answer": "<p>Annually review nonconformities, corrective actions, proficiency results, customer feedback, KPIs, and resource needs. Record decisions and action owners; feed outcomes into continual improvement plans.</p>",
+  "tags": ["management review","accreditation","improvement"],
+  "standards": ["ISO/IEC 17025","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-witnessing",
+  "question": "What does customer witnessing entail during calibration?",
+  "answer": "<p>Provide a pre-job brief, hazard orientation, and defined witness points (stabilization, run start/stop, data review). Issue a witness report capturing observations, deviations, and acceptance of results.</p>",
+  "tags": ["witness","customer","report","procedure"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+
+{
+  "id": "emerson-micro-motion-smv-ecp",
+  "question": "What makes Emerson Micro Motion Coriolis meters (SMV/ECP) unique in custody service?",
+  "answer": "<p>Emerson’s Micro Motion series integrates <b>Smart Meter Verification (SMV)</b> and <b>Enhanced Core Processor (ECP)</b> technology. SMV performs in-situ diagnostics of tube stiffness, damping, and drive gain without process interruption, while ECP provides higher-frequency signal processing for entrained gas and vibration filtering. Certified for OIML R117 and API MPMS 5.6 custody applications.</p>",
+  "tags": ["Emerson","Coriolis","SMV","ECP","diagnostics"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "krohne-optimass-bubble",
+  "question": "How does KROHNE OPTIMASS handle entrained gas?",
+  "answer": "<p>KROHNE’s OPTIMASS 6400 and 2400 models feature <b>Entrained Gas Management (EGM)</b>, maintaining flow measurement accuracy up to <b>100% gas volume fraction for short durations</b>. The device detects and compensates for gas bubbles by real-time drive control and tube resonance tracking. Ideal for two-phase loading or batch transfer conditions.</p>",
+  "tags": ["KROHNE","Coriolis","EGM","entrained gas","two-phase"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "endress-promass-multivariable",
+  "question": "What are Endress+Hauser Promass highlights for custody metering?",
+  "answer": "<p>Promass F/I/X series integrate <b>Multi-variable measurement</b> (mass, density, temperature) with <b>Heartbeat Technology</b>—a traceable verification routine providing pass/fail diagnostics against internal references. Certified by PTB and NMi for custody use. Entrained gas capability up to ~5% GVF with minimal accuracy loss.</p>",
+  "tags": ["Endress+Hauser","Promass","heartbeat","Coriolis","verification"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "yokogawa-rotamass-tune",
+  "question": "What differentiates Yokogawa ROTAMASS TI in custody applications?",
+  "answer": "<p>ROTAMASS TI employs <b>Adaptive Excitation Control</b> for stable tube oscillation under changing densities, and <b>Process Guard</b> diagnostics for vibration detection. Designed for custody transfer of LPG, crude, and refined products. GVF tolerance up to ~10% with built-in bubble compensation algorithms.</p>",
+  "tags": ["Yokogawa","ROTAMASS","adaptive control","diagnostics","bubble"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "daniel-ultrasonic-advanced",
+  "question": "How does Daniel (Emerson) Ultrasonic Meter ensure accuracy in custody gas transfer?",
+  "answer": "<p>The Daniel 3410/3810 series use <b>eight-path symmetrical designs</b> with <b>Speed of Sound (SOS)</b> validation per AGA-10. Advanced diagnostics track turbulence, swirl, and contamination indexes. Suitable for large-diameter gas pipelines; API MPMS 5.8/AGA 9 certified. Offers full bi-directional capability and path redundancy.</p>",
+  "tags": ["Daniel","ultrasonic","gas","AGA 9","SOS"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "sick-ultrasonic-gas",
+  "question": "What are SICK ultrasonic meters known for in custody service?",
+  "answer": "<p>SICK FLOWSIC600 and FLOWSIC600-XT use <b>cross-path multi-beam geometry</b> and <b>digital signal correlation</b> to handle disturbed profiles. Their SOS deviation check and built-in self-test functions align with AGA-10/AGA-9 diagnostics. Certified for custody gas transfer up to 100 bar with uncertainty ≤±0.15%.</p>",
+  "tags": ["SICK","ultrasonic","gas","diagnostics"],
+  "standards": ["AGA 9","AGA 10","OIML R137"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "honeywell-elster-turbine",
+  "question": "What is unique about Honeywell Elster turbine meters for custody gas?",
+  "answer": "<p>Honeywell Elster TRZ2/TRZ3 and Q.Sonic ultrasonic models offer <b>dual-pulse redundancy</b> and temperature-compensated K-factors. The Q.Sonic models use seven-path layouts with profile recognition and bidirectional capability. Their turbine designs comply with AGA 7 and are widely used in European fiscal gas systems.</p>",
+  "tags": ["Honeywell","Elster","turbine","ultrasonic","custody"],
+  "standards": ["AGA 7","AGA 9","OIML R137"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "fmc-technip-custody",
+  "question": "What is FMC/TechnipFMC’s contribution to custody metering systems?",
+  "answer": "<p>TechnipFMC integrates <b>MeterPro</b> supervisory and <b>MPFM-Vx</b> multiphase meters for production and custody allocation. Their systems combine compact provers, dual redundancy EFMs, and SmartPro diagnostic software, certified for API MPMS 21.2 compliance. Often used on FPSOs for combined fiscal and allocation service.</p>",
+  "tags": ["TechnipFMC","MeterPro","MPFM","supervisory"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ge-panametrics-ultrasonic",
+  "question": "How do GE Panametrics ultrasonic meters perform in custody transfer?",
+  "answer": "<p>GE Panametrics PanaFlow and Sentinel models use <b>Transit-Time Correlation (TTC)</b> with full-path diagnostics. Certified under API 5.8 and AGA 9 for gas and liquid. Optional <b>GasVoid Fraction (GVF)</b> detection alerts when two-phase flow begins; suitable for midstream and LNG lines.</p>",
+  "tags": ["GE","Panametrics","ultrasonic","GVF","diagnostics"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "krohne-altosonic-v",
+  "question": "What distinguishes KROHNE ALTOSONIC V in liquid custody metering?",
+  "answer": "<p>ALTOSONIC V features <b>five-path ultrasonic design</b> with built-in flow conditioning and profile compensation, certified per API 5.8 for refined products. High-frequency path sampling allows ±0.15% accuracy. Diagnostic parameters (asymmetry, turbulence) mirror AGA 9 functions for liquids.</p>",
+  "tags": ["KROHNE","ultrasonic","ALTOSONIC V","liquid"],
+  "standards": ["API MPMS Ch. 5.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flexim-clamp-on-custody",
+  "question": "Are FLEXIM clamp-on ultrasonic meters accepted for custody transfer?",
+  "answer": "<p>Clamp-on models (FLUXUS series) provide non-intrusive measurement using dual-transducer pairs. While certified by PTB/NMi for certain liquid custody classes, clamp-on meters are typically used for <i>check or balance</i> metering, not primary fiscal transfer, due to installation variability and temperature sensitivity.</p>",
+  "tags": ["FLEXIM","clamp-on","ultrasonic","liquid","PTB"],
+  "standards": ["OIML R117","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "abb-coriolis-massmaster",
+  "question": "What are ABB’s Coriolis MassMaster features for custody applications?",
+  "answer": "<p>ABB’s MassMaster FCB400 series offers dual vibrating tubes with <b>Digital Signal Processing (DSP)</b> and <b>Entrained Gas Detection</b> up to ~8% GVF. Integrated self-verification routines confirm drive gain and frequency consistency. Certified for OIML R117 Class 0.3 accuracy.</p>",
+  "tags": ["ABB","Coriolis","DSP","GVF","verification"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "siemens-sitrans-fc",
+  "question": "How does Siemens SITRANS FC outperform conventional mass meters?",
+  "answer": "<p>SITRANS FC430 features <b>digital adaptive filtering</b> and <b>multi-frequency drive control</b>, enabling low noise at high vibration sites. Provides real-time diagnostics, self-checking firmware, and entrained gas tolerance up to 5% volume fraction without losing zero stability.</p>",
+  "tags": ["Siemens","SITRANS","Coriolis","diagnostics","entrained gas"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "cambridge-gas-sonic-nozzle",
+  "question": "How are Cambridge sonic nozzle systems applied in custody labs?",
+  "answer": "<p>Cambridge and CEESI-designed sonic nozzle arrays provide <b>primary reference flow</b> for high-pressure gas calibrations up to 100 bar. Each nozzle follows ISO 9300 discharge coefficients and uncertainty ≤±0.05%. Used globally for calibrating AGA 9 and 7 meters.</p>",
+  "tags": ["Cambridge","sonic nozzle","reference","lab"],
+  "standards": ["ISO 9300","AGA 9","API MPMS Ch. 14.10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "honeywell-coriolis-smt",
+  "question": "What is Honeywell’s SmartLine Coriolis (SMT) advantage?",
+  "answer": "<p>Honeywell SMT75/100 Coriolis meters include <b>dual-tube symmetric design</b> with built-in verification diagnostics and <b>temperature-compensated zero</b>. They integrate directly with Experion DCS and support OIML R117 Class 0.5 custody approvals.</p>",
+  "tags": ["Honeywell","SmartLine","Coriolis","diagnostics"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "fmc-dual-pd-metering",
+  "question": "What defines TechnipFMC dual PD meter skids for custody service?",
+  "answer": "<p>Dual PD meters operate in parallel with automatic line switching and shared compact prover. Each PD meter has independent flow computer input to allow continuous custody transfer during proving. Used in refined product terminals and offshore fiscal skids.</p>",
+  "tags": ["TechnipFMC","PD","dual meter","custody"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "bubbles-compensation-comparison",
+  "question": "Which manufacturers offer bubble or entrained gas compensation, and to what limit?",
+  "answer": "<p><ul><li><b>KROHNE OPTIMASS:</b> Entrained Gas Management up to 100% GVF transient.</li><li><b>Endress+Hauser Promass:</b> ~5% GVF with diagnostic alert.</li><li><b>Yokogawa ROTAMASS TI:</b> ~10% GVF adaptive bubble filtering.</li><li><b>ABB MassMaster:</b> ~8% GVF digital compensation.</li><li><b>Siemens SITRANS FC:</b> ~5% GVF via dual-frequency drive.</li><li><b>Emerson Micro Motion:</b> Entrained Gas Handling (EGH) up to 15% GVF continuous with diagnostics.</li></ul>Above thresholds, measurement reverts to caution mode and alarms must be raised per OIML R117.</p>",
+  "tags": ["entrained gas","GVF","bubbles","comparison"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "manufacturer-differentiation-summary",
+  "question": "How do major custody meter manufacturers differentiate?",
+  "answer": "<p><ul><li><b>Emerson:</b> Proven SMV/ECP diagnostics, strong service network.</li><li><b>KROHNE:</b> Leading in bubble tolerance (EGM).</li><li><b>Endress+Hauser:</b> Heartbeat Technology, compact installation.</li><li><b>Yokogawa:</b> Adaptive Excitation, vibration resistance.</li><li><b>ABB/Siemens:</b> Advanced DSP filtering and multi-frequency drives.</li><li><b>Daniel/SICK/Honeywell:</b> Deep AGA 9/10 compliance and superior path geometry for gas.</li></ul>Selection depends on fluid, GVF conditions, diagnostic needs, and service support in region.</p>",
+  "tags": ["manufacturers","comparison","technology","custody"],
+  "standards": ["API MPMS Ch. 5.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "bubble-compensation-limits",
+  "question": "Why can’t bubble compensation fully replace degassing?",
+  "answer": "<p>Entrained gas algorithms correct tube damping but cannot fully restore fluid density uniformity. Above ~10–15% GVF, signal loss or resonance instability occurs. Proper system design—degassing tanks and backpressure control—remains mandatory for custody-grade repeatability.</p>",
+  "tags": ["bubble","degassing","limitation","GVF"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+  
+{
+  "id": "flow-conditioner-types-overview",
+  "question": "What are the main types of flow conditioners used in custody metering?",
+  "answer": "<p>Common types include: <b>tube bundle</b> (straightening vanes), <b>perforated plate</b>, <b>honeycomb cell matrix</b>, and <b>Zanker or CPA plates</b>. Each improves flow profile symmetry and removes swirl before the meter. Choice depends on space, Reynolds number, and meter sensitivity.</p>",
+  "tags": ["flow conditioner","installation","symmetry","swirl"],
+  "standards": ["API MPMS Ch. 5.8","AGA 9","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "tube-bundle-conditioner",
+  "question": "When is a tube bundle flow straightener recommended?",
+  "answer": "<p>Tube bundles—usually 19 to 127 tubes—remove swirl and bulk asymmetry but do not correct velocity profile. Recommended upstream of <b>turbine</b> and <b>orifice</b> meters where space is limited but flow remains fully developed. Avoid for ultrasonic meters unless additional conditioning is installed downstream.</p>",
+  "tags": ["tube bundle","turbine","orifice","installation"],
+  "standards": ["ISO 5167","API MPMS Ch. 5.3","AGA 9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "perforated-plate-conditioner",
+  "question": "How does a perforated plate conditioner work and when to use it?",
+  "answer": "<p>Perforated plates (multi-hole pattern, e.g., 50–100 holes) redistribute velocity to form a uniform profile. Ideal for <b>ultrasonic</b> and <b>turbine</b> meters with limited upstream runs. Requires pressure loss of 3–10 kPa. Example: CPA 50E or ISO 5167-style 19-hole design.</p>",
+  "tags": ["perforated plate","ultrasonic","turbine","profile"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "honeycomb-conditioner",
+  "question": "What is a honeycomb flow conditioner and its purpose?",
+  "answer": "<p>Honeycomb conditioners consist of short hexagonal cells that dampen swirl without changing axial velocity significantly. Common in <b>gas ultrasonic</b> applications where swirl elimination is critical but minimal pressure loss is desired. They are compact but less effective at correcting asymmetry.</p>",
+  "tags": ["honeycomb","ultrasonic","gas","swirl"],
+  "standards": ["AGA 9","ISO 5167","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "zanker-plate-conditioner",
+  "question": "What defines a Zanker plate and why is it used?",
+  "answer": "<p>The <b>Zanker plate</b> uses concentric perforation rings optimized to produce a flat velocity profile. It combines swirl removal and flow redistribution, making it the <b>preferred choice for ultrasonic custody meters</b> where short upstream lengths (5–10D) are available. Designed per ISO 5167 and AGA 9 validation.</p>",
+  "tags": ["Zanker","ultrasonic","profile correction","installation"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-conditioner-install-distance",
+  "question": "How far should a conditioner be placed from the meter?",
+  "answer": "<p>Conditioners are typically installed <b>2–5D upstream</b> of the meter inlet and preceded by at least one straight run from any elbow or valve (5–10D typical). The goal is to ensure fully conditioned, axisymmetric flow entering the meter section.</p>",
+  "tags": ["installation","distance","flow conditioner","straight run"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-conditioner-pressure-loss",
+  "question": "How much pressure loss occurs across flow conditioners?",
+  "answer": "<p>Typical ΔP: tube bundle 1–3 kPa, honeycomb 2–5 kPa, perforated plate 3–10 kPa, Zanker plate 4–8 kPa. Select conditioners that balance flow correction with acceptable ΔP and meet meter manufacturer backpressure recommendations.</p>",
+  "tags": ["pressure loss","ΔP","flow conditioner","selection"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "brand-flow-computer-compatibility",
+  "question": "Which flow computers are commonly compatible with which meter brands?",
+  "answer": "<p><ul><li><b>Emerson Micro Motion / Daniel:</b> compatible with Emerson Flow Computers (ROC, FB107, FloBoss), Omni, and Flow-X.</li><li><b>KROHNE / E+H / Yokogawa:</b> work with Flow-X, Omni, Spirit IT, and ABB Totalflow systems.</li><li><b>Honeywell Elster / SICK:</b> fully supported by Honeywell Experion and OmniFlow computers.</li><li><b>TechnipFMC / ABB:</b> integrate with MeterPro or Flow-X due to MODBUS/TCP open protocols.</li></ul>Always confirm firmware drivers (Modbus, HART, or EtherNet/IP) and API 21.1 compliance for data format consistency.</p>",
+  "tags": ["compatibility","flow computer","communication","brands"],
+  "standards": ["API MPMS Ch. 21.1","MODBUS","EtherNet/IP"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-computer-limitation",
+  "question": "Are there limitations using certain flow computers with specific meters?",
+  "answer": "<p>Yes. Some flow computers have fixed driver lists. For example, older ROC/FB units may not fully support Heartbeat or EGM diagnostics from E+H and KROHNE. Flow-X and Omni generally support multi-brand diagnostics via Modbus mapping. Always verify firmware compatibility and signed integration certificates (PTB/NMi).</p>",
+  "tags": ["limitation","firmware","diagnostics","integration"],
+  "standards": ["API MPMS Ch. 21.1","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "conditioner-selection-summary",
+  "question": "How to choose between conditioner types in practice?",
+  "answer": "<p><ul><li><b>Turbine/orifice:</b> Tube bundle or perforated plate.</li><li><b>Ultrasonic gas:</b> Zanker or honeycomb (low ΔP).</li><li><b>Ultrasonic liquid:</b> Zanker or perforated plate.</li><li><b>Coriolis/PD:</b> Usually not required unless upstream disturbances exist.</li></ul>Follow meter datasheet and AGA 9 for gas or API 5.8 for liquids when selecting conditioners.</p>",
+  "tags": ["selection","flow conditioner","turbine","ultrasonic","Coriolis"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+
+{
+  "id": "hybrid-ai-verification",
+  "question": "What is AI-assisted meter verification?",
+  "answer": "<p>AI models analyze diagnostics (e.g., SMV, SOS, gain) to classify normal vs drift states. Trained on historical proving data, they predict when proving is due and flag anomalies early—reducing unnecessary field proving while maintaining API MPMS 4.8 compliance.</p>",
+  "tags": ["AI","verification","predictive","proving"],
+  "standards": ["API MPMS Ch. 4.8","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "digital-certificates-blockchain",
+  "question": "How are blockchain certificates being explored in custody metering?",
+  "answer": "<p>Blockchain-based <b>digital calibration certificates</b> ensure tamper-proof chain-of-custody for calibration data. Each meter or prover calibration event is hash-encrypted, time-stamped, and linked to ISO 17025 records, ensuring immutable auditability.</p>",
+  "tags": ["blockchain","certificate","digital","traceability"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "sensor-fusion-multi-meter",
+  "question": "What is sensor fusion in metering?",
+  "answer": "<p>Sensor fusion merges data from multiple meters (e.g., Coriolis + USM + densitometer) to generate a single reconciled output with lower uncertainty using Bayesian weighting. It compensates for transient conditions and validates data integrity across redundant systems.</p>",
+  "tags": ["sensor fusion","redundancy","reconciliation","uncertainty"],
+  "standards": ["ISO 5168","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ai-loss-detection",
+  "question": "How is AI applied for oil/gas loss detection in custody networks?",
+  "answer": "<p>Machine learning monitors differential mass balance between inlet/outlet streams and tank inventories. Algorithms detect subtle unaccounted-for losses (&lt;0.1%) and flag leaks or mismeasurements faster than manual reconciliations.</p>",
+  "tags": ["AI","loss detection","mass balance","reconciliation"],
+  "standards": ["API MPMS Ch. 21.2","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "hybrid-digital-twin",
+  "question": "What is a hybrid digital twin for custody metering?",
+  "answer": "<p>A hybrid digital twin combines physics-based process models with AI learning layers. It continuously simulates meter performance, forecasts drift, and recommends proving timing. Used for condition-based maintenance in smart terminals and refineries.</p>",
+  "tags": ["digital twin","AI","simulation","maintenance"],
+  "standards": ["API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ai-coriolis-bubble-detection",
+  "question": "How is AI improving bubble detection in Coriolis meters?",
+  "answer": "<p>AI classifiers trained on tube vibration signatures distinguish between entrained gas, cavitation, and mechanical noise. This enables early alarms and adaptive filtering to extend usable GVF range beyond 15%, reducing false trips.</p>",
+  "tags": ["AI","Coriolis","entrained gas","diagnostics"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ai-meter-factor-prediction",
+  "question": "How can AI predict future meter factors?",
+  "answer": "<p>Regression models use historical MF, viscosity, and temperature data to predict drift trends. Proven sites apply forecasts to plan proving intervals dynamically while maintaining uncertainty within ±0.05% bounds.</p>",
+  "tags": ["AI","prediction","meter factor","drift"],
+  "standards": ["API MPMS Ch. 4.8","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "remote-ai-proving",
+  "question": "Can AI support fully remote proving?",
+  "answer": "<p>AI engines validate temperature stability, leak test data, and run repeatability before executing automated proving cycles remotely. All results are signed digitally and verified by blockchain-secured audit trails, ensuring compliance and operator safety.</p>",
+  "tags": ["remote","AI","automation","proving"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "cloud-efm-integration",
+  "question": "How does cloud integration enhance custody analytics?",
+  "answer": "<p>Cloud-connected EFMs upload encrypted data to centralized analytics for real-time uncertainty tracking, calibration scheduling, and digital signature validation. Enables multi-site corporate oversight of custody data health.</p>",
+  "tags": ["cloud","EFM","analytics","integration"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "future-ai-certification",
+  "question": "Are AI models likely to be certified under metrology standards?",
+  "answer": "<p>Emerging discussions in OIML TC11 and API committees explore traceable AI verification frameworks. Certification may require fixed model baselines, training dataset control, and quantifiable uncertainty similar to ISO/IEC 17025 principles.</p>",
+  "tags": ["AI","certification","OIML","metrology"],
+  "standards": ["OIML TC11 (draft)","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+  
+{
+  "id": "oil-accounting-overview",
+  "question": "What is oil accounting in the context of custody metering?",
+  "answer": "<p>Oil accounting reconciles production, transfers, and sales volumes using data from custody and allocation meters. It ensures all hydrocarbon movements are traceable, balanced, and auditable—forming the financial foundation for royalties and taxation.</p>",
+  "tags": ["oil accounting","custody","reconciliation","audit"],
+  "standards": ["API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "allocation-meter-purpose",
+  "question": "What are allocation meters and their purpose?",
+  "answer": "<p>Allocation meters measure flow from multiple production sources feeding a common pipeline. They distribute total custody volume among contributors for ownership, revenue, and tax calculation purposes. Typically multiphase or wet-gas types used upstream of custody points.</p>",
+  "tags": ["allocation","ownership","production","tax"],
+  "standards": ["API MPMS Ch. 20.x","OIML R117 (context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "allocation-vs-custody",
+  "question": "How do allocation meters differ from custody meters?",
+  "answer": "<p><b>Custody meters</b> define commercial transfer with certified accuracy (≤±0.25%), audited calibration, and legal seal. <b>Allocation meters</b> assign shares of flow with lower accuracy (±1–2%) but still require periodic calibration for fairness and tax compliance.</p>",
+  "tags": ["allocation","custody","accuracy","comparison"],
+  "standards": ["API MPMS Ch. 20.1","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "allocation-calibration-requirement",
+  "question": "Why must allocation meters be calibrated even if not custody?",
+  "answer": "<p>Even small bias between wells or partners can distort revenue and tax payments. Calibrating allocation meters maintains equitable distribution, ensures regulatory compliance, and aligns with fiscal audit trails for royalties and cost recovery.</p>",
+  "tags": ["allocation","calibration","audit","tax"],
+  "standards": ["API MPMS Ch. 20.1","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "tax-role-allocation",
+  "question": "How does taxation relate to allocation measurement?",
+  "answer": "<p>Governments often assess royalties or profit-sharing based on <b>allocation outputs</b> when custody points are downstream. Misallocation directly impacts fiscal payments. Therefore, regulators require metering accuracy and traceable calibration certificates for allocation systems.</p>",
+  "tags": ["tax","allocation","royalty","fiscal"],
+  "standards": ["API MPMS Ch. 20.1","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "allocation-software",
+  "question": "What software is used in oil allocation accounting?",
+  "answer": "<p>Specialized systems like <b>Energy Components</b>, <b>ProdML XML schemas</b>, and <b>PI Vision</b> link field meters to enterprise accounting. They apply contractual allocation equations, audit calculations, and generate revenue reports for stakeholders and tax authorities.</p>",
+  "tags": ["software","allocation","accounting","contracts"],
+  "standards": ["API MPMS Ch. 21.2"]
+  "lastReviewed": "2025-10-07"
+
+
+},
+
+
+
+
+  {
+  "id": "lng-custody-overview",
+  "question": "What is unique about LNG custody metering?",
+  "answer": "<p>LNG custody typically measures <b>mass</b> (Coriolis) or <b>volumetric at cryogenic temperature</b> (USM), with strict temperature stability (−160 °C range) and boil-off management. Density is verified with cryogenic references and contracts often require <b>energy</b> reporting (mass × GHV). SOS checks (for gas send-out) validate composition consistency.</p>",
+  "tags": ["LNG","cryogenic","mass","energy"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 14.5","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lng-proving-considerations",
+  "question": "How is proving handled for cryogenic LNG meters?",
+  "answer": "<p>Most LNG Coriolis meters are <b>factory calibrated</b> with cryogenic curves and field-verified by <i>comparison</i> or <i>mass balance</i> rather than displacement proving. Temperature gradients, insulation, and zero stability dominate the uncertainty budget; verification is scheduled after thermal soaking.</p>",
+  "tags": ["LNG","proving","verification","cryogenic"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lpg-custody-specifics",
+  "question": "What are LPG custody specifics (propane/condensate mix lines)?",
+  "answer": "<p>Maintain backpressure above vapor pressure to prevent flashing; apply CPL accurately. Coriolis meters are preferred (mass basis) with degassing control on ship/terminal interfaces. Temperature control and vapor return accounting are critical for inventory reconciliation.</p>",
+  "tags": ["LPG","backpressure","flashing","reconciliation"],
+  "standards": ["API MPMS Ch. 11.2.1","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "condensate-coriolis-limits",
+  "question": "Why choose Coriolis for condensate custody?",
+  "answer": "<p>Direct mass measurement with simultaneous density provides robust energy accountability despite composition drift. Watch for <b>entrained vapor</b> after pressure letdowns; use backpressure valves and degassers to keep repeatability ≤ ±0.02% during proving.</p>",
+  "tags": ["condensate","Coriolis","entrained gas","proving"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "co2-dense-phase-custody",
+  "question": "How is dense-phase CO₂ custody performed?",
+  "answer": "<p>Use meters compatible with dense-phase conditions (Coriolis/USM) and EOS suitable for CO₂ with impurities when energy is reported. Keep temperature/pressure inside the dense-phase envelope and avoid phase slips across control valves; use high-integrity pressure control and leak monitoring.</p>",
+  "tags": ["CO2","dense phase","custody","EOS"],
+  "standards": ["API MPMS Ch. 5.6/5.8","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "hydrogen-blend-effects",
+  "question": "How do H₂ blends affect gas custody meters?",
+  "answer": "<p>Hydrogen changes gas properties (SOS, density, viscosity) and may reduce ultrasonic path signal-to-noise; verify AGA-10 SOS using updated composition models. Orifice coefficients and Z-factor must use appropriate EOS. Revalidate meter sizing and Reynolds range for planned H₂ percentages.</p>",
+  "tags": ["hydrogen","blends","ultrasonic","AGA 10"],
+  "standards": ["AGA 9/10","API MPMS Ch. 14.3","ISO 12213"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "cryogenic-zero-stability",
+  "question": "How is zero stability managed for cryogenic Coriolis meters?",
+  "answer": "<p>Perform zero at <b>no flow</b> after thermal equilibrium; shield from vibration; use manufacturer cryogenic zero procedures. Trend zero offsets vs temperature to catch drift; re-run zero after major temperature steps or maintenance.</p>",
+  "tags": ["cryogenic","Coriolis","zero","stability"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "vapor-return-accounting",
+  "question": "How is vapor return handled in custody transactions?",
+  "answer": "<p>Document vapor return flow and composition; include in energy balance when contractually required. Measure with gas custody meters or infer from mass balance (ship/terminal). Tickets must state whether vapor return is buyer/seller account.</p>",
+  "tags": ["vapor return","energy balance","tickets","contract"],
+  "standards": ["API MPMS Ch. 21.2","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "base-condition-mix-ups",
+  "question": "How do base-condition mix-ups cause billing disputes?",
+  "answer": "<p>Meters/EFMs set to different bases (15 °C vs 60 °F; 101.325 kPa vs 14.696 psia) produce systematic discrepancies. Always align EFM base settings with contract and include base references clearly on tickets.</p>",
+  "tags": ["base conditions","EFM","contract","billing"],
+  "standards": ["API MPMS Ch. 11.1","ISO 13443"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "aga10-sos-routine",
+  "question": "What SOS routine should be embedded for gas ultrasonic meters?",
+  "answer": "<p>Run periodic AGA-10 SOS comparisons using current GC composition and P/T. Trigger alarms at deviation ≥ ±0.1% and investigate analyzer drift, moisture, or transducer fouling before custody continues.</p>",
+  "tags": ["AGA 10","SOS","ultrasonic","diagnostics"],
+  "standards": ["AGA 10","AGA 9","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "proving-under-transient",
+  "question": "Can you prove during transient conditions?",
+  "answer": "<p>No. API MPMS 4.8 requires <b>stable</b> flow, pressure, and temperature. Transient valve moves or batch transmix invalidate repeatability; schedule proving in steady windows (e.g., post-start stabilization or night shift to minimize solar load).</p>",
+  "tags": ["proving","transient","repeatability","scheduling"],
+  "standards": ["API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "mf-multi-point-curve",
+  "question": "Why create multi-point MF curves?",
+  "answer": "<p>Some meters exhibit small flow-dependent biases. Proving at multiple flow points builds an MF vs flow curve. EFMs can <b>interpolate</b> between points, improving linearity across the custody window.</p>",
+  "tags": ["meter factor","curve","linearity","EFM"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "audit-trail-timezone",
+  "question": "Why standardize time zones in custody audit trails?",
+  "answer": "<p>Mismatched time zones between EFM, SCADA, and accounting cause batch misalignment. Use a single reference (UTC or site local) and log the offset on tickets. Sync with authenticated NTP sources.</p>",
+  "tags": ["audit","timezone","EFM","SCADA"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "efm-cyber-hardening",
+  "question": "What cyber controls are required for custody EFMs?",
+  "answer": "<p>Role-based access, signed firmware, encrypted exports, <b>read-only</b> SCADA pathways, and network segmentation. All config changes must be sealed and logged; periodic checksum tests verify data integrity.</p>",
+  "tags": ["cybersecurity","EFM","RBAC","checksum"],
+  "standards": ["API MPMS Ch. 21.1","IEC 62443","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "orifice-plate-cryogenic",
+  "question": "Can orifice plates be used at cryogenic temperatures?",
+  "answer": "<p>Yes, but material selection and β-ratio stability are critical. Cryogenic contraction changes bore; use certified plates and verify DP transmitter compensation at low temperatures. Prefer mass-based systems where possible.</p>",
+  "tags": ["orifice","cryogenic","β-ratio","DP"],
+  "standards": ["ISO 5167","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "pipeline-surge-linepack",
+  "question": "How do surge and line pack affect custody totals?",
+  "answer": "<p>Rapid pressure changes store/release mass in the pipeline, shifting batch totals if start/stop conditions differ. Contracts often require <b>start/stop stabilization</b> and pressure bracketing or use of mass-based accounting for gas.</p>",
+  "tags": ["line pack","surge","gas","batch"],
+  "standards": ["API MPMS Ch. 21.1","AGA 8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "two-phase-detection-policy",
+  "question": "What policy is needed for two-phase detection alarms?",
+  "answer": "<p>Define alarm thresholds (GVF/signal metrics), automatic backpressure actions, and <b>when to pause custody</b>. Document how tickets are handled (hold or reprocess) and require re-proving after persistent two-phase events.</p>",
+  "tags": ["two-phase","policy","alarms","GVF"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lpg-vcf-check",
+  "question": "How do I verify VCF (volume correction factor) for LPG?",
+  "answer": "<p>Cross-check EFM CTL/CPL outputs against <b>API 11.1/11.2.1</b> tables for the specific product and temperature/pressure. For blends, confirm product coefficients and composition source; incorrect coefficients can bias base volume.</p>",
+  "tags": ["VCF","CTL","CPL","LPG"],
+  "standards": ["API MPMS Ch. 11.1","API MPMS Ch. 11.2.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "allocation-to-custody-tie",
+  "question": "How do allocation totals tie back to custody in midstream systems?",
+  "answer": "<p>Use <b>reconciliation</b>: custody totals form the reference; allocation meters distribute within the accounting period. Apply shrinkage factors (line fill, temperature, sampling bias) and publish variance limits (e.g., ≤ ±0.25%).</p>",
+  "tags": ["allocation","reconciliation","variance","shrinkage"],
+  "standards": ["API MPMS Ch. 20.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
 }
 
   
