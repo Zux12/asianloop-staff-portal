@@ -246,5 +246,1883 @@
     "tags": ["wet gas","gas","uncertainty","ultrasonic","dp"],
     "standards": ["API MPMS (wet gas guidance)"],
     "lastReviewed": "2025-10-06"
-  }
+  },
+
+
+
+
+  
+{
+  "id": "uncertainty-rss-example",
+  "question": "How do I combine independent uncertainty contributors with RSS?",
+  "answer": "<p>Use root-sum-square (RSS) when contributors are independent. Example: meter performance ±0.05%, proving ±0.02%, temperature/pressure/density ±0.03%. Combined standard uncertainty = √(0.05² + 0.02² + 0.03²) ≈ <b>±0.062%</b>. Apply coverage factor (k) if reporting expanded uncertainty. Keep units consistent and ensure contributors are truly independent before using RSS.</p>",
+  "tags": ["uncertainty","rss","quality","calculation"],
+  "standards": ["API MPMS General", "ISO/IEC 17025 (context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "prover-temperature-correction",
+  "question": "How is a pipe prover’s calibrated volume corrected for temperature?",
+  "answer": "<p>The certified base volume is referenced to a calibration temperature. During proving, correct the indicated volume using the prover shell material’s thermal expansion (e.g., carbon steel), measured prover liquid temperature, and certified coefficients from the prover’s calibration certificate. Flow computer/prover counter applies the temperature correction to align to the base volume before calculating meter factor.</p>",
+  "tags": ["proving","temperature","volume correction","pipe prover"],
+  "standards": ["API MPMS Ch. 4.2/4.6/4.9", "API MPMS Ch. 11.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "straight-run-overview",
+  "question": "What straight runs do I plan for across common custody meters?",
+  "answer": "<p>Use the meter standard and datasheet. As a rule of thumb: <i>ultrasonic</i> meters often use a flow conditioner with reduced upstream/downstream lengths; <i>turbine</i> and <i>orifice (ISO 5167)</i> typically require longer undisturbed lengths that depend on upstream fittings. When space is tight, install an approved conditioner and verify with proving/diagnostics.</p>",
+  "tags": ["installation","straight runs","flow conditioner","ultrasonic","turbine","orifice"],
+  "standards": ["API MPMS Ch. 5.x", "ISO 5167", "AGA 9 (gas ultrasonic)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-liquid-basic-procedure",
+  "question": "What are the basic steps for a liquid custody transfer transaction?",
+  "answer": "<p>Typical sequence: verify seal integrity, instrument health (T/P/density), zero checks where applicable (e.g., Coriolis), confirm base condition settings, prove the meter if required by interval/event, run the transfer under stable conditions, capture ticket and audit trail (alarms, edits, calculations), archive EFM data, and issue the bill of lading/receipt per contract.</p>",
+  "tags": ["procedure","custody","liquid","audit","efm"],
+  "standards": ["API MPMS Ch. 21.2", "API MPMS Ch. 11.x", "API MPMS Ch. 4.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "maintenance-preproving",
+  "question": "What pre-proving maintenance checks prevent bad MFs?",
+  "answer": "<p>Confirm strainers/filters are clean, no leaks or bypasses, prover leak test passes, sphere/piston condition OK, detectors aligned, temperature stable, RTDs and pressure transmitters calibrated, gas/liquid free of entrained phase that violates meter spec, and flow within stated Reynolds/turndown. Stabilize for several minutes before runs.</p>",
+  "tags": ["maintenance","proving","quality","repeatability"],
+  "standards": ["API MPMS Ch. 4.8", "API MPMS Ch. 21.1/21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flowcomputer-vs-supervisory",
+  "question": "Flow computer vs supervisory (SCADA/host) — what’s the difference?",
+  "answer": "<p>The <b>flow computer (EFM)</b> is the legal metrology device that acquires pulses/analog inputs, performs real-time calculations (e.g., CTL/CPL, compressibility, meter factor), timestamps events, secures audit trails, and prints tickets. The <b>supervisory/SCADA</b> system aggregates multiple EFMs for monitoring, reporting, and data warehousing; it is not the custody calculator of record.</p>",
+  "tags": ["efm","flow computer","scada","audit","custody"],
+  "standards": ["API MPMS Ch. 21.1 (gas)", "API MPMS Ch. 21.2 (liquid)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-proving-overview",
+  "question": "How are gas custody meters verified/proved in practice?",
+  "answer": "<p>Gas ultrasonic and turbine meters are typically <i>factory calibrated</i> and <i>field verified</i>. Field methods include comparison to a master/check meter, speed-of-sound validation (vs gas composition), and in some facilities high-pressure test loops. Calculations use AGA-8/ISO 6976 properties and AGA-10 SOS checks; audit/reporting is per EGM requirements.</p>",
+  "tags": ["gas","proving","ultrasonic","turbine","verification"],
+  "standards": ["AGA 9 (ultrasonic)", "AGA 7 (turbine)", "AGA 10 (SOS)", "AGA 8 / ISO 6976", "API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "coriolis-smv-ecp",
+  "question": "What are Coriolis SMV and ECP, and how are they used?",
+  "answer": "<p><b>SMV (Smart Meter Verification)</b> is an in-situ diagnostic that checks Coriolis meter health (e.g., tube stiffness, drive/receive signal paths) without disturbing flow, producing a pass/fail report for audit. <b>ECP (Enhanced Core Processor)</b> refers to advanced Coriolis electronics that increase processing speed and diagnostic fidelity, improving performance during challenging conditions such as entrained gas.</p>",
+  "tags": ["coriolis","diagnostics","SMV","ECP","verification"],
+  "standards": ["Manufacturer SOP (Emerson Micro Motion SMV/ECP)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "rtd-types-custody",
+  "question": "Which RTDs are commonly used in custody metering?",
+  "answer": "<p>Pt100 RTDs with Class A or AA tolerance are common; wiring is typically 3-wire (good) or 4-wire (best) to cancel lead resistance. Ensure immersion length/thermal wells meet response and conduction error requirements, and keep calibration traceable.</p>",
+  "tags": ["temperature","RTD","IEC 60751","installation"],
+  "standards": ["IEC 60751 (Pt100 classes AA/A/B)", "API MPMS Ch. 21.1/21.2 (EGM/ELM)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "dbb-basics",
+  "question": "What is a Double Block & Bleed (DBB) valve and where is it used?",
+  "answer": "<p>A DBB provides two in-line sealing elements with a bleed between them. In metering, DBB/DIB valves isolate prover loops, meter runs, and instrument manifolds to allow zero-leak checks, maintenance, and safe proving lineups. Use the correct DBB/DIB type per pressure directionality requirements.</p>",
+  "tags": ["valves","DBB","DIB","isolation","safety"],
+  "standards": ["API 6D / ISO 14313 (definitions)"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+
+
+{
+  "id": "turndown-definition-check",
+  "question": "What does turndown ratio mean and how do I check it on site?",
+  "answer": "<p><b>Turndown</b> is the usable flow range over which a meter meets its stated accuracy (e.g., 20:1). On site, verify that operating min/max flows stay within the manufacturer’s custody accuracy band, confirm Reynolds number limits, and validate with proving or diagnostics (e.g., ultrasonic profile indices or Coriolis SMV results). Document any contractually agreed custody window separately from the full technical range.</p>",
+  "tags": ["turndown","accuracy","range","verification"],
+  "standards": ["API MPMS Ch. 5.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "straight-run-ultrasonic-details",
+  "question": "What straight-run and conditioning practices suit custody ultrasonic meters?",
+  "answer": "<p>Use an approved flow conditioner and follow manufacturer/standard guidance (often 5–10D upstream + 3–5D downstream <i>with</i> conditioner; more without). Avoid close elbows, tees, and partially open valves. Validate profile quality via meter diagnostics (path velocity ratios, swirl/asymmetry indices) and, if required, by proving.</p>",
+  "tags": ["installation","ultrasonic","flow conditioner","straight runs"],
+  "standards": ["API MPMS Ch. 5.8/5.9","AGA 9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "meter-skid-lineups",
+  "question": "How do metering skids line up for normal vs proving operation?",
+  "answer": "<p><b>Normal:</b> Inlet isolation → filter/strainer → air eliminator/degasser (liquid) → flow conditioner (as required) → meter run(s) → temperature/pressure transmitters → prover bypass closed → downstream control/backpressure valve.<br><b>Proving:</b> Divert via prover loop using DBB/DIB valves; stabilize flow/temperature; perform leak check; run passes; return to normal lineup. Ensure no unauthorized bypasses and that block/bleed integrity is confirmed before/after proving.</p>",
+  "tags": ["skid","lineup","prover","DBB","operation"],
+  "standards": ["API MPMS Ch. 4.2/4.6/4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "proving-master-meter-detailed",
+  "question": "How do I perform a master-meter proving?",
+  "answer": "<p>Install a calibrated master meter (MM) in series under matching conditions. Stabilize flow, temperature, and pressure; verify MM certificate (traceable K/MF vs flow/viscosity). Record pulses/indicated volumes for both meters at several flow points. Compute unit-under-test (UUT) meter factor as MF<sub>UUT</sub> = (Q<sub>MM,ref</sub> / Q<sub>UUT,ind</sub>) × C, where C accounts for any correction differences (T/P/base). Repeatability must meet limits before accepting MF. Update EFM with final MF and record the audit trail.</p>",
+  "tags": ["proving","master meter","meter factor","audit"],
+  "standards": ["API MPMS Ch. 4.5","API MPMS Ch. 21.1/21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "proving-compact-piston-ball",
+  "question": "Key steps in compact, piston, or ball (pipe) prover runs?",
+  "answer": "<p>1) Leak test calibrated section; 2) Verify detector timing and displacement device condition (sphere/piston); 3) Stabilize flow & fluid temperature; 4) Run multiple passes in alternating directions if applicable; 5) Apply prover thermal expansion and compressibility corrections; 6) Calculate MF and repeatability; 7) Document EFM ticket and lock configuration. Investigate if repeatability exceeds limit (air, leaks, unstable temperature, detector misalignment).</p>",
+  "tags": ["proving","pipe prover","compact prover","repeatability"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.6","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-proving-steps",
+  "question": "What are the typical field verification steps for gas custody meters?",
+  "answer": "<p>For ultrasonic/turbine gas meters: 1) Confirm gas composition and base property method (AGA-8 or ISO 6976); 2) Validate speed of sound (AGA-10) against composition; 3) Check diagnostic health (path SNRs, gain, turbulence indices for ultrasonic; bearing condition for turbine); 4) Compare against a check/master meter if installed; 5) Confirm pressure/temperature transmitter calibration and EFM calculations; 6) Capture an EGM audit report.</p>",
+  "tags": ["gas","verification","ultrasonic","turbine","EGM"],
+  "standards": ["AGA 9","AGA 7","AGA 8","AGA 10","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "wet-gas-caveats",
+  "question": "What caveats apply to wet-gas measurement?",
+  "answer": "<p>Even small liquid fractions bias velocity-based meters and speed-of-sound checks. Expect profile distortion, underestimated volume, and poor repeatability. Use separators, coalescers, or dedicated wet-gas metering technologies/algorithms where specified, and validate with composition/phase monitoring. Contracts often exclude custody billing under unresolved wet-gas conditions.</p>",
+  "tags": ["wet gas","gas","accuracy","installation"],
+  "standards": ["AGA 9 (notes)","API MPMS Ch. 5.8/5.9","ISO 5167 (limits)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "efm-core-calculations",
+  "question": "Which calculations does a custody flow computer (EFM) typically perform?",
+  "answer": "<p>Pulse integration (K-factor), meter factor application, base volume correction (CTL/CPL per API 11.x), gas compressibility/thermophysical properties (AGA-8/ISO 6976), speed-of-sound validation (AGA-10), pressure/temperature compensation, density (online densitometer or inferred), energy calculations (where applicable), timestamped events, alarms, and secure audit trails with ticketing.</p>",
+  "tags": ["EFM","calculations","API 11.x","AGA 8","AGA 10"],
+  "standards": ["API MPMS Ch. 21.1/21.2","API MPMS Ch. 11.x","AGA 8","AGA 10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "kfactor-vs-meterfactor",
+  "question": "K-factor vs Meter Factor (MF): what’s the difference and how do they affect accuracy?",
+  "answer": "<p><b>K-factor</b> = pulses per unit volume (or mass) determined by calibration of the meter’s pulse output. <b>Meter Factor (MF)</b> is a dimensionless correction applied so that <i>Corrected Volume</i> = <i>Indicated Volume</i> × MF. In proving, MF accounts for the difference between the meter’s indicated quantity and the prover/reference quantity at base conditions. Stability of K and MF over time indicates meter health; drift triggers maintenance or re-proving.</p>",
+  "tags": ["k-factor","meter factor","accuracy","proving"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "reducer-spools",
+  "question": "What reducer spools are used in custody skids and why do they matter?",
+  "answer": "<p>Use <b>concentric</b> reducers to preserve symmetry for meters sensitive to profile (ultrasonic/turbine). <b>Eccentric</b> reducers (flat side up for liquids) help avoid gas pockets ahead of PD/Coriolis, but can introduce asymmetry—mitigate with conditioners. Keep length-to-diameter transitions gentle (per datasheet/standard) and ensure sizes match meter nominal IDs to limit profile and velocity effects.</p>",
+  "tags": ["installation","reducers","ultrasonic","turbine","PD","coriolis"],
+  "standards": ["API MPMS Ch. 5.x","AGA 9 (installation)","ISO 5167 (piping effects)"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+
+{
+  "id": "custody-accuracy-requirements",
+  "question": "What accuracy is required for custody meters and master meters?",
+  "answer": "<p>Typical custody transfer accuracy targets are ±0.25% or better for fiscal metering. <b>Master meters</b> used for proving must have a certified uncertainty of ±0.05% or lower, traceable to national standards. Provers themselves must be verified with an uncertainty ≤±0.02%. Combined system uncertainty (meter + prover + instruments) should generally remain below ±0.3% for custody purposes.</p>",
+  "tags": ["accuracy","custody","master meter","prover","uncertainty"],
+  "standards": ["API MPMS Ch. 4.x","OIML R117","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "meter-lab-definition",
+  "question": "What is a metering or calibration lab?",
+  "answer": "<p>A metering lab is a controlled facility where custody meters and provers are calibrated and verified using reference standards traceable to national metrology institutes. The lab maintains ISO 17025 accreditation, environmental control (temperature, pressure, humidity), certified reference meters or volumetric tanks, and a fluid management system (oil, water, or gas) for proving exercises.</p>",
+  "tags": ["metering lab","calibration","ISO 17025","traceability"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "proving-duration-runs",
+  "question": "What is the typical proving duration and number of runs?",
+  "answer": "<p>API MPMS Chapter 4.8 requires a minimum of five consecutive valid runs with repeatability within ±0.02%. Many facilities target six to ten runs depending on flow stability. Each run duration depends on prover displacement volume and flowrate, ensuring sufficient pulses (>10,000) for statistical validity.</p>",
+  "tags": ["proving","duration","repeatability","runs"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "iso-standards-lab",
+  "question": "Which ISO standards apply to metering laboratories?",
+  "answer": "<p>ISO/IEC 17025 defines general requirements for competence and traceability. ISO 9300 and ISO 4185 govern flow measurement and liquid calibration using volumetric or gravimetric methods. ISO 5168 addresses uncertainty evaluation in flow measurement. Labs must maintain traceability chains, quality manuals, and periodic proficiency tests.</p>",
+  "tags": ["ISO","calibration","lab","uncertainty","traceability"],
+  "standards": ["ISO/IEC 17025","ISO 4185","ISO 9300","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "world-certified-labs",
+  "question": "Where are certified custody calibration labs located worldwide?",
+  "answer": "<p>Key accredited facilities include: <b>Euroloop</b> (Netherlands), <b>CEESI</b> (USA), <b>NEL</b> (UK), <b>SPSE</b> (France), <b>KRISS</b> (Korea), <b>NEL Flow Centre</b> (Singapore), <b>NMIJ</b> (Japan), <b>VSL</b> (Netherlands), and <b>PTB</b> (Germany). Each provides traceable calibration for liquid and gas meters under ISO/IEC 17025 and API MPMS standards.</p>",
+  "tags": ["calibration lab","custody","traceability","ISO 17025"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "asia-meter-distribution",
+  "question": "What is the estimated distribution of custody meters in Asia by type?",
+  "answer": "<p>Based on 2024 industry reports, Asia hosts over 35,000 custody-grade meters: ~45% <b>Coriolis</b> (refined products, LNG), ~25% <b>Ultrasonic</b> (gas), ~15% <b>PD</b>, ~10% <b>Turbine</b>, and ~5% <b>Orifice/DP</b> systems. Major concentrations are in Malaysia, Singapore, China, and Indonesia due to LNG and refinery infrastructure growth.</p>",
+  "tags": ["market","asia","custody meters","statistics"],
+  "standards": ["Industry Reports 2024","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-calculations-basics",
+  "question": "How are flow calculations performed in custody metering?",
+  "answer": "<p>Each meter type uses specific base equations: <i>Coriolis</i> — mass from tube vibration frequency; <i>Ultrasonic</i> — transit-time velocity integrated across cross-section; <i>Turbine</i> — pulse frequency × K-factor; <i>Orifice</i> — DP-based square-root relationship; <i>PD</i> — volumetric chamber cycles. The flow computer corrects to base conditions using CTL/CPL (liquid) or AGA-8 (gas) for reporting.</p>",
+  "tags": ["flow","calculation","custody","base conditions"],
+  "standards": ["API MPMS Ch. 11.x","AGA 8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "error-repeatability",
+  "question": "What’s the difference between error, repeatability, and accuracy?",
+  "answer": "<p><b>Error</b> is the deviation from the true value. <b>Repeatability</b> measures the consistency of results under identical conditions. <b>Accuracy</b> expresses closeness to true value, considering systematic and random errors. For custody, repeatability ≤±0.02% and overall accuracy ≤±0.25% are typical acceptance limits.</p>",
+  "tags": ["accuracy","error","repeatability","quality"],
+  "standards": ["API MPMS Ch. 4.8","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "soft-parts-before-proving",
+  "question": "What soft parts are replaced before proving exercises?",
+  "answer": "<p>Common replacements include sphere seals (pipe prover), piston cups, O-rings, valve seats, and gaskets. For meters: PD rotor seals, turbine bearings, and Coriolis tube supports if due. Always leak-test after replacement and document maintenance actions in the proving record.</p>",
+  "tags": ["maintenance","soft parts","proving","quality"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "pressure-temperature-importance",
+  "question": "Why are pressure and temperature measurements critical in custody metering?",
+  "answer": "<p>They define density and volume correction to base conditions. Errors in pressure or temperature measurement directly affect computed standard volume and energy. Use calibrated transmitters (±0.1% FS or better) with matched RTDs and maintain proper immersion and insulation to avoid gradients or lag.</p>",
+  "tags": ["pressure","temperature","correction","base conditions"],
+  "standards": ["API MPMS Ch. 11.x","AGA 8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "proving-volumetric-tank",
+  "question": "How does a volumetric tank prover work?",
+  "answer": "<p>A volumetric tank prover collects a known liquid volume gravimetrically or volumetrically. The transfer meter delivers product into the tank up to certified marks; the delivered volume is corrected for temperature, pressure, and density to obtain a reference volume. This method is common in calibration labs and small-scale custody applications where displacement provers are impractical.</p>",
+  "tags": ["proving","volumetric tank","calibration","reference volume"],
+  "standards": ["API MPMS Ch. 4.4","ISO 4185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "pipe-prover-detailed",
+  "question": "What defines a pipe prover’s accuracy?",
+  "answer": "<p>Pipe provers rely on a certified base volume between detector switches. Accuracy depends on precise detector spacing, leak-tight seals, stable temperature, clean fluid, and proper sphere/piston operation. Repeatability ≤ ±0.02% must be achieved. The prover’s base volume is certified at a reference temperature, with corrections applied during proving.</p>",
+  "tags": ["pipe prover","accuracy","certification","temperature correction"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "piston-prover-application",
+  "question": "Where is a piston prover typically used?",
+  "answer": "<p>Piston provers provide highly repeatable volume displacement and are often used for laboratory, low-flow, or high-viscosity fluids. They are common in compact, mobile proving skids and calibration benches. Their mechanical displacement defines a precise test volume with uncertainty ≤ ±0.02% when properly maintained.</p>",
+  "tags": ["piston prover","application","mobile prover","lab"],
+  "standards": ["API MPMS Ch. 4.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ball-prover-basics",
+  "question": "How does a ball prover operate?",
+  "answer": "<p>A spherical displacer (ball) is propelled by flow through a calibrated volume between detector switches. The ball isolates the test volume, and detectors record the precise start and stop times. The prover system corrects for temperature and expands or contracts the base volume using thermal coefficients. Typical uncertainty: ±0.02% or better.</p>",
+  "tags": ["ball prover","pipe prover","displacer","calibration"],
+  "standards": ["API MPMS Ch. 4.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "compact-prover-details",
+  "question": "What differentiates a compact prover from a conventional pipe prover?",
+  "answer": "<p>Compact provers use a small-volume piston design with optical or magnetic detectors, offering portability and faster cycle times. They require strict temperature control and certified base volumes. Compact provers are often used offshore or in constrained spaces, with proving repeatability typically within ±0.02% to ±0.05%.</p>",
+  "tags": ["compact prover","mobile prover","accuracy","temperature"],
+  "standards": ["API MPMS Ch. 4.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "master-meter-accuracy",
+  "question": "What is the required accuracy of a master meter?",
+  "answer": "<p>Master meters must be certified against a higher-order standard (pipe or piston prover) with combined uncertainty ≤ ±0.05%. The certification should remain valid within 6–12 months and include flow/viscosity curves. They are used to prove operating meters in situ when displacement proving is impractical.</p>",
+  "tags": ["master meter","accuracy","proving","traceability"],
+  "standards": ["API MPMS Ch. 4.5","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-proving-standards",
+  "question": "Which standards govern gas meter proving and verification?",
+  "answer": "<p>Gas proving and verification are guided by <b>AGA 7</b> (turbine), <b>AGA 9</b> (ultrasonic), <b>AGA 10</b> (speed-of-sound check), <b>ISO 6976</b> (composition-based properties), and <b>API MPMS Ch. 21.1</b> (electronic gas measurement). Laboratory calibration may follow ISO 9300 or ISO 9951. Pressure, temperature, and composition must be traceably measured.</p>",
+  "tags": ["gas","proving","standards","AGA","API"],
+  "standards": ["AGA 7","AGA 9","AGA 10","ISO 6976","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "liquid-proving-standards",
+  "question": "Which standards define liquid proving and calibration?",
+  "answer": "<p>Key standards: <b>API MPMS Chapter 4</b> (all sections) for displacement and master-meter proving, <b>API MPMS 5.x</b> for meter performance, and <b>API MPMS 11.x</b> for volume correction. <b>OIML R117</b> defines metrological requirements for measuring systems. ISO 4185 and ISO 8316 cover gravimetric and volumetric liquid calibration methods.</p>",
+  "tags": ["liquid","proving","API MPMS","OIML","ISO"],
+  "standards": ["API MPMS Ch. 4","API MPMS Ch. 11","OIML R117","ISO 4185","ISO 8316"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-basic-calculation",
+  "question": "How do custody systems calculate corrected volume?",
+  "answer": "<p>Corrected Volume = Indicated Volume × Meter Factor × CTL × CPL × (Other correction factors).<br>CTL: Corrected to base temperature; CPL: Corrected to base pressure. Flow computer automatically applies these using API 11.1 tables or equations of state (AGA-8 for gas). Accuracy depends on transmitter calibration and consistent base references.</p>",
+  "tags": ["flow computer","volume correction","API 11.1","CPL","CTL"],
+  "standards": ["API MPMS Ch. 11.1","AGA 8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-supervisory-difference",
+  "question": "How does a supervisory system differ from a flow computer in accuracy traceability?",
+  "answer": "<p>The supervisory (host/SCADA) system aggregates multiple EFMs for monitoring and reporting. It does not perform primary custody calculations. The flow computer’s audit trail, meter factors, and base correction data form the legal record. The supervisory data are informational, not traceable for fiscal billing unless verified against EFM tickets.</p>",
+  "tags": ["EFM","SCADA","audit trail","traceability"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-metering-overview",
+  "question": "What defines a custody metering system?",
+  "answer": "<p>A custody metering system measures fluid quantities for financial transactions between parties. It consists of certified flow meters, provers, pressure and temperature transmitters, flow computers, and supervisory systems. Each component must be traceable, sealed, and maintained per API MPMS and OIML R117 to ensure data integrity and auditability.</p>",
+  "tags": ["custody","system","overview","traceability"],
+  "standards": ["API MPMS Ch. 21.1/21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-computer-diagnostics",
+  "question": "What diagnostics are available in modern flow computers?",
+  "answer": "<p>Flow computers monitor meter pulses, analog health, RTD resistance, communication faults, alarm states, and meter-factor stability. Advanced EFMs perform CRC checks, time-synchronization logs, and pressure/temperature deviation alerts. Diagnostics data are stored in the audit trail for regulatory and contractual verification.</p>",
+  "tags": ["flow computer","diagnostics","audit","alarm"],
+  "standards": ["API MPMS Ch. 21.1/21.2","Manufacturer SOP"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-analyzers-in-proving",
+  "question": "When are gas analyzers required during gas proving?",
+  "answer": "<p>Analyzers (gas chromatographs) are required when density, composition, and compressibility must be accurately determined, especially for AGA-8 calculations. They measure CH₄, C₂H₆, N₂, CO₂, etc., providing mole fractions for compressibility, gross heating value, and molecular weight. Calibration gases must be traceable to NIST or equivalent standards.</p>",
+  "tags": ["gas","analyzer","AGA 8","chromatograph","composition"],
+  "standards": ["AGA 8","ISO 6976","API MPMS Ch. 14.1","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-uncertainty-evaluation",
+  "question": "How is total custody measurement uncertainty evaluated?",
+  "answer": "<p>Identify major contributors: meter calibration, proving system, temperature, pressure, density, data acquisition, and repeatability. Combine independent terms by root-sum-square (RSS) to derive total uncertainty. API MPMS and ISO 5168 provide guidance. A combined expanded uncertainty ≤ ±0.3% (k=2) is typically required for custody transfer.</p>",
+  "tags": ["uncertainty","evaluation","RSS","API","ISO 5168"],
+  "standards": ["API MPMS Ch. 13.1","ISO 5168","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "accuracy-vs-uncertainty",
+  "question": "Is accuracy the same as uncertainty?",
+  "answer": "<p>No. Accuracy indicates closeness to true value, while uncertainty quantifies the probable range of error. A device may have ±0.25% accuracy but an expanded uncertainty of ±0.3% when considering proving, transmitter, and process effects. Custody reports always express total uncertainty, not nominal accuracy alone.</p>",
+  "tags": ["accuracy","uncertainty","definition","measurement"],
+  "standards": ["API MPMS Ch. 13.1","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-proving-pressure-correction",
+  "question": "Why is pressure correction important during gas proving?",
+  "answer": "<p>Gas density and flowrate are highly pressure-dependent. Any error in pressure transmitter calibration introduces direct flow errors (1:1 impact). During proving, measured differential and static pressures are corrected to base using AGA-8 and AGA-3 formulas, ensuring consistency between test and operating pressures.</p>",
+  "tags": ["pressure","gas","proving","AGA 3","AGA 8"],
+  "standards": ["AGA 3","AGA 8","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-tank-standards",
+  "question": "Which standards cover custody tank calibration?",
+  "answer": "<p><b>API MPMS Chapters 2.2A–2.2B</b> (strapping methods) and <b>API MPMS 2.6</b> (tape and gauge methods) define liquid tank calibration. ISO 7507 covers automatic and manual tank calibration methods. For LNG, refer to ISO 10976 and ISO 6578. All calibrations must be traceable and documented with uncertainty analysis.</p>",
+  "tags": ["tank","calibration","API MPMS 2.x","ISO 7507","LNG"],
+  "standards": ["API MPMS Ch. 2.2A","API MPMS Ch. 2.6","ISO 7507","ISO 6578"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ultrasonic-meter-maintenance",
+  "question": "What maintenance does an ultrasonic meter require?",
+  "answer": "<p>Regularly inspect transducer cleanliness, verify path SNR and gain levels, check electronic temperature stability, and trend diagnostics (asymmetry, swirl indices). Avoid moisture ingress, maintain grounding, and verify firmware configuration matches contract parameters. Annual or semiannual verification is typical for custody installations.</p>",
+  "tags": ["ultrasonic","maintenance","diagnostics","SNR"],
+  "standards": ["API MPMS Ch. 5.8/5.9","AGA 9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "prover-uncertainty",
+  "question": "What defines a prover’s uncertainty budget?",
+  "answer": "<p>Contributors include certified base volume, temperature measurement accuracy, detector timing, repeatability, and leak integrity. Each term is quantified and combined via RSS. Typical expanded uncertainty ≤ ±0.02% (k=2). Recertification intervals are 3–5 years depending on usage and contract requirements.</p>",
+  "tags": ["prover","uncertainty","API MPMS 4.9","certification"],
+  "standards": ["API MPMS Ch. 4.9","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-traceability-chain",
+  "question": "How is traceability ensured in a custody system?",
+  "answer": "<p>Traceability is achieved through calibration certificates for all measuring instruments (provers, transmitters, flow computers) linking back to national standards (NIST, NEL, PTB, etc.). Each certificate lists uncertainty, reference conditions, and validity period. Electronic audit trails within EFMs preserve event integrity between calibrations.</p>",
+  "tags": ["traceability","custody","calibration","audit trail"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.1/21.2"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "dp-flow-measurement",
+  "question": "How does a differential pressure (DP) flow measurement system work?",
+  "answer": "<p>It measures the pressure drop across a constriction (orifice, Venturi, nozzle). The DP signal is proportional to the square of flowrate. The flow computer applies ISO 5167 equations with corrections for fluid density, expansibility, and discharge coefficients. Accurate DP transmitter calibration and β-ratio selection are essential for custody accuracy.</p>",
+  "tags": ["dp","orifice","flow measurement","ISO 5167"],
+  "standards": ["ISO 5167","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "orifice-plate-maintenance",
+  "question": "What maintenance is required for orifice plates in custody service?",
+  "answer": "<p>Inspect bore diameter, edge sharpness, and surface flatness. Verify correct orientation (bevel direction) and β-ratio marking. Clean gently to avoid scratches. Replace plates showing corrosion, warping, or nicks. Reconfirm zero alignment on DP transmitters after reinstallation.</p>",
+  "tags": ["orifice","maintenance","inspection","custody"],
+  "standards": ["ISO 5167","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "pd-meter-maintenance",
+  "question": "What are best practices for PD meter maintenance?",
+  "answer": "<p>Periodically check rotor clearances, seals, and end covers for leakage. Replace O-rings and gaskets if wear is evident. Verify pulse output stability and inspect gear train lubrication. Re-prove after maintenance to confirm new meter factor.</p>",
+  "tags": ["PD","maintenance","seals","re-proving"],
+  "standards": ["API MPMS Ch. 5.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "coriolis-maintenance",
+  "question": "How is a Coriolis meter maintained in custody applications?",
+  "answer": "<p>Check for zero drift, vibration interference, and external stresses. Perform Smart Meter Verification (SMV) or equivalent diagnostics. Clean sensor tubes if fouling is detected. Recalibrate electronics after firmware updates or electronic module replacements.</p>",
+  "tags": ["Coriolis","maintenance","SMV","diagnostics"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ultrasonic-installation-effects",
+  "question": "What installation effects influence ultrasonic meter accuracy?",
+  "answer": "<p>Flow profile distortion due to elbows, reducers, or valves causes path velocity imbalance. Ensure straight-run lengths, flow conditioners, and concentric reducers are used. Follow manufacturer alignment tolerances. Recalibrate if profile index deviates beyond specification.</p>",
+  "tags": ["ultrasonic","installation","accuracy","profile"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8/5.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-density-calculation",
+  "question": "How is gas density determined for custody flow calculations?",
+  "answer": "<p>Gas density is computed from composition, pressure, and temperature using AGA-8 or ISO 6976. For natural gas, speed-of-sound checks per AGA-10 validate composition. Some systems use online densitometers as redundancy. Errors in density directly affect mass and standard volume results.</p>",
+  "tags": ["gas","density","AGA 8","ISO 6976"],
+  "standards": ["AGA 8","AGA 10","ISO 6976","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "proving-automation",
+  "question": "How is proving automated in modern systems?",
+  "answer": "<p>Automated prover controllers handle valve sequencing, flow stabilization, detector timing, data averaging, and pass acceptance. Results are transferred digitally to EFMs for automatic MF updates. Audit trails capture all proving events, ensuring secure, repeatable results per API MPMS 4.8 and 21.2.</p>",
+  "tags": ["proving","automation","flow computer","audit"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "temperature-measurement-accuracy",
+  "question": "What accuracy is required for temperature devices in custody metering?",
+  "answer": "<p>RTDs used for custody service must meet Class A or better (±0.15°C at 0°C). Transmitter and sensor combination accuracy ≤ ±0.1°C is preferred. Calibration traceability to ISO/IEC 17025 standards is required. Ensure adequate immersion and proper thermal well conductivity.</p>",
+  "tags": ["temperature","RTD","accuracy","ISO 17025"],
+  "standards": ["IEC 60751","API MPMS Ch. 21.1/21.2","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "pressure-measurement-accuracy",
+  "question": "What accuracy is required for pressure transmitters in custody metering?",
+  "answer": "<p>Custody-grade transmitters typically require ≤ ±0.1% full-scale accuracy and annual recalibration. Use digital output transmitters with temperature compensation. Pressure references must be certified with uncertainty ≤ ±0.05% of reading. Install at representative pressure tap points to avoid static head errors.</p>",
+  "tags": ["pressure","accuracy","transmitter","calibration"],
+  "standards": ["API MPMS Ch. 21.1/21.2","OIML R117","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-data-audit",
+  "question": "How are custody data secured and audited?",
+  "answer": "<p>Electronic Flow Meters (EFMs) generate secure audit trails containing timestamped configuration changes, alarms, and proving events. Only authorized personnel with password control can modify parameters. Data exports must be checksum-verified. API MPMS 21.1 and 21.2 define audit trail formats for gas and liquid custody transfer.</p>",
+  "tags": ["custody","audit trail","EFM","security"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "repeatability-criteria",
+  "question": "What are the repeatability criteria for a valid proving?",
+  "answer": "<p>API MPMS Chapter 4.8 specifies that a valid proving requires at least five consecutive runs with repeatability within ±0.02%. If repeatability exceeds this limit, investigate causes such as leaks, temperature instability, or flow fluctuations before accepting results.</p>",
+  "tags": ["proving","repeatability","criteria","API MPMS 4.8"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "reproving-intervals",
+  "question": "How often must custody meters be re-proved?",
+  "answer": "<p>Intervals depend on contractual and regulatory requirements, typically every 3–6 months for liquid meters and annually for gas meters. Additional proving is required after maintenance, configuration changes, or when meter factor drift exceeds ±0.05%.</p>",
+  "tags": ["proving","interval","maintenance","meter factor"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "flow-computer-timestamping",
+  "question": "Why is timestamp synchronization important in custody metering?",
+  "answer": "<p>Accurate timestamps ensure that flow totals, alarms, and proving events align with SCADA and billing systems. EFMs use GPS or NTP synchronization to maintain time integrity within ±1 second. Time discrepancies can invalidate audit trails or cause contract disputes.</p>",
+  "tags": ["timestamp","synchronization","EFM","audit"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-meter-seals",
+  "question": "Why are meter and prover seals important?",
+  "answer": "<p>Seals prevent unauthorized adjustments to custody-critical settings like K-factor, meter factor, or flow computer parameters. Breaking or missing seals voids custody validity until re-certified. Maintain a log of all seal numbers and locations as part of the audit documentation.</p>",
+  "tags": ["seals","custody","security","audit"],
+  "standards": ["API MPMS Ch. 21.1/21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "compressibility-correction",
+  "question": "What is compressibility correction and how is it applied?",
+  "answer": "<p>Compressibility accounts for the volume change of fluids under pressure. Gas systems use AGA-8 or ISO 12213 equations, while liquid systems use API 11.2.1 for CPL. Correcting indicated volume to base pressure ensures consistent custody reporting across varying operating conditions.</p>",
+  "tags": ["compressibility","CPL","AGA 8","API 11.2.1"],
+  "standards": ["API MPMS Ch. 11.2.1","AGA 8","ISO 12213"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "density-measurement-methods",
+  "question": "How is fluid density measured for custody transfer?",
+  "answer": "<p>Density can be measured by vibrating-tube densitometers, Coriolis meters, or inferred from composition (gas). The value is corrected to base temperature using API 11.5 or ISO 12185 methods. Density accuracy affects CTL and energy calculations directly; maintain calibration traceable to ISO/IEC 17025.</p>",
+  "tags": ["density","measurement","API 11.5","custody"],
+  "standards": ["API MPMS Ch. 11.5","ISO 12185","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-energy-measurement",
+  "question": "How is energy calculated in custody metering?",
+  "answer": "<p>Energy = Mass Flow × Gross Heating Value (GHV). Gas heating values are derived from composition (ISO 6976 or GPA 2172), while liquid fuels use API 12.2. Energy reporting requires accurate mass or volume, density, and composition data. Common unit: MMBtu or MJ.</p>",
+  "tags": ["energy","custody","GHV","composition"],
+  "standards": ["ISO 6976","GPA 2172","API MPMS Ch. 14.5"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ultrasonic-path-configuration",
+  "question": "What are path configurations in ultrasonic custody meters?",
+  "answer": "<p>Custody-grade ultrasonic meters use 3, 4, 5, or 6 chord (path) configurations to sample different portions of the velocity profile. Multi-path integration improves accuracy by compensating for asymmetry and swirl. Path layout and orientation follow AGA 9 and manufacturer guidelines.</p>",
+  "tags": ["ultrasonic","path","configuration","AGA 9"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8/5.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "wet-gas-measurement-improvement",
+  "question": "How can wet-gas measurement accuracy be improved?",
+  "answer": "<p>Install separation systems upstream, use dual-phase ultrasonic or Coriolis meters with gas void fraction correction, and apply computational algorithms validated per ISO/TR 11583. Regularly monitor moisture and condensate to determine when measurement uncertainty exceeds contractual limits.</p>",
+  "tags": ["wet gas","accuracy","correction","dual-phase"],
+  "standards": ["ISO/TR 11583","AGA 9 (Annex)","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "redundant-metering",
+  "question": "Why do some custody skids have redundant meter runs?",
+  "answer": "<p>Redundant (2×100% or 3+1) configurations ensure continuous custody operations during maintenance or proving. The standby meter can act as a check meter for validation. Flow computer logic automatically selects or averages meters based on status and agreement criteria.</p>",
+  "tags": ["redundancy","metering skid","check meter","configuration"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "proving-data-evaluation",
+  "question": "How should proving data be evaluated and validated?",
+  "answer": "<p>Confirm that repeatability and flow stability meet API MPMS 4.8 criteria. Review each run’s detector timing, temperature, and pressure logs. Reject runs affected by flow fluctuations or temperature drift. Calculate statistical repeatability and update the meter factor only after all acceptance criteria are met.</p>",
+  "tags": ["proving","validation","repeatability","API 4.8"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "coriolis-zero-verification",
+  "question": "Why is zero verification critical for Coriolis meters?",
+  "answer": "<p>Zero drift introduces bias in mass flow at low rates. Custody transfer requires periodic zero verification with no flow, stable temperature, and fully filled tubes. Use SMV diagnostic tools or manual zero calibration. Document the zero offset and ensure compliance with manufacturer tolerance limits.</p>",
+  "tags": ["coriolis","zeroing","diagnostics","accuracy"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "dp-tap-locations",
+  "question": "Where should pressure taps be located in orifice metering systems?",
+  "answer": "<p>Per ISO 5167, standard tap configurations include flange taps (25.4 mm from the plate), corner taps (at plate faces), and D-D/2 taps (1D upstream, 0.5D downstream). Correct tap geometry ensures accurate DP measurement. Deviations require recalibration or proven discharge coefficient corrections.</p>",
+  "tags": ["orifice","dp taps","ISO 5167","installation"],
+  "standards": ["ISO 5167","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "coriolis-density-validation",
+  "question": "How is density validation done in Coriolis meters?",
+  "answer": "<p>Compare the live density reading to lab reference samples or calculated density from known composition. Verify at process temperature. SMV diagnostics provide tube frequency data to detect coating or gas entrainment issues that alter density accuracy.</p>",
+  "tags": ["coriolis","density","validation","SMV"],
+  "standards": ["OIML R117","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-metering-line-heating",
+  "question": "Why are line heaters used in gas custody metering?",
+  "answer": "<p>To prevent condensation or hydrate formation during pressure reduction or proving. Temperature stability ensures consistent density and speed-of-sound values, reducing uncertainty in ultrasonic or turbine measurements. Heater temperature must remain within ±2°C of setpoint during operation.</p>",
+  "tags": ["gas","heating","temperature stability","hydration"],
+  "standards": ["API MPMS Ch. 14.3","AGA 9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "gas-prover-types",
+  "question": "What types of gas provers are available?",
+  "answer": "<p>1) Critical flow Venturi (CFV) systems for low uncertainty reference flow.<br>2) Piston provers for small flow gas meters.<br>3) Bell provers for low-pressure calibration.<br>4) Transfer standards (master meters) for field verification. Each is traceable to national gas flow standards and chosen based on pressure and flow range.</p>",
+  "tags": ["gas","prover","CFV","piston prover","master meter"],
+  "standards": ["ISO 9300","API MPMS Ch. 14.10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-alarms",
+  "question": "What alarms are typically configured in a custody flow computer?",
+  "answer": "<p>Critical alarms include pressure/temperature out of range, missing pulses, flow cutoff, prover fail, meter factor drift, and configuration change alerts. Each alarm is timestamped and logged for audit review, as mandated by API MPMS 21.1/21.2.</p>",
+  "tags": ["alarms","flow computer","audit","custody"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ultrasonic-sos-check",
+  "question": "What is a speed-of-sound (SOS) check in ultrasonic gas metering?",
+  "answer": "<p>SOS checks compare the measured speed of sound to calculated values from gas composition (AGA-10). A deviation within ±0.1% confirms correct gas composition and meter performance. Significant differences indicate contamination, transducer issues, or wrong composition input.</p>",
+  "tags": ["ultrasonic","AGA 10","SOS check","diagnostics"],
+  "standards": ["AGA 10","AGA 9","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-sample-system",
+  "question": "What is the role of a sample system in custody metering?",
+  "answer": "<p>Sample systems extract representative fluid for lab analysis (density, composition, water cut). For gas, use constant pressure/temperature sample cylinders; for liquids, proportional sampling per ISO 3171. Improper sampling introduces composition bias in energy and mass balance reporting.</p>",
+  "tags": ["sampling","composition","ISO 3171","custody"],
+  "standards": ["ISO 3171","API MPMS Ch. 8.2","API MPMS Ch. 14.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "water-cut-measurement",
+  "question": "How is water cut measured in custody liquid systems?",
+  "answer": "<p>Online water cut analyzers use capacitance or microwave absorption principles to determine water-in-oil percentage. Periodic lab comparison ensures traceability. Custody requirements often mandate analyzer accuracy within ±0.05% absolute.</p>",
+  "tags": ["water cut","liquid","analyzer","accuracy"],
+  "standards": ["API MPMS Ch. 8.2","ISO 3171"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-turbine",
+  "question": "What are turbine meter key features for custody service?",
+  "answer": "<p>Turbine meters provide high accuracy (±0.25%) with good repeatability (±0.02%). Their linearity depends on viscosity, Reynolds number, and bearing condition. Maintain filters and use flow conditioners upstream. Proving must be done regularly due to wear sensitivity.</p>",
+  "tags": ["turbine","accuracy","viscosity","proving"],
+  "standards": ["API MPMS Ch. 5.3","AGA 7"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-pd",
+  "question": "What defines a positive displacement (PD) meter in custody applications?",
+  "answer": "<p>PD meters divide fluid into discrete known volumes using mechanical chambers. Each revolution or cycle equals a fixed volume. Accuracy can reach ±0.1% with proper maintenance. They perform best with clean, non-aerated liquids and steady flow.</p>",
+  "tags": ["PD","positive displacement","accuracy","liquid"],
+  "standards": ["API MPMS Ch. 5.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-ultrasonic",
+  "question": "What are ultrasonic meter advantages for custody gas transfer?",
+  "answer": "<p>Non-intrusive, low-pressure loss, self-diagnostic, and capable of measuring bidirectional flow. Accuracy typically ±0.2% or better. Multi-path design improves profile integration and allows online verification through SOS and velocity diagnostics.</p>",
+  "tags": ["ultrasonic","advantages","gas","diagnostics"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-coriolis",
+  "question": "Why is Coriolis metering popular for liquid custody transfer?",
+  "answer": "<p>It measures mass flow directly and calculates density and temperature simultaneously. Unaffected by viscosity or flow profile. Provides ±0.1% accuracy for mass and ±0.0005 g/cm³ for density. Ideal for refined products and LNG service.</p>",
+  "tags": ["coriolis","mass flow","density","accuracy"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-orifice",
+  "question": "Why are orifice systems still used in gas custody measurement?",
+  "answer": "<p>Simple design, traceable calculation basis (ISO 5167/AGA 3), and low cost. Accuracy depends on β-ratio, plate condition, and DP transmitter precision. Typical uncertainty ±0.5% with modern digital transmitters and frequent calibration.</p>",
+  "tags": ["orifice","gas","DP","accuracy"],
+  "standards": ["ISO 5167","AGA 3","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-calibration-intervals",
+  "question": "What are standard calibration intervals for custody instruments?",
+  "answer": "<p>Pressure and temperature transmitters: every 6–12 months; densitometers and analyzers: annually; provers: every 3–5 years; meters: per contract or after drift >±0.05%. All calibrations must maintain ISO/IEC 17025 traceability.</p>",
+  "tags": ["calibration","interval","traceability","maintenance"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-uncertainty",
+  "question": "What is the target uncertainty of national metrology labs?",
+  "answer": "<p>Primary flow labs such as PTB, NEL, and CEESI maintain uncertainties of ±0.02% or better for liquid and ±0.05% for gas standards. Secondary or industrial labs typically achieve ±0.05–0.1%. These serve as reference standards for proving and calibration certificates.</p>",
+  "tags": ["lab","uncertainty","traceability","primary standard"],
+  "standards": ["ISO/IEC 17025","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-data-storage",
+  "question": "How long must custody data be stored?",
+  "answer": "<p>Retention requirements vary by regulation but are typically 2–7 years. API MPMS 21.1/21.2 recommend keeping proving records, calibration certificates, and audit trails for at least the contract duration plus one audit cycle.</p>",
+  "tags": ["data retention","audit","records","custody"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-safety-lockout",
+  "question": "Why is lockout/tagout (LOTO) used in custody proving systems?",
+  "answer": "<p>LOTO ensures valves, bypasses, and electrical systems remain in safe positions during maintenance or proving preparation. Prevents accidental flow or valve actuation that could invalidate proving or injure personnel.</p>",
+  "tags": ["safety","lockout","proving","procedure"],
+  "standards": ["OSHA 1910.147","API RP 500"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-leakage",
+  "question": "How do leaks affect proving accuracy?",
+  "answer": "<p>Even minor leaks in prover valves, seals, or bypasses cause volume loss, lowering repeatability. Leak checks are performed by isolating the calibrated section, pressurizing, and monitoring pressure decay. Leaks beyond limits require immediate repair and re-certification.</p>",
+  "tags": ["proving","leak test","accuracy","maintenance"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-flowdirection-check",
+  "question": "How is flow direction verified during custody proving?",
+  "answer": "<p>Flow direction must match the calibrated direction of the meter and prover. EFMs monitor pulse polarity or direction bits from the transmitter. During bidirectional proving, verify both forward and reverse passes yield consistent meter factors within repeatability limits.</p>",
+  "tags": ["proving","flow direction","bidirectional","EFM"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-mass-vs-volume",
+  "question": "What is the difference between mass-based and volume-based custody measurement?",
+  "answer": "<p>Mass-based (Coriolis) measures flow independent of temperature and pressure, providing direct mass and density. Volume-based systems (ultrasonic, turbine, PD) measure volumetric flow corrected to base conditions via CTL and CPL. Contracts define whether mass or volume is the fiscal basis.</p>",
+  "tags": ["mass flow","volume flow","correction","custody"],
+  "standards": ["API MPMS Ch. 11.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-base-reference",
+  "question": "What are common base reference conditions for custody transfer?",
+  "answer": "<p>Typically 15°C and 101.325 kPa (1 atm) for liquids; 15°C or 60°F for gas (101.325 kPa). Ensure the flow computer and contracts use the same base reference. Mismatched base values can cause accounting discrepancies.</p>",
+  "tags": ["base conditions","reference","temperature","pressure"],
+  "standards": ["API MPMS Ch. 11.1","ISO 13443"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-bidirectional-proving",
+  "question": "When is bidirectional proving required?",
+  "answer": "<p>Used when the prover can operate in both flow directions, ensuring mechanical symmetry and detecting valve or detector bias. Bidirectional provers are required for high-accuracy service where reverse flow conditions exist or where bidirectional transfer is part of operations.</p>",
+  "tags": ["bidirectional","proving","accuracy","symmetry"],
+  "standards": ["API MPMS Ch. 4.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-thermal-expansion",
+  "question": "How is thermal expansion handled in custody measurement?",
+  "answer": "<p>Volume corrections apply API MPMS 11.2.4 coefficients to compensate for liquid and steel expansion due to temperature changes. Prover base volume and meter indications must both reference the same base temperature for traceability.</p>",
+  "tags": ["thermal expansion","temperature correction","API 11.2.4"],
+  "standards": ["API MPMS Ch. 11.2.4","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-valve-selection",
+  "question": "What valves are preferred in custody systems?",
+  "answer": "<p>Full-bore ball or plug valves are preferred for minimal turbulence. Double Block and Bleed (DBB) or Double Isolation and Bleed (DIB) valves isolate meters and provers during maintenance and proving. Valves must be leak-tested and maintain sealing integrity under differential pressure.</p>",
+  "tags": ["valves","DBB","DIB","custody"],
+  "standards": ["API 6D","ISO 14313","API MPMS Ch. 4.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pulse-resolution",
+  "question": "Why is pulse resolution important in flow metering?",
+  "answer": "<p>Pulse frequency defines resolution for volumetric totalizers. Higher pulse rates reduce rounding error and improve repeatability. Flow computers must account for debounce and linearization. API MPMS 5.x defines minimum pulse resolution for custody-grade accuracy.</p>",
+  "tags": ["pulse","resolution","K-factor","accuracy"],
+  "standards": ["API MPMS Ch. 5.x","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-redundant-transmitters",
+  "question": "Why use redundant pressure and temperature transmitters?",
+  "answer": "<p>Redundant sensors provide validation and failover protection. EFMs compare primary and secondary readings to detect drift. Automatic switchover maintains custody integrity during sensor failure or calibration. The differences must stay within specified limits (typically ±0.2%).</p>",
+  "tags": ["redundancy","pressure","temperature","custody"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-electrical-grounding",
+  "question": "Why is grounding critical in custody metering skids?",
+  "answer": "<p>Proper electrical grounding prevents noise-induced pulse errors, static buildup, and lightning damage. All instruments, flow computers, and communication cables must be bonded to a single earth point. Follow IEC 60079-14 for hazardous area earthing practices.</p>",
+  "tags": ["grounding","electrical","safety","custody"],
+  "standards": ["IEC 60079-14","API RP 500"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-dcs-integration",
+  "question": "How is custody data integrated into DCS or SCADA?",
+  "answer": "<p>Data from EFMs are transmitted via Modbus, OPC, or API 21.1/21.2-compliant protocols. DCS displays only read-only data for operations; custody calculations remain sealed in the flow computer. Integration must not alter or overwrite audit trail records.</p>",
+  "tags": ["integration","SCADA","DCS","data"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-hmi-security",
+  "question": "What are HMI security requirements for custody systems?",
+  "answer": "<p>HMIs should use tiered user access, password protection, and audit logging. Configuration changes require dual authentication and automatic time-stamped logs. Critical custody data must be read-only to operations personnel.</p>",
+  "tags": ["HMI","security","custody","audit"],
+  "standards": ["API MPMS Ch. 21.1","IEC 62443"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-automation-sequence",
+  "question": "What is the typical automation sequence during proving?",
+  "answer": "<p>Sequence: 1) Align valves for prover loop; 2) Stabilize flow and temperature; 3) Perform leak check; 4) Run multiple passes; 5) Calculate MF and verify repeatability; 6) Store proving report and reseal system. Modern provers execute this automatically via PLC logic and EFM handshake.</p>",
+  "tags": ["automation","prover","sequence","PLC"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-calibration-reports",
+  "question": "What must a custody calibration report include?",
+  "answer": "<p>Each report lists reference standards used, uncertainty budgets, calibration date, environmental conditions, measured data, correction factors, and traceability chain. ISO/IEC 17025-compliant reports must state expanded uncertainty (k=2) and accredited laboratory seal.</p>",
+  "tags": ["calibration","report","uncertainty","traceability"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-sensor-location",
+  "question": "Why is transmitter location important in custody systems?",
+  "answer": "<p>Improper transmitter placement causes temperature or pressure bias due to lag or stratification. Sensors should represent the bulk flow conditions—typically 5D downstream of the meter and at mid-radius of the pipe cross-section for temperature probes.</p>",
+  "tags": ["transmitter","location","accuracy","installation"],
+  "standards": ["API MPMS Ch. 21.2","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-mixing-chambers",
+  "question": "What are mixing chambers used for in custody systems?",
+  "answer": "<p>They homogenize fluid composition before sampling or metering, ensuring consistent density and water cut. Used in multi-product pipelines and crude oil metering. Design follows ISO 3171 and API MPMS 8.2 recommendations for mixing energy and retention time.</p>",
+  "tags": ["mixing chamber","sampling","homogeneity","ISO 3171"],
+  "standards": ["ISO 3171","API MPMS Ch. 8.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-oil-water-separation",
+  "question": "Why is separation important before metering crude oil?",
+  "answer": "<p>Entrained water or gas causes volume errors and unstable readings. Separation vessels or degassers remove these phases before measurement. API MPMS 8.2 and 5.2 define maximum allowable entrainment levels (typically &lt;0.5%).</p>",
+  "tags": ["separation","degassing","crude","liquid"],
+  "standards": ["API MPMS Ch. 8.2","API MPMS Ch. 5.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-bidirectional-meters",
+  "question": "What are bidirectional custody meters?",
+  "answer": "<p>Meters capable of measuring accurately in both directions—common in loading/unloading lines. Coriolis and ultrasonic designs handle bidirectional flow with automatic sign correction. Meter factors must be proven in both directions if used for fiscal transfers.</p>",
+  "tags": ["bidirectional","meter","Coriolis","ultrasonic"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-environmental-compensation",
+  "question": "How are environmental effects mitigated in custody systems?",
+  "answer": "<p>Install sunshades, insulation, and temperature-controlled enclosures for transmitters. Compensate for ambient effects in RTD wiring. Maintain ambient stability within ±2°C during proving or calibration to minimize thermal drift.</p>",
+  "tags": ["environment","temperature","stability","accuracy"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-sampling-validation",
+  "question": "How is custody sample representativeness validated?",
+  "answer": "<p>Compare composite sample analysis to online meter density and water cut readings. Deviations beyond ±0.1% indicate poor mixing or sampling bias. API MPMS 8.2 requires verification at startup, shutdown, and periodically during transfer.</p>",
+  "tags": ["sampling","validation","composition","water cut"],
+  "standards": ["API MPMS Ch. 8.2","ISO 3171"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pressure-drop",
+  "question": "How does pressure drop affect custody accuracy?",
+  "answer": "<p>Significant pressure loss causes fluid flashing or density change. Maintain backpressure valves to ensure pressure remains above vapor pressure margin. Pressure drop through the meter must stay within manufacturer’s specified range to preserve calibration validity.</p>",
+  "tags": ["pressure drop","accuracy","backpressure","installation"],
+  "standards": ["API MPMS Ch. 5.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-linearity-check",
+  "question": "What is a linearity check in custody metering?",
+  "answer": "<p>A linearity check confirms that meter output is proportional to flow across its operating range. It’s performed using a prover or master meter at multiple flow points. Acceptable deviation is typically within ±0.25% from the best-fit line across all points.</p>",
+  "tags": ["linearity","proving","accuracy","meter performance"],
+  "standards": ["API MPMS Ch. 5.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-meter-configuration",
+  "question": "What parameters must be configured in a custody flow computer?",
+  "answer": "<p>Configuration includes meter type, K-factor, meter factor, base conditions, correction equations (API 11.x, AGA 8/10), transmitter ranges, alarm limits, and calibration coefficients. Once verified, parameters are sealed and recorded in the audit trail.</p>",
+  "tags": ["flow computer","configuration","audit","custody"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-communication-protocols",
+  "question": "What communication protocols are used in custody systems?",
+  "answer": "<p>Common protocols include Modbus RTU/TCP, OPC-UA, and API 21.1/21.2 standardized EFM data exchange formats. For secure data, use encrypted Modbus or OPC over TLS connections, ensuring that custody-critical data remain read-only.</p>",
+  "tags": ["communication","protocols","EFM","Modbus","OPC"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-meter-factor-trending",
+  "question": "Why should meter factor trends be monitored?",
+  "answer": "<p>Meter factor trends reveal mechanical wear, fouling, or electronics drift. A stable MF indicates system health. Sudden changes beyond ±0.05% require re-proving. Historical trending supports predictive maintenance and audit compliance.</p>",
+  "tags": ["meter factor","trend","maintenance","quality"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-water-detection",
+  "question": "How is free water detected in custody pipelines?",
+  "answer": "<p>Automatic water detectors (capacitive or optical) identify phase separation or slugs. Manual detection uses sampler sight glasses or centrifuge bottle analysis. Water ingress invalidates custody readings until fluid is re-homogenized.</p>",
+  "tags": ["water","detection","pipeline","quality"],
+  "standards": ["API MPMS Ch. 8.2","ISO 3171"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pulse-integrity",
+  "question": "How is pulse integrity ensured in custody systems?",
+  "answer": "<p>Pulse outputs are monitored for frequency stability, missing counts, and jitter. Use shielded twisted pairs and ground at one end. Flow computers employ debounce filters and parity checks to ensure accurate pulse accumulation.</p>",
+  "tags": ["pulse","integrity","signal","EFM"],
+  "standards": ["API MPMS Ch. 21.1","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-base-volume",
+  "question": "How is prover base volume certified?",
+  "answer": "<p>Certified by a calibration laboratory using gravimetric or volumetric methods traceable to national standards. Certification includes thermal expansion coefficients and uncertainty budget. Recertification intervals typically every 3–5 years.</p>",
+  "tags": ["prover","calibration","base volume","traceability"],
+  "standards": ["API MPMS Ch. 4.9","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-audit-fields",
+  "question": "Which key fields are stored in an EFM audit trail?",
+  "answer": "<p>Audit trails record configuration changes, alarm events, prover runs, firmware updates, time adjustments, and login attempts. Each entry has a timestamp, user ID, and CRC checksum for data integrity verification.</p>",
+  "tags": ["audit trail","EFM","data integrity","custody"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-firmware",
+  "question": "Why must EFM firmware be controlled in custody metering?",
+  "answer": "<p>Firmware affects calculation algorithms and data handling. Any change requires re-certification and resealing. Maintain version control and change records per ISO 9001 and API MPMS 21.1 requirements.</p>",
+  "tags": ["firmware","EFM","certification","custody"],
+  "standards": ["API MPMS Ch. 21.1","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-energy-balance",
+  "question": "What is an energy balance in custody operations?",
+  "answer": "<p>Energy balance compares total mass/volume × GHV between inlet and outlet streams to verify measurement integrity. Differences beyond ±0.25% indicate calibration, leak, or sampling errors. Used for reconciliation in refinery and gas plant operations.</p>",
+  "tags": ["energy balance","GHV","custody","reconciliation"],
+  "standards": ["ISO 6976","API MPMS Ch. 14.5"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-cable-routing",
+  "question": "Why is proper cable routing important in custody skids?",
+  "answer": "<p>Signal cables must be separated from power lines to minimize EMI. Follow shield grounding and conduit sealing guidelines. In hazardous areas, use certified glands and maintain intrinsic safety barriers for transmitter loops.</p>",
+  "tags": ["cabling","EMI","safety","installation"],
+  "standards": ["IEC 60079-14","API RP 500"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-cycle-time",
+  "question": "How is prover cycle time optimized?",
+  "answer": "<p>Cycle time = (Prover volume / flowrate) × 2 for bidirectional passes. Optimize by adjusting flowrate and detector spacing. Excessive cycle times increase thermal drift; too short yields poor resolution. Ideal time is 30–90 seconds per pass.</p>",
+  "tags": ["prover","cycle time","proving","optimization"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-data-redundancy",
+  "question": "How is data redundancy achieved in custody systems?",
+  "answer": "<p>Use mirrored EFM memory, redundant servers, and periodic secure exports to SCADA. RAID storage or cloud replication ensures data survivability. Each dataset must be checksum-verified to detect corruption.</p>",
+  "tags": ["redundancy","data integrity","storage","EFM"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-turbine-bearings",
+  "question": "How do turbine meter bearings affect performance?",
+  "answer": "<p>Worn bearings increase friction, altering K-factor and reducing repeatability. Check rotational smoothness during proving. Replace bearings when vibration or low-flow accuracy deteriorates beyond limits.</p>",
+  "tags": ["turbine","bearings","maintenance","accuracy"],
+  "standards": ["API MPMS Ch. 5.3","AGA 7"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-liquid-degasser",
+  "question": "What is the function of a degasser in liquid metering?",
+  "answer": "<p>A degasser removes entrained gas bubbles before the meter to ensure stable density and flow readings. Entrained gas causes under-registration. Degassers are installed upstream of PD or Coriolis meters in crude and product service.</p>",
+  "tags": ["degasser","entrained gas","liquid","installation"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-calibration-frequency",
+  "question": "How often should field instruments be calibrated?",
+  "answer": "<p>Transmitters: 6–12 months; analyzers: annually; flow meters: per contract or after deviations; provers: 3–5 years. Frequency depends on criticality, environment, and previous stability trends. All calibrations must be traceable.</p>",
+  "tags": ["calibration","frequency","maintenance","traceability"],
+  "standards": ["API MPMS Ch. 21.1","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-hydrocarbon-degassing",
+  "question": "How is degassing performed before liquid proving?",
+  "answer": "<p>Recirculate product through vented tanks or degassing columns until bubble-free. Confirm via density stability and clear sight glass. Gas-free liquid ensures consistent prover displacement and repeatability within ±0.02%.</p>",
+  "tags": ["proving","degassing","repeatability","liquid"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 5.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-mixing-valves",
+  "question": "What are mixing valves and their use in custody systems?",
+  "answer": "<p>Mixing valves homogenize fluid blends (e.g., gasoline and ethanol) before metering. They reduce composition variation and ensure representative sampling. Flow control logic maintains target blend ratio per API MPMS 11.5 and ISO 3171.</p>",
+  "tags": ["mixing valve","blending","sampling","composition"],
+  "standards": ["API MPMS Ch. 11.5","ISO 3171"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-ultrasonic-self-checks",
+  "question": "How do ultrasonic meters perform self-checks?",
+  "answer": "<p>They compare each path’s signal-to-noise ratio, gain, and velocity ratios. AGA 9 defines limits for asymmetry and turbulence indicators. Deviations trigger diagnostic alarms and prompt inspection or cleaning.</p>",
+  "tags": ["ultrasonic","self-check","AGA 9","diagnostics"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pressure-tap-location",
+  "question": "Where should static pressure taps be located in liquid custody systems?",
+  "answer": "<p>Typically 3–5D downstream of the meter, on the pipe side opposite the temperature probe, avoiding turbulent zones. Incorrect placement leads to over- or under-compensation in base volume correction.</p>",
+  "tags": ["pressure","tap","installation","liquid"],
+  "standards": ["API MPMS Ch. 21.2","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-density-verification",
+  "question": "How is online density verified in custody transfer?",
+  "answer": "<p>Compare online density with lab reference samples at equivalent temperature. Deviation &lt;±0.1 kg/m³ is acceptable. Recalibrate densitometer if bias exceeds limits. Verification frequency follows contract or calibration schedule.</p>",
+  "tags": ["density","verification","calibration","liquid"],
+  "standards": ["API MPMS Ch. 11.5","ISO 12185"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-pressure-compensation",
+  "question": "How does pressure compensation improve custody accuracy?",
+  "answer": "<p>Pressure compensation corrects for density variation due to compressibility. For gas, use AGA-8 or ISO 12213 to calculate density; for liquids, apply CPL from API 11.2.1. Accurate pressure readings maintain consistent standard volume and prevent over- or under-billing.</p>",
+  "tags": ["pressure","compensation","CPL","density"],
+  "standards": ["API MPMS Ch. 11.2.1","AGA 8","ISO 12213"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-temperature-gradient",
+  "question": "How do temperature gradients affect proving accuracy?",
+  "answer": "<p>Uneven temperature between prover and meter causes density mismatch and inconsistent MF results. Maintain fluid recirculation until temperature difference is &lt;0.3°C. Log all temperature data during proving to validate stability.</p>",
+  "tags": ["temperature","gradient","proving","accuracy"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-meter-orientation",
+  "question": "Does meter orientation affect accuracy?",
+  "answer": "<p>Yes. Coriolis meters must be installed per manufacturer flow direction to avoid gas entrapment. Ultrasonic meters should maintain full-pipe conditions and horizontal alignment. Incorrect orientation causes air pockets and signal errors.</p>",
+  "tags": ["installation","orientation","coriolis","ultrasonic"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-valve-leak-check",
+  "question": "How often should custody valves be leak-checked?",
+  "answer": "<p>Before and after each proving session, and quarterly during normal operation. Pressurize the section, isolate both ends, and monitor pressure decay. If leakage exceeds allowable limits, reseal or replace the valve seats immediately.</p>",
+  "tags": ["valve","leak test","maintenance","custody"],
+  "standards": ["API MPMS Ch. 4.2","API 6D"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-system-flow-balance",
+  "question": "What is a custody system flow balance check?",
+  "answer": "<p>It compares total inlet and outlet metered volumes within a defined period. Differences beyond ±0.25% indicate leaks, unmeasured returns, or incorrect density inputs. Used to validate system integrity and reconcile transactions.</p>",
+  "tags": ["flow balance","reconciliation","audit","custody"],
+  "standards": ["API MPMS Ch. 21.2","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pipeline-deadlegs",
+  "question": "Why should deadlegs be avoided in custody systems?",
+  "answer": "<p>Deadlegs trap stagnant product that can cause contamination, air entrapment, or pressure lag. Design pipelines with continuous slopes and proper venting. Eliminate unused branches or install purge valves.</p>",
+  "tags": ["pipeline","design","deadlegs","accuracy"],
+  "standards": ["API RP 500","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-dp-transmitter-selection",
+  "question": "What type of DP transmitter is suitable for custody measurement?",
+  "answer": "<p>Choose a high-accuracy (≤±0.075% FS) digital DP transmitter with temperature compensation and stable zero drift. Use remote seals for corrosive fluids. Calibration must trace to ISO/IEC 17025 standards.</p>",
+  "tags": ["DP","transmitter","accuracy","calibration"],
+  "standards": ["API MPMS Ch. 14.3","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-flow-conditioner-types",
+  "question": "What types of flow conditioners are used in custody systems?",
+  "answer": "<p>Common types: <b>Tube bundle</b>, <b>perforated plate</b>, <b>honeycomb</b>, and <b>Zanker plates</b>. They correct swirl and velocity profile distortions. Select based on meter type and installation space. Follow manufacturer’s certification for custody-grade applications.</p>",
+  "tags": ["flow conditioner","installation","accuracy","ultrasonic"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-pressure",
+  "question": "Why must prover pressure be stabilized?",
+  "answer": "<p>Pressure fluctuations during proving alter liquid compressibility and affect MF calculation. Maintain constant flow and backpressure. Record upstream/downstream pressure and ensure variation &lt;±0.5% during proving runs.</p>",
+  "tags": ["prover","pressure","stability","proving"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 11.2.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-sos-deviation-limits",
+  "question": "What are acceptable SOS (speed of sound) deviation limits in gas metering?",
+  "answer": "<p>Deviation between measured and calculated SOS (AGA-10) must be within ±0.1% for custody-grade ultrasonic meters. Deviations beyond this indicate contamination, gas composition error, or transducer malfunction.</p>",
+  "tags": ["ultrasonic","AGA 10","SOS","diagnostics"],
+  "standards": ["AGA 10","AGA 9","API MPMS Ch. 21.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-meter-index-validation",
+  "question": "Why should mechanical index readings be validated?",
+  "answer": "<p>Mechanical counters provide redundancy for electronic totals. Regular validation ensures no pulse loss or firmware mismatch. Differences greater than ±0.05% indicate electronic drift or pulse scaling errors.</p>",
+  "tags": ["index","validation","redundancy","EFM"],
+  "standards": ["API MPMS Ch. 21.1","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-energy-units",
+  "question": "Which units are standard for energy reporting?",
+  "answer": "<p>Liquids: MJ, MMBtu, or kcal. Gas: MMBtu or GJ. Units must align with national standards and contract requirements. Flow computers convert using GHV and molecular weight from ISO 6976 composition data.</p>",
+  "tags": ["energy","units","GHV","ISO 6976"],
+  "standards": ["ISO 6976","API MPMS Ch. 14.5"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-calibration-environment",
+  "question": "Why is environment control important during calibration?",
+  "answer": "<p>Temperature, humidity, and vibration affect measurement repeatability. ISO/IEC 17025 labs maintain controlled conditions (±1°C, ±5% RH). Uncontrolled environments increase uncertainty and may invalidate traceability.</p>",
+  "tags": ["environment","calibration","ISO 17025","uncertainty"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-reference-standards",
+  "question": "What reference standards are maintained in a calibration lab?",
+  "answer": "<p>Primary gravimetric tanks, piston provers, reference meters, and temperature/pressure standards. Each standard is periodically certified by a national metrology institute (e.g., NMIJ, PTB, NEL) to ensure traceability.</p>",
+  "tags": ["reference standards","lab","traceability","metrology"],
+  "standards": ["ISO/IEC 17025","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-fluid-selection",
+  "question": "What fluids are used in metering lab calibrations?",
+  "answer": "<p>Common calibration media: water, white oil, kerosene, nitrogen, or air, depending on viscosity and pressure range. Fluid must be clean, stable, and temperature-controlled within ±0.1°C during calibration.</p>",
+  "tags": ["lab","fluid","calibration","temperature control"],
+  "standards": ["ISO 4185","ISO 9300"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-proving-run-rejection",
+  "question": "When should a proving run be rejected?",
+  "answer": "<p>If temperature, pressure, or flow vary beyond limits during the run, or if detector timing is inconsistent. API MPMS 4.8 specifies rejecting runs with outlier deviations exceeding 0.02% repeatability tolerance.</p>",
+  "tags": ["proving","run rejection","API 4.8","repeatability"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-skid-configuration",
+  "question": "What is a typical metering lab skid configuration?",
+  "answer": "<p>Inlet tank → pump → filter → flow control → reference meter/prover → DUT (device under test) → return tank. Includes temperature/pressure measurement, data acquisition, and automated flow control. Designed to handle multiple meter sizes and flow ranges.</p>",
+  "tags": ["lab","skid","configuration","prover"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-certification-renewal",
+  "question": "How often should calibration lab certification be renewed?",
+  "answer": "<p>ISO/IEC 17025 accreditation is renewed every 3–4 years through reassessment by the accreditation body. Internal audits and proficiency tests are required annually to maintain validity.</p>",
+  "tags": ["lab","certification","ISO 17025","renewal"],
+  "standards": ["ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-documentation",
+  "question": "What documentation must a custody calibration lab maintain?",
+  "answer": "<p>Calibration procedures, uncertainty budgets, equipment calibration certificates, maintenance logs, training records, and proficiency test results. Documents must be controlled and archived per ISO/IEC 17025.</p>",
+  "tags": ["documentation","lab","ISO 17025","traceability"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-sampling-frequency",
+  "question": "How frequently should sampling be done during custody transfers?",
+  "answer": "<p>Continuous or proportional sampling throughout the transfer ensures representativeness. Spot sampling only during stable flow periods. Frequency and method must comply with ISO 3171 and API MPMS 8.2 specifications.</p>",
+  "tags": ["sampling","frequency","ISO 3171","API 8.2"],
+  "standards": ["ISO 3171","API MPMS Ch. 8.2"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-calibration-traceability-chain",
+  "question": "What defines the calibration traceability chain in custody measurement?",
+  "answer": "<p>It links every measurement instrument (meter, transmitter, prover) through intermediate standards to a national or international standard (e.g., NIST, PTB, NEL). Each step has documented uncertainty and calibration records to demonstrate unbroken traceability per ISO/IEC 17025.</p>",
+  "tags": ["traceability","calibration","ISO 17025","custody"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-certification-symbol",
+  "question": "What is the significance of an ISO/IEC 17025 accreditation symbol?",
+  "answer": "<p>It indicates that the calibration certificate was issued by an accredited laboratory recognized by international mutual recognition agreements (ILAC, APLAC). Certificates bearing the symbol are legally accepted across countries for custody purposes.</p>",
+  "tags": ["accreditation","ISO 17025","ILAC","certification"],
+  "standards": ["ISO/IEC 17025","ILAC MRA"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-gas-analyzer-calibration",
+  "question": "How are gas chromatographs calibrated for custody metering?",
+  "answer": "<p>Use certified reference gas mixtures traceable to NIST or equivalent. Run multipoint calibrations covering full composition range. Verify detector linearity and retention times. Calibration frequency typically every 6 months or as contractually required.</p>",
+  "tags": ["gas chromatograph","calibration","composition","traceability"],
+  "standards": ["API MPMS Ch. 14.1","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-ultrasonic-path-failure",
+  "question": "What happens if one ultrasonic path fails?",
+  "answer": "<p>The meter reverts to multi-path redundancy using remaining chords. AGA 9 requires meter alarms and adjusted uncertainty reporting. More than one failed path invalidates custody transfer until repaired and reverified.</p>",
+  "tags": ["ultrasonic","path failure","diagnostics","AGA 9"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-liquid-viscosity",
+  "question": "Why is viscosity measurement important for custody liquid metering?",
+  "answer": "<p>Viscosity affects PD and turbine meter performance. For accurate calibration, viscosity at operating temperature must match that during proving. Deviations alter flow profile and slip. API MPMS 5.2 and 5.3 specify limits for viscosity effects.</p>",
+  "tags": ["viscosity","liquid","PD","turbine"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 5.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-compressibility-factor-z",
+  "question": "What is the gas compressibility factor (Z-factor)?",
+  "answer": "<p>Z-factor corrects ideal gas law to real conditions. It’s calculated using AGA-8 or ISO 12213 based on gas composition, pressure, and temperature. Small Z errors significantly affect standard volume; thus, precise composition and property data are required.</p>",
+  "tags": ["Z-factor","gas","compressibility","AGA 8"],
+  "standards": ["AGA 8","ISO 12213","API MPMS Ch. 14.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pipeline-temperature-measurement",
+  "question": "What practices ensure accurate pipeline temperature measurement?",
+  "answer": "<p>Use thermowells of sufficient immersion length (minimum 10× diameter) to minimize conduction error. Ensure good thermal contact with fluid, and insulate from ambient air. Use 4-wire RTD circuits for highest accuracy.</p>",
+  "tags": ["temperature","RTD","pipeline","accuracy"],
+  "standards": ["IEC 60751","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-density-reference-method",
+  "question": "How is reference density determined for custody liquids?",
+  "answer": "<p>By laboratory analysis using oscillating U-tube densitometers (ISO 12185) or hydrometers (API 9.3). Values are corrected to 15°C using API 11.5. Compare reference to online density for calibration and verification of meter performance.</p>",
+  "tags": ["density","reference","ISO 12185","API 11.5"],
+  "standards": ["ISO 12185","API MPMS Ch. 9.3","API MPMS Ch. 11.5"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pulse-scaling",
+  "question": "How is pulse scaling handled in EFMs?",
+  "answer": "<p>EFMs convert incoming pulses into standard units using the K-factor. Scaling must maintain sufficient resolution without exceeding processor limits. Any change in K-factor requires resealing and documentation in audit logs.</p>",
+  "tags": ["pulse","K-factor","EFM","audit"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-instrument-shielding",
+  "question": "Why must instrumentation be shielded and grounded?",
+  "answer": "<p>To prevent electromagnetic interference (EMI) that causes signal noise in low-level analog and pulse circuits. Shield only one end to avoid ground loops, and maintain equipotential bonding throughout the skid.</p>",
+  "tags": ["shielding","grounding","EMI","safety"],
+  "standards": ["IEC 61000","IEC 60079-14"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-batch-totalization",
+  "question": "What is batch totalization in custody transfer?",
+  "answer": "<p>It accumulates flow during a transfer event, applying meter factor, temperature, and pressure corrections in real time. The batch ticket serves as the legal document for fiscal handover, containing totalized base volume and energy values.</p>",
+  "tags": ["batch","totalization","ticket","custody"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-flow-profile-effects",
+  "question": "How does flow profile distortion affect accuracy?",
+  "answer": "<p>Swirl, asymmetry, or jetting changes velocity distribution and meter linearity. Install flow conditioners or sufficient straight runs to restore uniform profile. Diagnostics (ultrasonic) or proving can confirm profile stability.</p>",
+  "tags": ["flow profile","distortion","installation","conditioning"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-backpressure-control",
+  "question": "Why is backpressure control essential?",
+  "answer": "<p>Maintains liquid in single phase and ensures stable flow. Sudden drops can cause cavitation or flashing. Control valves or regulators maintain minimum backpressure per meter manufacturer recommendations.</p>",
+  "tags": ["backpressure","control","cavitation","stability"],
+  "standards": ["API MPMS Ch. 5.x","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-metering-tank-proving",
+  "question": "How is tank proving conducted for custody purposes?",
+  "answer": "<p>Compare measured transferred volume into a calibrated tank with known capacity. Correct for temperature and pressure using API 11.x. Repeat multiple fills to verify repeatability and validate meter factor accuracy.</p>",
+  "tags": ["tank proving","volume","API 11.x","repeatability"],
+  "standards": ["API MPMS Ch. 4.4","ISO 4185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-software-validation",
+  "question": "How is custody metering software validated?",
+  "answer": "<p>Software is verified through algorithm testing, checksum validation, and version control audits. All computational routines must comply with API 21.1/21.2 equations. Revalidation is required after firmware or algorithm updates.</p>",
+  "tags": ["software","validation","audit","EFM"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-backup",
+  "question": "How are EFM data backups managed?",
+  "answer": "<p>Flow computers periodically export encrypted audit logs and configuration files to a secure server or cloud storage. Backups must be checksum verified and stored in redundant locations for a minimum of 2 years.</p>",
+  "tags": ["backup","EFM","data integrity","custody"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-lab-intercomparison",
+  "question": "What is an inter-laboratory comparison test?",
+  "answer": "<p>It’s a cross-validation exercise where different labs measure the same standard artifact to compare results. Used to assess measurement equivalence and uncertainty competence under ISO/IEC 17025.</p>",
+  "tags": ["inter-lab","comparison","ISO 17025","validation"],
+  "standards": ["ISO/IEC 17025","ILAC G13"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-maintenance-records",
+  "question": "Why are maintenance records essential for custody systems?",
+  "answer": "<p>They document interventions, replacements, and calibration actions affecting measurement integrity. Auditors use them to verify traceability continuity and compliance with API MPMS 21.2.</p>",
+  "tags": ["maintenance","records","audit","traceability"],
+  "standards": ["API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-operator-training",
+  "question": "What training is required for custody metering operators?",
+  "answer": "<p>Personnel must understand API MPMS procedures, flow computer operation, proving, and data handling. Training records must be documented and periodically refreshed to meet ISO 9001 and contractual competency requirements.</p>",
+  "tags": ["training","operator","competency","custody"],
+  "standards": ["API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+{
+  "id": "custody-instrument-tagging",
+  "question": "Why is proper instrument tagging important in custody systems?",
+  "answer": "<p>Instrument tags uniquely identify each custody component for traceability and maintenance tracking. Tags correspond to calibration certificates, audit logs, and drawings, preventing mix-ups during inspection or recalibration.</p>",
+  "tags": ["tagging","identification","traceability","maintenance"],
+  "standards": ["API MPMS Ch. 21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pulse-lost-detection",
+  "question": "How are lost pulses detected in custody metering?",
+  "answer": "<p>EFMs continuously compare pulse frequency with analog flow data. Discrepancies trigger alarms or automatic switchover to backup channels. Pulse discrepancy events are logged in the audit trail per API 21.1/21.2.</p>",
+  "tags": ["pulse","EFM","audit","signal integrity"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pressure-transmitter-verification",
+  "question": "How is a pressure transmitter verified on site?",
+  "answer": "<p>Compare readings with a certified deadweight tester or precision calibrator. Verify zero, span, and linearity at 0%, 50%, and 100% of range. Results must fall within ±0.1% FS for custody acceptance.</p>",
+  "tags": ["pressure","verification","calibration","accuracy"],
+  "standards": ["API MPMS Ch. 21.2","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-temperature-verification",
+  "question": "How is temperature verification performed?",
+  "answer": "<p>Compare the RTD output with a certified reference thermometer at stable process conditions. Deviations beyond ±0.15°C require recalibration. Record results in the EFM audit trail and calibration certificate.</p>",
+  "tags": ["temperature","RTD","verification","custody"],
+  "standards": ["IEC 60751","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-density-meter-calibration",
+  "question": "How is an online densitometer calibrated?",
+  "answer": "<p>Use certified density reference liquids (e.g., water, xylene) at controlled temperatures. Calibrate at multiple points to establish linearity. Confirm base density correction factors per API 11.5 requirements.</p>",
+  "tags": ["density","calibration","API 11.5","traceability"],
+  "standards": ["API MPMS Ch. 11.5","ISO 12185"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-vibration-impact",
+  "question": "How does vibration affect custody meters?",
+  "answer": "<p>Mechanical vibration introduces noise in Coriolis and ultrasonic signals. Install dampers or isolation mounts and avoid proximity to rotating equipment. Verify vibration levels below manufacturer-specified limits (typically &lt;2 mm/s RMS).</p>",
+  "tags": ["vibration","installation","Coriolis","ultrasonic"],
+  "standards": ["API MPMS Ch. 5.6","API MPMS Ch. 5.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pipeline-cleanliness",
+  "question": "Why is pipeline cleanliness critical before proving?",
+  "answer": "<p>Deposits or debris alter flow profile and create repeatability issues. Flush and filter the line before proving. Verify clean filters and absence of suspended solids or air in the product stream.</p>",
+  "tags": ["pipeline","cleaning","proving","repeatability"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 5.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-coriolis-entrained-gas",
+  "question": "How does entrained gas affect Coriolis accuracy?",
+  "answer": "<p>Gas bubbles cause signal damping and tube imbalance, reducing mass accuracy. Use degassing or maintain backpressure to prevent vapor breakout. Enable diagnostics like two-phase detection where available.</p>",
+  "tags": ["Coriolis","entrained gas","degassing","accuracy"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-flow-computer-time-drift",
+  "question": "How is flow computer clock drift managed?",
+  "answer": "<p>EFMs synchronize with GPS or NTP servers daily. Drift exceeding ±1 s triggers audit alarms. Accurate timing ensures alignment between EFM tickets and supervisory data for fiscal audits.</p>",
+  "tags": ["EFM","time sync","audit","custody"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-ticket-content",
+  "question": "What information appears on an EFM custody ticket?",
+  "answer": "<p>Ticket ID, batch start/stop time, corrected volume, mass, energy, base conditions, meter factor, CTL/CPL values, alarms, and signatures. Tickets serve as legal fiscal documents and must match audit trail entries.</p>",
+  "tags": ["EFM","ticket","audit","documentation"],
+  "standards": ["API MPMS Ch. 21.1","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-liquid-air-eliminator",
+  "question": "What is an air eliminator and its function?",
+  "answer": "<p>An air eliminator removes trapped air or vapor before the meter to ensure only liquid passes through. Common in PD and turbine systems. Required for custody-grade accuracy per API MPMS 5.2 and 5.3.</p>",
+  "tags": ["air eliminator","liquid","accuracy","PD"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 5.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-archiving",
+  "question": "How is EFM data archived for long-term storage?",
+  "answer": "<p>Audit logs, tickets, and configuration backups are exported monthly and stored in secure servers or write-once media (e.g., optical). Archived data must remain accessible for audits for a minimum of 7 years.</p>",
+  "tags": ["EFM","archiving","data","audit"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-mass-balance",
+  "question": "How is a custody mass balance conducted?",
+  "answer": "<p>Sum all inlet and outlet mass flows, corrected for temperature and pressure. Compare with tank inventories. Differences within ±0.25% are acceptable; larger discrepancies trigger reconciliation and equipment verification.</p>",
+  "tags": ["mass balance","reconciliation","audit","accuracy"],
+  "standards": ["API MPMS Ch. 21.2","ISO 5168"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-sphere-care",
+  "question": "How should prover spheres be maintained?",
+  "answer": "<p>Store inflated at ambient pressure, inspect for wear and elasticity. Replace if diameter changes exceed ±0.5 mm or surface becomes rough. Lubricate sparingly with fluid-compatible compounds.</p>",
+  "tags": ["prover","sphere","maintenance","repeatability"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-fault-tolerance",
+  "question": "How do EFMs handle communication or power faults?",
+  "answer": "<p>EFMs retain all data in non-volatile memory during outages. Fault alarms and recovery timestamps are logged. Redundant power supplies and communication paths minimize data loss.</p>",
+  "tags": ["EFM","fault","redundancy","audit"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-transmitter-loop-check",
+  "question": "What is a transmitter loop check?",
+  "answer": "<p>A verification test ensuring the analog loop (sensor–transmitter–EFM) reads correctly. Simulate known values and verify that output corresponds to expected scaling within ±0.1% FS. Record results for traceability.</p>",
+  "tags": ["transmitter","loop check","calibration","verification"],
+  "standards": ["API MPMS Ch. 21.2","ISO/IEC 17025"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-liquid-filter",
+  "question": "Why are filters critical in liquid custody lines?",
+  "answer": "<p>Filters remove particulates that cause PD or turbine meter wear and proving instability. Maintain differential pressure monitoring and clean elements per maintenance schedule. Use fine mesh (50–150 µm) for custody-grade service.</p>",
+  "tags": ["filter","liquid","maintenance","accuracy"],
+  "standards": ["API MPMS Ch. 5.2","API MPMS Ch. 5.3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-fluid-stability",
+  "question": "Why must the product be stable during proving?",
+  "answer": "<p>Temperature or composition changes alter density and viscosity, impacting flow conditions. Stabilize the system for at least 10 minutes before proving to achieve valid repeatable results.</p>",
+  "tags": ["proving","stability","liquid","accuracy"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-system-isolation",
+  "question": "Why must the custody system be isolated during proving?",
+  "answer": "<p>To ensure the measured flow only passes through the meter–prover loop. All bypasses must be sealed or closed. Isolation prevents cross-flow that invalidates the meter factor calculation.</p>",
+  "tags": ["proving","isolation","valves","custody"],
+  "standards": ["API MPMS Ch. 4.2","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+
+  {
+  "id": "custody-gas-leak-test",
+  "question": "How is a gas custody system leak-tested?",
+  "answer": "<p>Isolate the metering section, pressurize with inert gas, and monitor pressure decay over a fixed duration. Leak rate must be below the contract or API MPMS 14.3 limit (typically &lt;0.1% per hour). Record start/end pressures and ambient conditions.</p>",
+  "tags": ["gas","leak test","API 14.3","maintenance"],
+  "standards": ["API MPMS Ch. 14.3","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-coriolis-tube-coating",
+  "question": "How does coating affect Coriolis accuracy?",
+  "answer": "<p>Coating or fouling on tubes changes stiffness and resonance frequency, biasing mass flow and density. Run SMV diagnostics regularly to detect coating buildup. Clean or recalibrate if deviations exceed limits.</p>",
+  "tags": ["Coriolis","coating","maintenance","SMV"],
+  "standards": ["API MPMS Ch. 5.6","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-entrained-vapor-detection",
+  "question": "How can entrained vapor be detected during liquid proving?",
+  "answer": "<p>Observe pressure fluctuations, density variation, or ultrasonic noise signals. Coriolis diagnostics and visual sight glass checks can confirm aeration. Proving must pause until flow is fully liquid and stable.</p>",
+  "tags": ["entrained gas","liquid","proving","diagnostics"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 5.6"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-remote-monitoring",
+  "question": "How is remote monitoring implemented in custody systems?",
+  "answer": "<p>SCADA or historian servers collect data from EFMs via secure telemetry (VPN/HTTPS). Only read-only access is permitted for custody devices. Event logs and audit trails remain sealed at the site level.</p>",
+  "tags": ["remote monitoring","SCADA","EFM","security"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-backup-power",
+  "question": "Why is backup power required in custody metering?",
+  "answer": "<p>Ensures continuous data capture and audit trail preservation during power loss. EFMs and provers use UPS or DC battery backups for at least 8 hours runtime. Power failure events are logged automatically.</p>",
+  "tags": ["backup power","EFM","audit","UPS"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-humidity-control",
+  "question": "Why control humidity in metering panels?",
+  "answer": "<p>High humidity corrodes terminals and sensors, causing drift. Enclosures should maintain &lt;60% RH with dehumidifiers or purged air systems. All electrical junctions must use sealed glands for Ex-rated environments.</p>",
+  "tags": ["humidity","enclosure","maintenance","safety"],
+  "standards": ["IEC 60079-14","API RP 500"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-seal-records",
+  "question": "How are seal records maintained?",
+  "answer": "<p>Every seal is tagged and logged with serial number, location, installation date, and responsible personnel. Records are stored in the custody audit file and verified during inspections. Missing seals require incident reporting.</p>",
+  "tags": ["seals","recordkeeping","audit","security"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-gas-expansibility",
+  "question": "What is the expansibility factor in gas metering?",
+  "answer": "<p>It corrects for the compressibility of gas as it flows through a restriction. Defined by ISO 5167 as the ratio of actual to ideal expansion across an orifice. Critical for accurate DP-based flow calculations.</p>",
+  "tags": ["expansibility","ISO 5167","gas","DP"],
+  "standards": ["ISO 5167","AGA 3"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-prover-data-logging",
+  "question": "What data must be logged during proving?",
+  "answer": "<p>Each run’s start/stop time, detector positions, flowrate, temperature, pressure, volume, repeatability, and MF. Logs must be stored electronically and cross-referenced with the EFM audit trail.</p>",
+  "tags": ["proving","data logging","audit","MF"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-vapor-pressure",
+  "question": "Why monitor vapor pressure during liquid transfer?",
+  "answer": "<p>To ensure operating pressure remains above vapor pressure margin, avoiding flashing. Particularly critical for volatile fluids like LPG and condensate. Pressure drop below vapor pressure invalidates custody data.</p>",
+  "tags": ["vapor pressure","liquid","flashing","pressure control"],
+  "standards": ["API MPMS Ch. 5.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-flow-computer-audit-frequency",
+  "question": "How often should flow computers be audited?",
+  "answer": "<p>At least once per year or following firmware updates, configuration changes, or meter factor updates. Audits verify checksum integrity, calculation routines, and communication logs against API MPMS 21.1 requirements.</p>",
+  "tags": ["EFM","audit","frequency","API 21.1"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-analyzer-sample-conditioning",
+  "question": "Why use sample conditioning for gas analyzers?",
+  "answer": "<p>Conditioners stabilize pressure, temperature, and flow before gas enters the analyzer. Prevents condensation and ensures representative sampling. System includes filters, regulators, and heaters to match pipeline conditions.</p>",
+  "tags": ["analyzer","sampling","conditioning","gas"],
+  "standards": ["API MPMS Ch. 14.1","ISO 10715"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-signature",
+  "question": "What is a digital signature in custody data?",
+  "answer": "<p>It cryptographically verifies that custody data (tickets, audit trails) remain unaltered. Flow computers generate checksum or hash-based signatures for each batch. Tampering invalidates the fiscal record.</p>",
+  "tags": ["digital signature","security","audit","EFM"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-pipeline-insulation",
+  "question": "Why is insulation used around custody metering lines?",
+  "answer": "<p>To maintain temperature stability, minimize ambient heat transfer, and reduce density drift. Essential when ambient temperature swings exceed ±2°C. Insulated lines reduce proving repeatability errors.</p>",
+  "tags": ["insulation","temperature control","pipeline","accuracy"],
+  "standards": ["API MPMS Ch. 4.8","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-data-correlation",
+  "question": "How is custody data correlated between EFM and SCADA?",
+  "answer": "<p>Data are synchronized by timestamp, batch ID, and ticket number. SCADA polling intervals must be short enough (≤1 minute) to align trends. Discrepancies beyond ±0.05% indicate communication lag or clock drift.</p>",
+  "tags": ["EFM","SCADA","correlation","timestamp"],
+  "standards": ["API MPMS Ch. 21.1","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-memory-check",
+  "question": "How often should EFM memory integrity be verified?",
+  "answer": "<p>Perform CRC and checksum validation monthly. EFMs with flash memory have built-in diagnostics; failed checks trigger alarm and require data backup or replacement. Maintain log of all memory tests for audits.</p>",
+  "tags": ["EFM","memory","checksum","audit"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-gas-calibration-facility",
+  "question": "What defines a high-pressure gas calibration facility?",
+  "answer": "<p>It operates at 30–100 bar with primary piston or sonic nozzle standards. Facilities such as CEESI or Euroloop provide calibration traceable to national standards with uncertainty ≤±0.05%. Equipped with automated control and reference analyzers.</p>",
+  "tags": ["gas calibration","facility","traceability","uncertainty"],
+  "standards": ["ISO 9300","AGA 9","API MPMS Ch. 14.10"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-analyzer-maintenance",
+  "question": "What maintenance is needed for gas chromatographs in custody?",
+  "answer": "<p>Replace carrier gas filters, check detector sensitivity, verify column flow rates, and recalibrate every 6 months. Maintain stable temperature control within ±0.1°C to ensure repeatability of composition readings.</p>",
+  "tags": ["analyzer","gas chromatograph","maintenance","composition"],
+  "standards": ["API MPMS Ch. 14.1","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-efm-checksum-validation",
+  "question": "What is checksum validation in EFMs?",
+  "answer": "<p>Checksum verification ensures stored custody data are not corrupted. Flow computers compute CRCs on all configuration and ticket data. Mismatch between stored and recalculated CRC flags possible tampering or memory fault.</p>",
+  "tags": ["checksum","EFM","security","integrity"],
+  "standards": ["API MPMS Ch. 21.1","ISO 27001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-verification-procedure",
+  "question": "What is a verification procedure in custody metering?",
+  "answer": "<p>It is a formalized test confirming measurement system accuracy without full recalibration. Involves comparing meter outputs to references, checking diagnostics, and confirming stability within defined tolerances. Required between provings or audits.</p>",
+  "tags": ["verification","maintenance","proving","accuracy"],
+  "standards": ["API MPMS Ch. 21.2","OIML R117"],
+  "lastReviewed": "2025-10-07"
+},
+
+
+
+{
+  "id": "virtual-metering-overview",
+  "question": "What is virtual (soft) flow metering and where is it used?",
+  "answer": "<p>Virtual Flow Metering (VFM) estimates flow using models and field sensors (P/T/ΔP/choke position) instead of a physical fiscal meter. It is widely used for <b>allocation, production optimization, and surveillance</b>—especially subsea and multiphase wells—rather than as the <i>primary</i> custody device. For fiscal transfer, VFM outputs may be used only as supporting checks if contractually agreed and validated against traceable meters.</p>",
+  "tags": ["virtual metering","soft sensor","allocation","surveillance"],
+  "standards": ["API MPMS Ch. 20.x (allocation)","ISO 17089-1 (context for verification)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-acceptability",
+  "question": "Is virtual metering accepted for custody transfer?",
+  "answer": "<p>In general, <b>no</b>. Custody requires traceable, certified devices (e.g., ultrasonic, PD, turbine, Coriolis) proven per API/ISO/OIML. VFM may be referenced for <i>reasonableness checks</i> or <i>allocation</i> under API MPMS Ch. 20, but it is <b>not recognized as the fiscal meter of record</b> unless expressly permitted by regulation/contract and validated with an uncertainty demonstration.</p>",
+  "tags": ["virtual metering","acceptance","custody","standards"],
+  "standards": ["API MPMS Ch. 21.1/21.2","API MPMS Ch. 20.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-methods",
+  "question": "What modeling methods are used in virtual metering?",
+  "answer": "<p>Common approaches: <b>mechanistic</b> (first-principles multiphase models), <b>reduced-order/empirical</b> correlations, and <b>data-driven/ML</b> (regression, ensembles, hybrid physics–ML). Hybrid models use physics for extrapolation and ML for bias/parameter tuning, improving robustness to sensor noise and changing regimes.</p>",
+  "tags": ["virtual metering","modeling","ML","hybrid"],
+  "standards": ["API MPMS Ch. 20.3 (multiphase guidance)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "digital-twins-custody-context",
+  "question": "How do digital twins relate to custody metering?",
+  "answer": "<p>Digital twins simulate the metering system (meter + piping + process) to detect anomalies, predict drift, and schedule proving. They <b>augment</b> but do not replace certified meters. Accepted use cases: diagnostics, what-if analysis for lineup/pressure control, and <i>pre-proving readiness checks</i> to reduce bad runs.</p>",
+  "tags": ["digital twin","diagnostics","proving readiness","custody"],
+  "standards": ["API MPMS Ch. 21.2 (data/audit context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "soft-sensing-density-viscosity",
+  "question": "Can virtual sensors estimate density or viscosity for custody calculations?",
+  "answer": "<p>Soft sensors can estimate density/viscosity from composition and P/T, but <b>custody reporting still requires traceable measurements</b> (online densitometer, GC). Soft estimates may be used for <i>sanity checks</i> and <i>loss control</i>, not as the legal basis unless validated and approved in the contract.</p>",
+  "tags": ["soft sensor","density","viscosity","validation"],
+  "standards": ["API MPMS Ch. 11.x","ISO 6976 (gas properties)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-validation",
+  "question": "How do I validate a virtual meter against a custody meter?",
+  "answer": "<p>Define an operating envelope, collect parallel data across flows/pressures/temperatures, and compute residuals vs the certified meter corrected to base conditions. Use rolling recalibration and <i>out-of-sample</i> tests. Acceptance criteria should be <b>&le;±0.5%</b> bias with stable residuals for surveillance use; <b>tighter</b> if used in allocation.</p>",
+  "tags": ["validation","virtual metering","residuals","acceptance"],
+  "standards": ["API MPMS Ch. 21.2 (records)","API MPMS Ch. 4.8 (repeatability concepts)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "statistical-meter-verification",
+  "question": "What is statistical meter verification (SMV) and how is it used?",
+  "answer": "<p>SMV analyzes historical EFMs/meter diagnostics (e.g., ultrasonic path ratios, Coriolis tube frequency) to flag drift and trigger proving. It <b>reduces unnecessary provings</b> and supports condition-based maintenance. SMV is <i>verification</i>, not calibration, and must be backed by periodic proving.</p>",
+  "tags": ["verification","SMV","condition-based maintenance","diagnostics"],
+  "standards": ["ISO 17089-1 (diagnostics)","AGA 9 (USM diagnostics)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "remote-proving-feasibility",
+  "question": "Can proving be done remotely or semi-automated?",
+  "answer": "<p>Yes—modern prover controllers and EFMs support <b>scripted sequences</b> with remote supervision. Still, API MPMS requires defined procedures, leak checks, environmental stability, and <b>secure audit trails</b>. Remote operation must maintain seal integrity and site HSE controls.</p>",
+  "tags": ["proving","automation","remote","audit"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-uncertainty",
+  "question": "How is uncertainty quantified in virtual metering?",
+  "answer": "<p>Combine model bias, parameter uncertainty, and sensor noise using <b>RSS</b> or Bayesian methods. Report expanded uncertainty (<i>k</i>=2). For allocation/monitoring, targets of <b>≤±1–2%</b> may be acceptable; <b>custody typically demands ≤±0.3%</b>, which VFM rarely sustains across the full envelope.</p>",
+  "tags": ["uncertainty","virtual metering","RSS","Bayesian"],
+  "standards": ["ISO 5168 (uncertainty)","API MPMS Ch. 13.1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "ai-for-diagnostics",
+  "question": "How is AI/ML being applied to custody metering today?",
+  "answer": "<p>ML models classify <b>installation effects</b> (swirl/asymmetry for USM), predict <b>MF drift</b>, and detect <b>entrained gas</b> in Coriolis via vibration/frequency features. These tools accelerate troubleshooting but do not replace proving; outputs are advisory unless validated and sealed into approved workflows.</p>",
+  "tags": ["AI","diagnostics","ultrasonic","Coriolis"],
+  "standards": ["AGA 9 (diagnostics context)","ISO 17089-1"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "challenges-proving-current",
+  "question": "What are key challenges in current proving practices?",
+  "answer": "<p>Maintaining <b>thermal stability</b>, preventing <b>leaks/entrained gas</b>, aligning <b>instrument references</b> (P/T/density), ensuring <b>repeatability ≤±0.02%</b>, and logistics of prover certification. Compact/mobile provers help site access but require careful temperature control and certified base volumes.</p>",
+  "tags": ["proving","challenges","repeatability","temperature"],
+  "standards": ["API MPMS Ch. 4.2/4.6/4.8/4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "lab-capacity-limitation",
+  "question": "Why is global custody calibration capacity limited?",
+  "answer": "<p>Few high-accuracy primary labs exist for <b>high-pressure gas</b> and large-liquid lines (e.g., Europe/US/UK/Asia national labs). Lead times for <b>recertifying provers/master meters</b> can be months, impacting turnaround and cost. This drives demand for <i>on-site verification</i> and better diagnostics between certifications.</p>",
+  "tags": ["calibration lab","capacity","lead time","primary standards"],
+  "standards": ["ISO/IEC 17025 (lab)","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "emerging-methods-virtual",
+  "question": "What emerging methods complement traditional calibration?",
+  "answer": "<p><b>Hybrid physics–ML twins</b> tied to EFM diagnostics, <b>Bayesian reconciliation</b> of multi-instrument networks, <b>online SOS cross-checks</b> for USM, <b>Coriolis two-phase detection</b> analytics, and <b>probabilistic MF trending</b> to optimize proving intervals.</p>",
+  "tags": ["emerging","hybrid","reconciliation","optimization"],
+  "standards": ["AGA 9 (SOS)","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-change-management",
+  "question": "What governance is needed to use virtual metering outputs?",
+  "answer": "<p>Document the model, training data, version, and change logs. Validate after <b>process changes</b> (fluid, temperature, pressure regime). Archive comparisons against the custody meter in the audit trail; reseal configuration when models change and <b>never</b> overwrite fiscal tickets.</p>",
+  "tags": ["governance","model management","audit","change control"],
+  "standards": ["API MPMS Ch. 21.1/21.2","ISO 9001"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-sensors",
+  "question": "Which sensors are most critical for reliable virtual metering?",
+  "answer": "<p>Stable <b>pressure</b> and <b>temperature</b> at representative taps, accurate <b>ΔP</b> across restrictions/chokes, and <b>composition inputs</b> (GC or surrogate) for property calculation. Sensor drift directly translates to VFM bias; calibration and redundancy improve robustness.</p>",
+  "tags": ["sensors","pressure","temperature","composition"],
+  "standards": ["API MPMS Ch. 21.1/21.2","ISO 6976"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "virtual-metering-use-cases",
+  "question": "Where can virtual metering add value today?",
+  "answer": "<p><b>Between provings</b> to flag abnormal drift, <b>during maintenance</b> when a meter is bypassed, <b>wet-gas alerts</b> using SOS vs composition, <b>loss monitoring</b> across tank-to-pipeline chains, and <b>surge/line pack</b> estimation for pipeline balancing.</p>",
+  "tags": ["use cases","virtual metering","loss control","balancing"],
+  "standards": ["API MPMS Ch. 21.2 (records)","AGA 10 (SOS check)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "research-virtual-multiphase",
+  "question": "What research trends exist in virtual multiphase metering?",
+  "answer": "<p>Work continues on <b>regime-aware models</b>, <b>adaptive slip correlations</b>, and <b>transfer learning</b> across wells/fields. Hybrid models fuse <i>OLGA-like</i> mechanistic simulators with ML bias correction, targeting <b>±2–5%</b> allocation accuracy over wide envelopes.</p>",
+  "tags": ["research","multiphase","hybrid models","transfer learning"],
+  "standards": ["API MPMS Ch. 20.3 (context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "standardization-gap-virtual",
+  "question": "Is there a standard that certifies virtual meters for custody?",
+  "answer": "<p>Currently there is <b>no API/OIML standard</b> certifying VFM as a standalone <i>custody</i> device. API MPMS Ch. 20.x gives guidance for allocation and production measurement; custody remains anchored to certified physical meters with proving per API MPMS Ch. 4.</p>",
+  "tags": ["standards","virtual metering","custody","gap"],
+  "standards": ["API MPMS Ch. 20.x","API MPMS Ch. 4.x"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "custody-innovation-barriers",
+  "question": "What are barriers to adopting new virtual/AI methods in custody?",
+  "answer": "<p>Regulatory acceptance, <b>traceability</b> requirements, <b>explainability</b> of ML models, and <b>uncertainty guarantees</b>. Many contracts mandate specific meters and standards; changing them requires stakeholder agreement and demonstrated equivalence with documented uncertainty.</p>",
+  "tags": ["barriers","AI","traceability","regulatory"],
+  "standards": ["API MPMS Ch. 21.2","ISO/IEC 17025 (traceability context)"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "future-proofing-proving",
+  "question": "How can proving evolve to reduce downtime?",
+  "answer": "<p><b>Condition-based proving</b> using diagnostics and MF trend analytics, <b>higher-resolution pulse streams</b> for faster passes, <b>better thermal control</b> on compact provers, and <b>digital certificates</b> for prover base volume with blockchain-like integrity in audit chains.</p>",
+  "tags": ["proving","innovation","condition-based","digital certificate"],
+  "standards": ["API MPMS Ch. 4.8/4.9","API MPMS Ch. 21.2"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "regional-lab-scarcity",
+  "question": "How does lab scarcity affect Asia-Pacific projects?",
+  "answer": "<p>Limited access to <b>high-pressure gas</b> calibration rigs forces long shipping times to Europe/US or scheduling at a few regional centers. Project impacts: schedule risk, higher cost, and longer <b>MF revalidation cycles</b>; hence the push for regional labs and <i>traceable on-site verification</i> programs.</p>",
+  "tags": ["Asia","labs","capacity","schedule"],
+  "standards": ["ISO/IEC 17025","API MPMS Ch. 4.9"],
+  "lastReviewed": "2025-10-07"
+}
+
+  
 ]
