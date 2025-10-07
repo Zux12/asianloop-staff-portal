@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Asianloop — Training & Knowledge Hub</title>
+  <link rel="icon" href="/public/images/logo.jpg">
+  <style>
+    :root{
+      --bg:#ffffff; --ink:#0f172a; --muted:#64748b; --bd:#e5e7eb;
+      --card:#ffffff; --hover:#f8fafc; --accent:#2563eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    header.al{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    header.al img{height:48px;width:auto;border-radius:10px}
+    header.al h1{font-size:22px;margin:0}
+    .sub{color:var(--muted);font-size:14px;margin-top:2px}
+
+    .toolbar{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 18px
+    }
+    .search{
+      appearance:none;border:1px solid var(--bd);border-radius:12px;padding:12px 14px;
+      min-width:260px;font-size:15px;outline:none
+    }
+
+    .grid{
+      display:grid;gap:14px;
+      grid-template-columns:repeat(1,minmax(0,1fr));
+    }
+    @media(min-width:680px){ .grid{ grid-template-columns:repeat(2,1fr);} }
+    @media(min-width:980px){ .grid{ grid-template-columns:repeat(3,1fr);} }
+
+    .card{
+      display:flex;flex-direction:column;justify-content:space-between;
+      border:1px solid var(--bd);border-radius:16px;background:var(--card);
+      padding:16px;transition:transform .08s ease, box-shadow .08s ease, background .08s ease
+    }
+    .card:hover{transform:translateY(-2px);background:var(--hover);
+      box-shadow:0 8px 20px rgba(15,23,42,.06)}
+    .card .title{font-weight:700;margin:0 0 6px 0;font-size:16px}
+    .card .desc{color:var(--muted);font-size:14px;margin:0 0 12px}
+    .card .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+    .badge{font-size:12px;border:1px solid var(--bd);border-radius:999px;padding:4px 8px;background:#f8fafc;color:#334155}
+    .go{
+      margin-top:12px;display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--bd);border-radius:10px;padding:9px 12px;font-weight:600;
+      background:white
+    }
+    .go span{color:var(--accent)}
+    .footer{margin-top:20px;color:var(--muted);font-size:12px}
+    .count{color:var(--muted);font-size:13px;margin:4px 0 14px}
+    .hide{display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="al">
+      <img src="/public/images/logo.jpg" alt="Asianloop logo">
+      <div>
+        <h1>Asianloop — Training & Knowledge Hub</h1>
+        <div class="sub">Quick links to FAQs, training modules, standards, labs, and more.</div>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <input id="filter" class="search" type="search" placeholder="Filter cards… (e.g., proving, ultrasonic, SOP)" autofocus>
+    </div>
+    <div class="count" id="count"></div>
+
+    <section id="cards" class="grid">
+      <!-- Card 1: FAQ (live link) -->
+      <a class="card" href="/public/msbs/AsianloopFAQ.html" data-tags="faq search custody metering calibration proving standards">
+        <div>
+          <h3 class="title">Staff FAQ — Custody Metering</h3>
+          <p class="desc">Search concise answers on turndown, proving, meter factors, installation, and standards.</p>
+          <div class="meta">
+            <span class="badge">FAQ</span>
+            <span class="badge">Custody</span>
+            <span class="badge">Standards</span>
+          </div>
+        </div>
+        <div class="go" aria-label="Open FAQ">
+          <span>Open</span> ➜
+        </div>
+      </a>
+
+      <!-- Placeholder cards — update href values later -->
+      <a class="card" href="/public/msbs/training-meter-basics.html" data-tags="training meter basics coriolis turbine ultrasonic orifice pd">
+        <div>
+          <h3 class="title">Meter Basics</h3>
+          <p class="desc">Principles of Coriolis, Turbine, Ultrasonic, Orifice/DP, and PD meters — quick primers.</p>
+          <div class="meta">
+            <span class="badge">Basics</span>
+            <span class="badge">Meters</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-proving-101.html" data-tags="proving meter factor compact prover pipe prover piston ball detector spacing leak check">
+        <div>
+          <h3 class="title">Proving 101</h3>
+          <p class="desc">Step-by-step proving fundamentals: MF targets, repeatability, leak checks, detector spacing.</p>
+          <div class="meta">
+            <span class="badge">Proving</span>
+            <span class="badge">MF</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-standards-library.html" data-tags="standards api mpms oiml r117 iso 5167 17025">
+        <div>
+          <h3 class="title">Standards Library</h3>
+          <p class="desc">Pointers and summaries for API MPMS, OIML R117, ISO 5167, ISO/IEC 17025 context.</p>
+          <div class="meta">
+            <span class="badge">Standards</span>
+            <span class="badge">References</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-hands-on-labs.html" data-tags="hands-on labs field commissioning calibration setup flow conditioner straight runs">
+        <div>
+          <h3 class="title">Hands-on Labs</h3>
+          <p class="desc">Practical labs for setup, commissioning, flow conditioning, straight runs, and checks.</p>
+          <div class="meta">
+            <span class="badge">Practical</span>
+            <span class="badge">Labs</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-video-tutorials.html" data-tags="video tutorials demonstrations walk-through diagnostics">
+        <div>
+          <h3 class="title">Video Tutorials</h3>
+          <p class="desc">Short demonstrations and diagnostics walk-throughs for common field tasks.</p>
+          <div class="meta">
+            <span class="badge">Videos</span>
+            <span class="badge">How-to</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-quizzes.html" data-tags="quiz assessment knowledge check certification">
+        <div>
+          <h3 class="title">Quizzes & Checks</h3>
+          <p class="desc">Self-checks and quick quizzes to reinforce custody metering concepts.</p>
+          <div class="meta">
+            <span class="badge">Quiz</span>
+            <span class="badge">Assessment</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+
+      <a class="card" href="/public/msbs/training-certification.html" data-tags="certification cpd learning path curriculum">
+        <div>
+          <h3 class="title">Certification Path</h3>
+          <p class="desc">Learning paths and CPD tracking towards internal certification milestones.</p>
+          <div class="meta">
+            <span class="badge">Certification</span>
+            <span class="badge">CPD</span>
+          </div>
+        </div>
+        <div class="go"><span>Edit link</span> ➜</div>
+      </a>
+    </section>
+
+    <div class="footer">© Asianloop — Training Hub</div>
+  </div>
+
+  <script>
+    // Simple client-side card filter (by title/desc/tags)
+    const q = document.getElementById('filter');
+    const grid = document.getElementById('cards');
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    const count = document.getElementById('count');
+
+    function normalize(s){ return (s||'').toLowerCase(); }
+    function indexCard(card){
+      return [
+        card.querySelector('.title')?.textContent,
+        card.querySelector('.desc')?.textContent,
+        card.getAttribute('data-tags')
+      ].map(normalize).join(' ');
+    }
+    const cache = new Map(cards.map(c=>[c, indexCard(c)]));
+
+    function applyFilter(v){
+      const term = normalize(v).trim();
+      let shown = 0;
+      cards.forEach(card=>{
+        const text = cache.get(card);
+        const ok = !term || text.includes(term);
+        card.style.display = ok ? '' : 'none';
+        if(ok) shown++;
+      });
+      count.textContent = shown + ' link' + (shown!==1?'s':'');
+    }
+    q.addEventListener('input', ()=>applyFilter(q.value));
+    applyFilter('');
+  </script>
+</body>
+</html>
 
