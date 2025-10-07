@@ -2831,7 +2831,7 @@
   "question": "What software is used in oil allocation accounting?",
   "answer": "<p>Specialized systems like <b>Energy Components</b>, <b>ProdML XML schemas</b>, and <b>PI Vision</b> link field meters to enterprise accounting. They apply contractual allocation equations, audit calculations, and generate revenue reports for stakeholders and tax authorities.</p>",
   "tags": ["software","allocation","accounting","contracts"],
-  "standards": ["API MPMS Ch. 21.2"]
+  "standards": ["API MPMS Ch. 21.2"],
   "lastReviewed": "2025-10-07"
 
 
