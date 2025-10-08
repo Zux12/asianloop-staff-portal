@@ -115,6 +115,38 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
 
+
+async function sendLicenseReminderEmail(lic, { test=false } = {}) {
+  const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+  const name = lic.name || '(unnamed)';
+  const vendor = lic.vendor || '-';
+  const type = lic.type || '-';
+  const start = lic.startAt ? new Date(lic.startAt).toISOString().slice(0,10) : '-';
+  const end = lic.endAt ? new Date(lic.endAt).toISOString().slice(0,10) : '-';
+
+  const subject = test
+    ? `TEST: 7-day license reminder — ${name}`
+    : `7-day license reminder — ${name}`;
+  const text = [
+    test ? '[TEST EMAIL — triggered manually]' : '',
+    `License: ${name}`,
+    `Type: ${type}`,
+    `Vendor: ${vendor}`,
+    `Start: ${start}`,
+    `Expiry: ${end}`,
+    '',
+    `Notes: ${lic.notes || '-'}`,
+  ].join('\n');
+
+  await smtpTransporter.sendMail({
+    from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+    to,
+    subject,
+    text
+  });
+}
+
+
 // ===== API ROUTES =====
 // ===== API ROUTES =====
 // ===== API ROUTES =====
@@ -174,18 +206,21 @@ app.post('/api/licenses', async (req, res) => {
     if (!name || !type || !startAt || !endAt) {
       return res.status(400).json({ ok:false, error:'Missing required fields' });
     }
-    const doc = {
-      name: String(name).trim(),
-      type: String(type).trim(),
-      vendor: vendor ? String(vendor).trim() : '',
-      seats: seats ? Number(seats) : 0,
-      startAt: new Date(startAt),
-      endAt: new Date(endAt),
-      notes: notes ? String(notes).trim() : '',
-      proofFileId: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+const doc = {
+  name: String(name).trim(),
+  type: String(type).trim(),
+  vendor: vendor ? String(vendor).trim() : '',
+  seats: seats ? Number(seats) : 0,
+  startAt: new Date(startAt),
+  endAt: new Date(endAt),
+  notes: notes ? String(notes).trim() : '',
+  notify7d: !!(req.body && (req.body.notify7d === true || req.body.notify7d === 'true')),
+  notifications: [], // [{ when:'-7d', sentAt: Date }]
+  proofFileId: null,
+  createdAt: new Date(),
+  updatedAt: new Date()
+};
+
     const db = await licDb();
     const r = await licColl(db).insertOne(doc);
     res.json({ ok: true, _id: String(r.insertedId) });
@@ -196,13 +231,17 @@ app.post('/api/licenses', async (req, res) => {
 });
 
 // PUT /api/licenses/:id
+// PUT /api/licenses/:id
 app.put('/api/licenses/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    if (!ObjectId.isValid(id)) return res.status(400).json({ ok:false, error:'Bad id' });
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ ok:false, error:'Bad id' });
+    }
 
     const { name, type, vendor, seats, startAt, endAt, notes } = req.body || {};
     const $set = { updatedAt: new Date() };
+
     if (name !== undefined)   $set.name   = String(name).trim();
     if (type !== undefined)   $set.type   = String(type).trim();
     if (vendor !== undefined) $set.vendor = String(vendor).trim();
@@ -211,14 +250,26 @@ app.put('/api/licenses/:id', async (req, res) => {
     if (endAt)                $set.endAt   = new Date(endAt);
     if (notes !== undefined)  $set.notes  = String(notes).trim();
 
+    // ✅ handle the checkbox/boolean inside the try and before updateOne
+    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'notify7d')) {
+      $set.notify7d = !!(
+        req.body.notify7d === true ||
+        req.body.notify7d === 'true' ||
+        req.body.notify7d === 'on'   ||
+        req.body.notify7d === 1      ||
+        req.body.notify7d === '1'
+      );
+    }
+
     const db = await licDb();
     const r = await licColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
-    res.json({ ok: true, matched: r.matchedCount, modified: r.modifiedCount });
+    return res.json({ ok: true, matched: r.matchedCount, modified: r.modifiedCount });
   } catch (e) {
     console.error('[LIC] update error', e);
-    res.status(500).json({ ok:false, error:'Update failed' });
+    return res.status(500).json({ ok:false, error:'Update failed' });
   }
 });
+
 
 // DELETE /api/licenses/:id
 app.delete('/api/licenses/:id', async (req, res) => {
@@ -308,6 +359,24 @@ app.get('/api/licensefile/:id', async (req, res) => {
   } catch (e) {
     console.error('[LIC] file serve error', e);
     res.status(500).send('Error');
+  }
+});
+
+
+// POST /api/licenses/:id/test-reminder  — send an immediate email for testing
+app.post('/api/licenses/:id/test-reminder', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await licDb();
+    const lic = await licColl(db).findOne({ _id: new ObjectId(id) });
+    if (!lic) return res.status(404).send('Not found');
+
+    await sendLicenseReminderEmail(lic, { test: true });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[LIC] test-reminder error', e);
+    res.status(500).send('Error sending test');
   }
 });
 
