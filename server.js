@@ -118,7 +118,7 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
 // ===== API ROUTES =====
 // ===== API ROUTES =====
 
-// Simple standalone test endpoint — MUST be before other /api mounts
+// (A) Simple standalone test endpoint — MUST be before other /api mounts
 app.get('/api/email/test', async (req, res) => {
   try {
     const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
@@ -136,6 +136,182 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
+
+// (B) Licensing API (MongoDB + GridFS, 5 MB cap)
+const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
+const Busboy = require('busboy');
+
+let __mongoClientLic = null;
+async function licDb() {
+  if (!__mongoClientLic) {
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!uri) throw new Error('MONGO_URI not set');
+    __mongoClientLic = new MongoClient(uri);
+    await __mongoClientLic.connect();
+    console.log('[LIC] Mongo connected');
+  }
+  return __mongoClientLic.db(); // default DB from URI
+}
+function licColl(db) { return db.collection('licenses'); }
+
+// GET /api/licenses
+app.get('/api/licenses', async (_req, res) => {
+  try {
+    const db = await licDb();
+    const items = await licColl(db).find({}).sort({ endAt: 1 }).toArray();
+    res.json(items.map(x => ({ ...x, _id: String(x._id) })));
+  } catch (e) {
+    console.error('[LIC] list error', e);
+    res.status(500).json({ ok: false, error: 'Failed to load licenses' });
+  }
+});
+
+// POST /api/licenses
+app.post('/api/licenses', async (req, res) => {
+  try {
+    const { name, type, vendor, seats, startAt, endAt, notes } = req.body || {};
+    if (!name || !type || !startAt || !endAt) {
+      return res.status(400).json({ ok:false, error:'Missing required fields' });
+    }
+    const doc = {
+      name: String(name).trim(),
+      type: String(type).trim(),
+      vendor: vendor ? String(vendor).trim() : '',
+      seats: seats ? Number(seats) : 0,
+      startAt: new Date(startAt),
+      endAt: new Date(endAt),
+      notes: notes ? String(notes).trim() : '',
+      proofFileId: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const db = await licDb();
+    const r = await licColl(db).insertOne(doc);
+    res.json({ ok: true, _id: String(r.insertedId) });
+  } catch (e) {
+    console.error('[LIC] create error', e);
+    res.status(500).json({ ok:false, error:'Create failed' });
+  }
+});
+
+// PUT /api/licenses/:id
+app.put('/api/licenses/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).json({ ok:false, error:'Bad id' });
+
+    const { name, type, vendor, seats, startAt, endAt, notes } = req.body || {};
+    const $set = { updatedAt: new Date() };
+    if (name !== undefined)  $set.name  = String(name).trim();
+    if (type !== undefined)  $set.type  = String(type).trim();
+    if (vendor !== undefined)$set.vendor= String(vendor).trim();
+    if (seats !== undefined) $set.seats = Number(seats || 0);
+    if (startAt)             $set.startAt = new Date(startAt);
+    if (endAt)               $set.endAt   = new Date(endAt);
+    if (notes !== undefined) $set.notes = String(notes).trim();
+
+    const db = await licDb();
+    const r = await licColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
+    res.json({ ok: true, matched: r.matchedCount, modified: r.modifiedCount });
+  } catch (e) {
+    console.error('[LIC] update error', e);
+    res.status(500).json({ ok:false, error:'Update failed' });
+  }
+});
+
+// DELETE /api/licenses/:id
+app.delete('/api/licenses/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).json({ ok:false, error:'Bad id' });
+
+    const db = await licDb();
+    // delete proof if exists
+    const doc = await licColl(db).findOne({ _id: new ObjectId(id) });
+    if (doc?.proofFileId) {
+      try {
+        const bucket = new GridFSBucket(db);
+        await bucket.delete(new ObjectId(doc.proofFileId));
+      } catch (e) { console.warn('[LIC] delete file warn', e.message); }
+    }
+    const r = await licColl(db).deleteOne({ _id: new ObjectId(id) });
+    res.json({ ok:true, deleted: r.deletedCount });
+  } catch (e) {
+    console.error('[LIC] delete error', e);
+    res.status(500).json({ ok:false, error:'Delete failed' });
+  }
+});
+
+// POST /api/licenses/:id/upload  (GridFS, 5 MB limit)
+app.post('/api/licenses/:id/upload', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).json({ ok:false, error:'Bad id' });
+
+    const db = await licDb();
+    const bb = Busboy({ headers: req.headers, limits: { files: 1, fileSize: 5 * 1024 * 1024 } });
+    let hadFile = false;
+
+    bb.on('file', (_name, file, info) => {
+      hadFile = true;
+      const filename = info?.filename || 'proof';
+      const bucket = new GridFSBucket(db);
+      const up = bucket.openUploadStream(filename, {
+        metadata: { type: 'license-proof', licenseId: id, filename }
+      });
+
+      file.on('limit', () => {
+        file.unpipe(up);
+        up.destroy(new Error('File too large (max 5 MB)'));
+      });
+
+      file.pipe(up)
+        .on('error', (err) => {
+          console.error('[LIC] gridfs upload error', err);
+          if (!res.headersSent) res.status(400).json({ ok:false, error: err.message || 'Upload error' });
+        })
+        .on('finish', async () => {
+          await licColl(db).updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { proofFileId: up.id, updatedAt: new Date() } }
+          );
+          if (!res.headersSent) res.json({ ok:true, fileId: String(up.id) });
+        });
+    });
+
+    bb.on('finish', () => {
+      if (!hadFile && !res.headersSent) res.status(400).json({ ok:false, error:'No file' });
+    });
+
+    req.pipe(bb);
+  } catch (e) {
+    console.error('[LIC] upload error', e);
+    res.status(500).json({ ok:false, error:'Upload failed' });
+  }
+});
+
+// GET /api/licensefile/:id  (serve GridFS file)
+app.get('/api/licensefile/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await licDb();
+    const bucket = new GridFSBucket(db);
+    const dl = bucket.openDownloadStream(new ObjectId(id));
+    dl.on('file', (f) => {
+      res.setHeader('Content-Type', f.contentType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${(f.filename||'file').replace(/"/g,'')}"`);
+    });
+    dl.on('error', () => res.status(404).send('Not found'));
+    dl.pipe(res);
+  } catch (e) {
+    console.error('[LIC] file serve error', e);
+    res.status(500).send('Error');
+  }
+});
+
+
+// (C) Your existing /api/commonFiles mount — unchanged
 console.log('[BOOT] mount /api/commonFiles');
 app.use('/api', (req, _res, next) => {
   console.log(`[HIT] ...API ${req.method} ${req.originalUrl}`);
