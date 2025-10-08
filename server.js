@@ -117,8 +117,11 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
 
 
 // helper used by test-reminder route and cron
+// helper used by test-reminder route and cron
 async function sendLicenseReminderEmail(lic, { test=false, toOverride=null } = {}) {
-  const to = toOverride || process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+  const toRaw = (toOverride || process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com');
+  const toList = String(toRaw).split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
   const name = lic.name || '(unnamed)';
   const vendor = lic.vendor || '-';
   const type = lic.type || '-';
@@ -139,13 +142,17 @@ async function sendLicenseReminderEmail(lic, { test=false, toOverride=null } = {
     `Notes: ${lic.notes || '-'}`,
   ].join('\n');
 
-  await smtpTransporter.sendMail({
+  const info = await smtpTransporter.sendMail({
     from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
-    to,
+    to: toList,   // 👈 supports multiple recipients
     subject,
     text
   });
+
+  // Helpful server log to see who actually received it
+  console.log('[MAIL] accepted:', info.accepted, 'rejected:', info.rejected);
 }
+
 
 
 
