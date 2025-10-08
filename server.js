@@ -117,6 +117,7 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
 
 // ===== API ROUTES =====
 // ===== API ROUTES =====
+// ===== API ROUTES =====
 
 // (A) Simple standalone test endpoint — MUST be before other /api mounts
 app.get('/api/email/test', async (req, res) => {
@@ -136,10 +137,10 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
-
-// (B) Licensing API (MongoDB + GridFS, 5 MB cap)
-const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
-const Busboy = require('busboy');
+/* ---------- Licensing API (MongoDB + GridFS, 5 MB cap) ----------
+   IMPORTANT: We are NOT re-declaring MongoClient/ObjectId/GridFSBucket/Busboy here
+   because you already require them at the top of server.js.
+------------------------------------------------------------------ */
 
 let __mongoClientLic = null;
 async function licDb() {
@@ -202,13 +203,13 @@ app.put('/api/licenses/:id', async (req, res) => {
 
     const { name, type, vendor, seats, startAt, endAt, notes } = req.body || {};
     const $set = { updatedAt: new Date() };
-    if (name !== undefined)  $set.name  = String(name).trim();
-    if (type !== undefined)  $set.type  = String(type).trim();
-    if (vendor !== undefined)$set.vendor= String(vendor).trim();
-    if (seats !== undefined) $set.seats = Number(seats || 0);
-    if (startAt)             $set.startAt = new Date(startAt);
-    if (endAt)               $set.endAt   = new Date(endAt);
-    if (notes !== undefined) $set.notes = String(notes).trim();
+    if (name !== undefined)   $set.name   = String(name).trim();
+    if (type !== undefined)   $set.type   = String(type).trim();
+    if (vendor !== undefined) $set.vendor = String(vendor).trim();
+    if (seats !== undefined)  $set.seats  = Number(seats || 0);
+    if (startAt)              $set.startAt = new Date(startAt);
+    if (endAt)                $set.endAt   = new Date(endAt);
+    if (notes !== undefined)  $set.notes  = String(notes).trim();
 
     const db = await licDb();
     const r = await licColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
@@ -310,13 +311,13 @@ app.get('/api/licensefile/:id', async (req, res) => {
   }
 });
 
-
-// (C) Your existing /api/commonFiles mount — unchanged
+// (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
 console.log('[BOOT] mount /api/commonFiles');
 app.use('/api', (req, _res, next) => {
   console.log(`[HIT] ...API ${req.method} ${req.originalUrl}`);
   next();
 }, commonFiles);
+
 
 
 
