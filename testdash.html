@@ -30,6 +30,72 @@
       -webkit-font-smoothing:antialiased;
       padding-bottom:40px;
     }
+
+
+
+
+
+/* === Light theme overrides (toggle via <body class="light">) === */
+body.light{
+  /* variable overrides */
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --muted:#55607a;
+  --text:#1b2430;
+  --accent:#2a6df4;
+  --ok:#1fb874;
+  /* smoother light background */
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(42,109,244,.12), transparent 60%),
+    radial-gradient(800px 420px at -10% 10%, rgba(31,184,116,.10), transparent 55%),
+    var(--bg);
+  color:var(--text);
+}
+
+/* Header looks solid on light */
+body.light .al-header{
+  backdrop-filter:none;
+  background:#fff;
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+
+/* Cards / tiles / list items on light */
+body.light .card,
+body.light .tile,
+body.light .res-item,
+body.light .ann{
+  background:#fff !important;
+  border:1px solid #e6eaf3 !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.05);
+}
+
+/* Secondary text on light */
+body.light .page-sub,
+body.light .res-item span{ color:var(--muted); }
+
+/* “Disabled” dashed borders look softer on light */
+body.light .tile{ border-style: dashed; border-color:#cfd7e6 !important; }
+
+/* Badge and chips readable on light */
+body.light .badge,
+body.light .chip,
+body.light .chip-live{
+  color:#04131b;
+  border:1px solid rgba(0,0,0,.06);
+}
+
+/* Theme toggle button style (reuses .btn) */
+.btn-theme{ white-space:nowrap; }
+
+
+    
+
+
+
+
+
+
+    
     a{color:inherit}
 
     /* Top nav */
@@ -160,6 +226,7 @@
 <!-- new -->
 <div class="al-welcome">Welcome, <span id="userEmail">—</span></div>
 
+<button id="themeToggle" class="btn btn-theme" type="button" aria-pressed="false">Light mode</button>
 
         
         <form action="/logout" method="post">
@@ -510,6 +577,38 @@
     if (y) y.textContent = new Date().getFullYear();
   })();
 
+
+// Theme init + toggle
+(function () {
+  var KEY = 'al_theme';
+  var b   = document.body;
+  var btn = document.getElementById('themeToggle');
+
+  // Apply saved preference (or respect OS preference on first load)
+  var saved = localStorage.getItem(KEY);
+  if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    saved = 'light';
+  }
+  if (saved === 'light') b.classList.add('light');
+
+  function label() {
+    if (!btn) return;
+    var isLight = b.classList.contains('light');
+    btn.textContent = isLight ? 'Dark mode' : 'Light mode';
+    btn.setAttribute('aria-pressed', String(isLight));
+  }
+  label();
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      b.classList.toggle('light');
+      localStorage.setItem(KEY, b.classList.contains('light') ? 'light' : 'dark');
+      label();
+    });
+  }
+})();
+
+  
   // Cookie reader without regex (Safari-safe)
   function readCookie(name) {
     var cookies = (document.cookie || '').split('; ');
