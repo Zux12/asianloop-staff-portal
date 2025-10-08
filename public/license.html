@@ -108,7 +108,7 @@
 
     <label style="display:flex;gap:8px;align-items:center;margin-top:4px">
       <input type="checkbox" name="notify7d" />
-      Enable 7-day expiry reminder (email)
+      Enable 60-day expiry reminder (email)
     </label>
 
     <input type="hidden" name="_id" />
@@ -168,7 +168,7 @@
     rowsEl.innerHTML = filtered.map(x=>{
       const st=statusOf(x);
 const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofFileId}" target="_blank">Download</a>` : `<span class="muted">None</span>`;
-const flag = x.notify7d ? '✅ 7-day on' : '<span class="muted">—</span>';
+const flag = x.notify7d ? '✅ 30-day on' : '<span class="muted">—</span>';
 return `<tr>
   <td>${escapeHtml(x.name||'')}</td>
   <td>${escapeHtml(x.type||'')}</td>
@@ -233,12 +233,16 @@ return `<tr>
 
 async function testReminder(id){
   try{
-    const r = await fetch(`/api/licenses/${id}/test-reminder`, { method:'POST' });
+    const email = prompt('Send test reminder to which email? (leave blank to use default admin)');
+    const url = email ? `/api/licenses/${id}/test-reminder?to=${encodeURIComponent(email)}` 
+                      : `/api/licenses/${id}/test-reminder`;
+    const r = await fetch(url, { method:'POST' });
     if(!r.ok){ const t = await r.text(); alert('Test failed: ' + t); return; }
     alert('Test email sent.');
   }catch(e){ alert('Test failed: ' + e.message); }
 }
 window.testReminder = testReminder;
+
 
 
 
