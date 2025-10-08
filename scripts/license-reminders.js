@@ -35,9 +35,9 @@ const nodemailer = require('nodemailer');
     const now = new Date();
     const kl = new Date(now.toLocaleString('en-GB', { timeZone: TZ }));
     kl.setHours(0,0,0,0);
-    const target = new Date(kl); target.setDate(target.getDate() + 7);
+    const target = new Date(kl); target.setDate(target.getDate() + 60);
 
-    // query: notify7d=true AND endAt is same day as target AND not yet notified for -7d
+    // query: notify7d=true AND endAt is same day as target AND not yet notified for -60d
     const start = new Date(target); start.setHours(0,0,0,0);
     const end   = new Date(target); end.setHours(23,59,59,999);
 
@@ -46,7 +46,7 @@ const nodemailer = require('nodemailer');
       endAt: { $gte: start, $lte: end },
       $or: [
         { notifications: { $exists: false } },
-        { notifications: { $not: { $elemMatch: { when: '-7d' } } } }
+        { notifications: { $not: { $elemMatch: { when: '-60d' } } } }
       ]
     });
 
@@ -60,7 +60,7 @@ const nodemailer = require('nodemailer');
       const sdate = lic.startAt ? new Date(lic.startAt).toISOString().slice(0,10) : '-';
       const edate = lic.endAt ? new Date(lic.endAt).toISOString().slice(0,10) : '-';
 
-      const subject = `7-day license reminder — ${name}`;
+      const subject = `60-day license reminder — ${name}`;
       const text = [
         `License: ${name}`,
         `Type: ${type}`,
@@ -79,7 +79,7 @@ const nodemailer = require('nodemailer');
 
       await col.updateOne(
         { _id: new ObjectId(lic._id) },
-        { $push: { notifications: { when: '-7d', sentAt: new Date() } } }
+        { $push: { notifications: { when: '-60d', sentAt: new Date() } } }
       );
 
       console.log(`[CRON] sent reminder for ${name}`);
