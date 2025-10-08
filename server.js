@@ -19,6 +19,26 @@ const commonFiles = require('./server/routes/commonFiles'); console.log('[BOOT] 
 
 // ----- app + parsers -----
 const app = express();
+// === Email (SMTP) setup: Hostinger via env vars ===
+const nodemailer = require('nodemailer');
+
+const smtpTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,                 // smtp.hostinger.com
+  port: Number(process.env.SMTP_PORT || 465),  // 465 SSL or 587 STARTTLS
+  secure: String(process.env.SMTP_SECURE || 'true') === 'true',
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+});
+
+smtpTransporter.verify((err) => {
+  if (err) console.error('[SMTP] verify failed:', err.message || err);
+  else console.log('[SMTP] ready to send mail as', process.env.SMTP_USER);
+});
+
+
+
+
+
+
 app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -96,8 +116,32 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
 });
 
 // ===== API ROUTES =====
+// ===== API ROUTES =====
+
+// Simple standalone test endpoint — MUST be before other /api mounts
+app.get('/api/email/test', async (req, res) => {
+  try {
+    const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+    const info = await smtpTransporter.sendMail({
+      from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+      to,
+      subject: '✅ Asianloop admin email test',
+      text: 'This is a test email from server.js using Hostinger SMTP.'
+    });
+    console.log('[SMTP] sent:', info.messageId);
+    res.status(200).json({ ok: true, messageId: info.messageId, to });
+  } catch (err) {
+    console.error('[SMTP] send error:', err);
+    res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+});
+
 console.log('[BOOT] mount /api/commonFiles');
-app.use('/api', (req, _res, next) => { console.log(`[HIT] API ${req.method} ${req.originalUrl}`); next(); }, commonFiles);
+app.use('/api', (req, _res, next) => {
+  console.log(`[HIT] ...API ${req.method} ${req.originalUrl}`);
+  next();
+}, commonFiles);
+
 
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
