@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Asianloop — Admin & Finance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #ffffff; --card: #fafafa; --ink: #0f172a;
+      --muted: #64748b; --border: #e5e7eb; --accent: #2563eb; --accent-ink: #ffffff;
+      --good: #16a34a; --bad: #dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+    header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:10px;align-items:center}
+    .brand img{width:28px;height:28px;border-radius:6px;object-fit:cover}
+    .brand h1{font-size:16px;margin:0}
+    .user-chip{font-size:13px;color:var(--muted);border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+    .tabs{display:flex;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);position:sticky;top:57px;background:var(--bg);z-index:9}
+    .tab{font-size:14px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;user-select:none;color:var(--muted);background:#fff}
+    .tab.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+    main{padding:18px 20px 40px;max-width:1100px;margin:0 auto}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .btn{font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+    .status{font-size:13px;margin-left:8px}
+    .status.ok{color:var(--good)} .status.err{color:var(--bad)}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+    .card h3{margin:0;font-size:16px} .card p{margin:0;color:var(--muted);font-size:14px}
+    .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);background:#fff}
+    .disabled{opacity:.6;pointer-events:none}
+    footer{margin-top:30px;color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="images/logo.jpg" alt="logo" onerror="this.style.display='none'">
+      <h1>Admin & Finance</h1>
+    </div>
+    <div class="user-chip" id="userChip">Signed in</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="admin">Admin</div>
+    <div class="tab" data-tab="finance">Finance (soon)</div>
+  </div>
+
+  <main>
+    <section id="adminTab">
+      <div class="toolbar">
+        <button class="btn primary" id="btnTestEmail">Send Test Email</button>
+        <span id="emailStatus" class="status"></span>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <span class="chip">Directory</span>
+          <h3>Staff Directory</h3>
+          <p>Search, view, edit roles, enable/disable accounts.</p>
+          <div style="margin-top:auto;"><button class="btn">Open</button></div>
+        </div>
+        <div class="card">
+          <span class="chip">Assets</span>
+          <h3>Asset Register</h3>
+          <p>Track tags, location, custodian, warranty & service due.</p>
+          <div style="margin-top:auto;"><button class="btn">Open</button></div>
+        </div>
+        <div class="card">
+          <span class="chip">Licensing</span>
+          <h3>Licenses</h3>
+          <p>Manage seats, proofs, and auto-expiry reminders.</p>
+          <div style="margin-top:auto;"><button class="btn">Open</button></div>
+        </div>
+      </div>
+
+      <footer>Build: Admin v0.1 — SMTP ready</footer>
+    </section>
+
+    <section id="financeTab" style="display:none;">
+      <div class="grid">
+        <div class="card disabled">
+          <span class="chip">POs</span>
+          <h3>Purchase Orders</h3>
+          <p>Prepare, route, and track PO status.</p>
+        </div>
+        <div class="card disabled">
+          <span class="chip">Invoices</span>
+          <h3>Invoices</h3>
+          <p>Receive, match, and monitor payments.</p>
+        </div>
+        <div class="card disabled">
+          <span class="chip">Budgets</span>
+          <h3>Budgets</h3>
+          <p>Monthly spend vs plan.</p>
+        </div>
+      </div>
+      <footer>Finance modules are placeholders — enable later.</footer>
+    </section>
+  </main>
+
+  <script>
+    // Tab switch
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const tab = t.dataset.tab;
+        document.getElementById('adminTab').style.display = (tab === 'admin') ? '' : 'none';
+        document.getElementById('financeTab').style.display = (tab === 'finance') ? '' : 'none';
+      });
+    });
+
+    // Test email call
+    const statusEl = document.getElementById('emailStatus');
+    document.getElementById('btnTestEmail').addEventListener('click', async () => {
+      statusEl.textContent = 'Sending...';
+      statusEl.className = 'status';
+      try {
+        const r = await fetch('/api/email/test');
+        const json = await r.json();
+        if (json.ok) {
+          statusEl.textContent = 'Email sent to ' + json.to;
+          statusEl.className = 'status ok';
+        } else {
+          statusEl.textContent = 'Failed: ' + (json.error || 'unknown error');
+          statusEl.className = 'status err';
+        }
+      } catch (e) {
+        statusEl.textContent = 'Error: ' + e.message;
+        statusEl.className = 'status err';
+      }
+    });
+  </script>
+</body>
+</html>
+
