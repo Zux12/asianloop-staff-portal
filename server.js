@@ -19,10 +19,35 @@ const commonFiles = require('./server/routes/commonFiles'); console.log('[BOOT] 
 
 // ----- app + parsers -----
 const app = express();
+
+// === Email (SMTP) setup: Hostinger via env vars ===
+const nodemailer = require('nodemailer');
+
+const smtpTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,                 // e.g., smtp.hostinger.com
+  port: Number(process.env.SMTP_PORT || 465),  // 465 for SSL, 587 for STARTTLS
+  secure: String(process.env.SMTP_SECURE || 'true') === 'true',
+  auth: {
+    user: process.env.SMTP_USER,               // licensing@asian-loop.com
+    pass: process.env.SMTP_PASS                // (Heroku config var)
+  }
+});
+
+// Optional: print once at boot so you know SMTP is reachable
+smtpTransporter.verify((err) => {
+  if (err) {
+    console.error('[SMTP] verify failed:', err.message || err);
+  } else {
+    console.log('[SMTP] ready to send mail as', process.env.SMTP_USER);
+  }
+});
+
 app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 console.log('[BOOT] parsers attached');
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
 
 // ----- quick request logger -----
 app.use((req, res, next) => {
@@ -1013,4 +1038,27 @@ app.delete('/api/msbs/cal/events/:id', requireAuth, async (req, res) => {
 app.use((req, res) => res.status(404).type('text').send('Not found'));
 
 const PORT = process.env.PORT || 3000;
+
+
+// === Test email route (manual trigger from admin.html) ===
+// GET /api/email/test → sends a test email to ADMIN_NOTIFY_EMAIL
+app.get('/api/email/test', async (req, res) => {
+  try {
+    const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+    const info = await smtpTransporter.sendMail({
+      from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+      to,
+      subject: '✅ Asianloop admin email test',
+      text: 'This is a test email from server.js using Hostinger SMTP. If you received this, SMTP is fully working.',
+    });
+    console.log('[SMTP] sent:', info.messageId);
+    res.status(200).json({ ok: true, messageId: info.messageId, to });
+  } catch (err) {
+    console.error('[SMTP] send error:', err);
+    res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+});
+
+
+
 app.listen(PORT, () => console.log(`Staff portal running on ${PORT}`));
