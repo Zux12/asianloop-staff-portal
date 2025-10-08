@@ -91,8 +91,33 @@ app.use('/api', apiMisc);
 
 
 // ===== API ROUTES =====
+// ===== API ROUTES =====
+
+// (1) Simple, standalone test endpoint — MUST be before other /api mounts
+app.get('/api/email/test', async (req, res) => {
+  try {
+    // uses the existing smtpTransporter defined earlier
+    const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+    const info = await smtpTransporter.sendMail({
+      from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+      to,
+      subject: '✅ Asianloop admin email test',
+      text: 'This is a test email from server.js using Hostinger SMTP.'
+    });
+    console.log('[SMTP] sent:', info.messageId);
+    res.status(200).json({ ok: true, messageId: info.messageId, to });
+  } catch (err) {
+    console.error('[SMTP] send error:', err);
+    res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+});
+
+// (2) Your existing /api/commonFiles mount — keep exactly as before
 console.log('[BOOT] mount /api/commonFiles');
-app.use('/api', (req, _res, next) => { console.log(`[HIT] API ${req.method} ${req.originalUrl}`); next(); }, commonFiles);
+app.use('/api', (req, _res, next) => { 
+  console.log(`[HIT] API ${req.method} ${req.originalUrl}`); 
+  next(); 
+}, commonFiles);
 
 
 app.use('/msbs', express.static(path.join(__dirname, 'msbs')));
