@@ -105,7 +105,14 @@
       <label>Expiry Date<br><input name="endAt" type="date" required></label>
     </div>
     <label>Notes<br><input name="notes" placeholder="Optional description"></label>
+
+    <label style="display:flex;gap:8px;align-items:center;margin-top:4px">
+      <input type="checkbox" name="notify7d" />
+      Enable 7-day expiry reminder (email)
+    </label>
+
     <input type="hidden" name="_id" />
+
   </form>
   <div class="dlg-f">
     <button class="btn" id="btnCancel">Cancel</button>
@@ -161,20 +168,23 @@
     rowsEl.innerHTML = filtered.map(x=>{
       const st=statusOf(x);
 const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofFileId}" target="_blank">Download</a>` : `<span class="muted">None</span>`;
-      return `<tr>
-        <td>${escapeHtml(x.name||'')}</td>
-        <td>${escapeHtml(x.type||'')}</td>
-        <td>${escapeHtml(x.vendor||'')}</td>
-        <td>${fmt(x.startAt)}</td>
-        <td>${fmt(x.endAt)}</td>
-        <td><span class="status ${st.k}">${st.label}</span></td>
-        <td>${proof}</td>
-        <td class="right">
-          <button class="btn" onclick='openUpload("${x._id}")'>Proof</button>
-          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
-          <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
-        </td>
-      </tr>`;
+const flag = x.notify7d ? '✅ 7-day on' : '<span class="muted">—</span>';
+return `<tr>
+  <td>${escapeHtml(x.name||'')}</td>
+  <td>${escapeHtml(x.type||'')}</td>
+  <td>${escapeHtml(x.vendor||'')}</td>
+  <td>${fmt(x.startAt)}</td>
+  <td>${fmt(x.endAt)}</td>
+  <td><span class="status ${st.k}">${st.label}</span><div class="hint">${flag}</div></td>
+  <td>${proof}</td>
+  <td class="right">
+    <button class="btn" onclick='testReminder("${x._id}")' title="Send test email now">Test</button>
+    <button class="btn" onclick='openUpload("${x._id}")'>Proof</button>
+    <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+    <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
+  </td>
+</tr>`;
+
     }).join('');
   }
 
@@ -198,6 +208,7 @@ const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofF
   $('#btnCancel').onclick = ()=> dlg.close();
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
+    obj.notify7d = frm.notify7d.checked ? true : false;
     if(!obj.name || !obj.type || !obj.startAt || !obj.endAt){ alert('Please fill required fields'); return; }
     obj.seats = obj.seats ? Number(obj.seats) : 0;
     let method='POST', url='/api/licenses';
@@ -212,11 +223,26 @@ const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofF
     frm.name.value = x.name||''; frm.type.value=x.type||'Software';
     frm.vendor.value = x.vendor||''; frm.seats.value = x.seats||'';
     frm.startAt.value = fmt(x.startAt); frm.endAt.value = fmt(x.endAt);
-    frm.notes.value = x.notes||''; frm._id.value = x._id;
+    frm.notes.value = x.notes||'';
+    frm.notify7d.checked = !!x.notify7d;
+    frm._id.value = x._id;
     $('#dlgTitle').textContent='Edit License';
     dlg.showModal();
   }
 
+
+async function testReminder(id){
+  try{
+    const r = await fetch(`/api/licenses/${id}/test-reminder`, { method:'POST' });
+    if(!r.ok){ const t = await r.text(); alert('Test failed: ' + t); return; }
+    alert('Test email sent.');
+  }catch(e){ alert('Test failed: ' + e.message); }
+}
+window.testReminder = testReminder;
+
+
+
+  
   async function doDelete(id){
     if(!confirm('Delete this license?')) return;
     const r = await fetch(`/api/licenses/${id}`, {method:'DELETE'});
@@ -243,6 +269,9 @@ const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofF
   $('#q').oninput = render; $('#fStatus').onchange = render; $('#fType').onchange = render;
   $('#btnRefresh').onclick = load;
 
+
+
+  
   load();
 </script>
 </body>
