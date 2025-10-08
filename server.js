@@ -60,12 +60,6 @@ app.use((req, res, next) => {
 
 // (keep your existing env snapshot, DB connect, session, etc. here as you already have)
 
-// Example: keep your files.html route (unchanged)
-console.log('[BOOT] register /files.html');
-app.get('/files.html', maybeRequireAuth, (req, res) => {
-  console.log('[HIT] /files.html handler');
-  res.sendFile(path.join(__dirname, 'public', 'files.html'));
-});
 
 // --- lightweight API router for misc endpoints (MUST be BEFORE other /api routers) ---
 const apiMisc = express.Router();
@@ -91,6 +85,10 @@ console.log('[BOOT] mount /api (misc)');
 app.use('/api', apiMisc);
 
 // ******* KEEP YOUR EXISTING /api/commonFiles MOUNT RIGHT AFTER THIS LINE *******
+// e.g.:
+// console.log('[BOOT] mount /api/commonFiles');
+// app.use('/api', (req, _res, next) => { console.log(`[HIT] API ${req.method} ${req.originalUrl}`); next(); }, commonFiles);
+
 
 // ===== API ROUTES =====
 console.log('[BOOT] mount /api/commonFiles');
