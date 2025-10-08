@@ -71,11 +71,16 @@ const nodemailer = require('nodemailer');
         `Notes: ${lic.notes || '-'}`,
       ].join('\n');
 
-      await transporter.sendMail({
-        from: SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
-        to: ADMIN_NOTIFY_EMAIL,
-        subject, text
-      });
+const toList = String(ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com')
+  .split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
+const info = await transporter.sendMail({
+  from: SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+  to: toList,
+  subject, text
+});
+console.log('[CRON] accepted:', info.accepted, 'rejected:', info.rejected);
+
 
       await col.updateOne(
         { _id: new ObjectId(lic._id) },
