@@ -33,7 +33,6 @@ const smtpTransporter = nodemailer.createTransport({
   }
 });
 
-// Optional: print once at boot so you know SMTP is reachable
 smtpTransporter.verify((err) => {
   if (err) {
     console.error('[SMTP] verify failed:', err.message || err);
@@ -46,8 +45,10 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 console.log('[BOOT] parsers attached');
-app.use('/public', express.static(path.join(__dirname, 'public')));
 
+// ===== STATIC & PAGE ROUTES (before any catch-all) =====
+console.log('[BOOT] mount /public static');
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // ----- quick request logger -----
 app.use((req, res, next) => {
@@ -57,68 +58,39 @@ app.use((req, res, next) => {
   next();
 });
 
-// ----- env snapshot (safe) -----
-console.log('[BOOT] ENV set:', {
-  PORT: !!process.env.PORT,
-  MONGO_URI: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
-  NODE_ENV: process.env.NODE_ENV
-});
+// (keep your existing env snapshot, DB connect, session, etc. here as you already have)
 
-// ----- connect db ONCE -----
-connect()
-  .then(() => console.log('[BOOT] Mongo connected (Asianloop/commonFiles)'))
-  .catch(err => { console.error('[BOOT] Mongo connect error:', err); process.exit(1); });
-
-// ----- env config you had -----
-const {
-  IMAP_HOST = 'imap.hostinger.com',
-  IMAP_PORT = '993',
-  IMAP_SECURE = 'true',
-  ALLOWED_DOMAIN = '@asian-loop.com',
-  ALLOWLIST = '',
-  SESSION_SECRET = 'change-me',
-  SESSION_NAME = 'al_sess',
-  SESSION_SECURE = 'true'
-} = process.env;
-const { MONGO_URI = '' } = process.env;
-
-const allowlist = ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-const cookieOptionsDisplay = {
-  sameSite: 'lax',
-  secure: true,
-  httpOnly: false,
-  maxAge: 60 * 60 * 1000
-};
-
-// ----- auth helpers -----
-function requireAuth(req, res, next) {
-  if (req.session?.user) return next();
-  return res.redirect('/');
-}
-const maybeRequireAuth = (typeof requireAuth === 'function')
-  ? requireAuth
-  : (req, res, next) => next();
-
-// ----- session (attach ONCE, before routes that use req.session) -----
-app.use(session({
-  name: SESSION_NAME,
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax', secure: SESSION_SECURE === 'true' }
-}));
-console.log('[BOOT] session middleware attached');
-
-// ===== STATIC & PAGE ROUTES (before any catch-all) =====
-console.log('[BOOT] mount /public static');
-
-
+// Example: keep your files.html route (unchanged)
 console.log('[BOOT] register /files.html');
 app.get('/files.html', maybeRequireAuth, (req, res) => {
   console.log('[HIT] /files.html handler');
   res.sendFile(path.join(__dirname, 'public', 'files.html'));
 });
+
+// --- lightweight API router for misc endpoints (MUST be BEFORE other /api routers) ---
+const apiMisc = express.Router();
+
+apiMisc.get('/email/test', async (req, res) => {
+  try {
+    const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+    const info = await smtpTransporter.sendMail({
+      from: process.env.SMTP_FROM || 'Licensing <licensing@asian-loop.com>',
+      to,
+      subject: '✅ Asianloop admin email test',
+      text: 'This is a test email from server.js using Hostinger SMTP.'
+    });
+    console.log('[SMTP] sent:', info.messageId);
+    res.status(200).json({ ok: true, messageId: info.messageId, to });
+  } catch (err) {
+    console.error('[SMTP] send error:', err);
+    res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+});
+
+console.log('[BOOT] mount /api (misc)');
+app.use('/api', apiMisc);
+
+// ******* KEEP YOUR EXISTING /api/commonFiles MOUNT RIGHT AFTER THIS LINE *******
 
 // ===== API ROUTES =====
 console.log('[BOOT] mount /api/commonFiles');
