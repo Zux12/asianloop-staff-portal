@@ -160,7 +160,7 @@
     if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="8" class="muted" style="padding:14px">No licenses</td></tr>`; return; }
     rowsEl.innerHTML = filtered.map(x=>{
       const st=statusOf(x);
-      const proof = x.proofFileId ? `<a class="link" href="/api/files/${x.proofFileId}" target="_blank">Download</a>` : `<span class="muted">None</span>`;
+const proof = x.proofFileId ? `<a class="link" href="/api/licensefile/${x.proofFileId}" target="_blank">Download</a>` : `<span class="muted">None</span>`;
       return `<tr>
         <td>${escapeHtml(x.name||'')}</td>
         <td>${escapeHtml(x.type||'')}</td>
