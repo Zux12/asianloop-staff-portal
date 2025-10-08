@@ -116,8 +116,9 @@ app.get('/files.html', maybeRequireAuth, (req, res) => {
 });
 
 
-async function sendLicenseReminderEmail(lic, { test=false } = {}) {
-  const to = process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
+// helper used by test-reminder route and cron
+async function sendLicenseReminderEmail(lic, { test=false, toOverride=null } = {}) {
+  const to = toOverride || process.env.ADMIN_NOTIFY_EMAIL || 'mzmohamed@asian-loop.com';
   const name = lic.name || '(unnamed)';
   const vendor = lic.vendor || '-';
   const type = lic.type || '-';
@@ -125,8 +126,8 @@ async function sendLicenseReminderEmail(lic, { test=false } = {}) {
   const end = lic.endAt ? new Date(lic.endAt).toISOString().slice(0,10) : '-';
 
   const subject = test
-    ? `TEST: 7-day license reminder — ${name}`
-    : `7-day license reminder — ${name}`;
+    ? `TEST: 60-day license reminder — ${name}`
+    : `60-day license reminder — ${name}`;
   const text = [
     test ? '[TEST EMAIL — triggered manually]' : '',
     `License: ${name}`,
@@ -145,6 +146,7 @@ async function sendLicenseReminderEmail(lic, { test=false } = {}) {
     text
   });
 }
+
 
 
 // ===== API ROUTES =====
@@ -372,13 +374,17 @@ app.post('/api/licenses/:id/test-reminder', async (req, res) => {
     const lic = await licColl(db).findOne({ _id: new ObjectId(id) });
     if (!lic) return res.status(404).send('Not found');
 
-    await sendLicenseReminderEmail(lic, { test: true });
+    // allow ?to=email@example.com or JSON body {to:"..."}
+    const toOverride = req.query.to || (req.body && req.body.to) || null;
+
+    await sendLicenseReminderEmail(lic, { test: true, toOverride });
     res.json({ ok: true });
   } catch (e) {
     console.error('[LIC] test-reminder error', e);
     res.status(500).send('Error sending test');
   }
 });
+
 
 // (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
 console.log('[BOOT] mount /api/commonFiles');
