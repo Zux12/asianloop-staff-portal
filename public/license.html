@@ -30,6 +30,7 @@
   .status.active{color:var(--ok);border-color:#ccebd6}
   .status.expiring{color:var(--warn);border-color:#f5d9a6}
   .status.expired{color:var(--bad);border-color:#f3b5b5}
+    .status.due{color:var(--bad);border-color:#f3b5b5}
   .right{display:flex;gap:6px;justify-content:flex-end}
   dialog{border:none;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:0;max-width:640px;width:96%}
   .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600}
@@ -145,13 +146,17 @@
     const today=new Date(); today.setHours(0,0,0,0); d.setHours(0,0,0,0);
     return Math.round((d - today)/86400000);
   }
-  function statusOf(item){
-    const n=daysUntil(item.endAt);
-    if(n===null) return {k:'', label:''};
-    if(n<0) return {k:'expired', label:'Expired'};
-    if(n<=30) return {k:'expiring', label:`Expiring (${n}d)`};
-    return {k:'active', label:`Active (${n}d)`};
-  }
+function statusOf(item){
+  const n = daysUntil(item.endAt);
+  if (n === null) return { k:'', label:'' };
+
+  if (n < 0) return { k:'expired', label:'Expired' };           // past date -> red
+  if (n === 0) return { k:'due',     label:'Expiring (0d)' };    // today -> red
+  if (n <= 60) return { k:'expiring',label:`Expiring (${n}d)` }; // 1..60 days -> orange
+
+  return { k:'active', label:`Active (${n}d)` };                 // >60 days -> green
+}
+
 
   function render(){
     const q = $('#q').value.trim().toLowerCase();
