@@ -87,37 +87,74 @@
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
-    <div class="grid2">
-      <label>Name<br><input name="name" required></label>
-      <label>Email<br><input name="email" type="email" required></label>
-    </div>
-    <div class="grid2">
-      <label>Department<br><input name="dept"></label>
-      <label>Role<br>
-        <select name="role" required>
-          <option>viewer</option>
-          <option>manager</option>
-          <option>admin</option>
-        </select>
-      </label>
-    </div>
-    <div class="grid2">
-      <label>Status<br>
-        <select name="status" required>
-          <option>Active</option>
-          <option>Suspended</option>
-        </select>
-      </label>
-      <label>MFA Enabled?<br>
-        <select name="mfaEnabled">
-          <option value="false">No</option>
-          <option value="true">Yes</option>
-        </select>
-      </label>
-    </div>
-    <label>Notes (optional)<br><input name="notes" placeholder=""></label>
-    <input type="hidden" name="_id" />
-  </form>
+  <!-- Basic -->
+  <div class="grid2">
+    <label>Name<br><input name="name" required></label>
+    <label>Email<br><input name="email" type="email" required></label>
+  </div>
+
+  <div class="grid2">
+    <label>Department<br><input name="dept"></label>
+    <label>Role<br>
+      <select name="role" required>
+        <option>viewer</option>
+        <option>manager</option>
+        <option>admin</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="grid2">
+    <label>Status<br>
+      <select name="status" required>
+        <option>Active</option>
+        <option>Suspended</option>
+      </select>
+    </label>
+    <label>MFA Enabled?<br>
+      <select name="mfaEnabled">
+        <option value="false">No</option>
+        <option value="true">Yes</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Extended details -->
+  <div class="grid2">
+    <label>Staff Number<br><input name="staffNo" placeholder="e.g., AL-0012"></label>
+    <label>Car Registration<br><input name="carReg" placeholder="e.g., VBR 1234"></label>
+  </div>
+
+  <div class="grid2">
+    <label>Car Make/Model<br><input name="carDesc" placeholder="e.g., Perodua Myvi"></label>
+    <label>Hire Date<br><input name="hireDate" type="date"></label>
+  </div>
+
+  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
+
+  <div class="grid2">
+    <label>IC / NRIC / ID No.<br><input name="idNo" placeholder="e.g., 900101-14-5678"></label>
+    <label>Passport No.<br><input name="passportNo" placeholder="e.g., A12345678"></label>
+  </div>
+
+  <div class="grid2">
+    <label>Next of Kin — Name<br><input name="nokName" placeholder="e.g., Nur Aisyah"></label>
+    <label>Next of Kin — Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
+  </div>
+
+  <div class="grid2">
+    <label>Next of Kin — Phone<br><input name="nokPhone" placeholder="+60-..."></label>
+    <label>Emergency Notes (optional)<br><input name="emergencyNotes" placeholder="Allergies / conditions"></label>
+  </div>
+
+  <label>Family Members (free text)<br>
+    <input name="family" placeholder="e.g., Hasbi (Son, 11), Alia (Daughter, 13)">
+  </label>
+
+  <label>Notes (optional)<br><input name="notes" placeholder=""></label>
+  <input type="hidden" name="_id" />
+</form>
+
   <div class="dlg-f">
     <button class="btn" id="btnCancel">Cancel</button>
     <button class="btn primary" id="btnSave">Save</button>
@@ -151,11 +188,13 @@
         <td>${escapeHtml(x.role||'')}</td>
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
         <td>${fmtDate(x.lastLoginAt)}</td>
-        <td class="right">
-          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
-          <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
-          <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
-        </td>
+<td class="right">
+  <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
+  <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+  <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
+  <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
+</td>
+
       </tr>`;
     }).join('');
   }
@@ -193,6 +232,19 @@
     frm.status.value = x.status||'Active';
     frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
     frm.notes.value = x.notes||'';
+    frm.staffNo.value = x.staffNo || '';
+frm.carReg.value = x.carReg || '';
+frm.carDesc.value = x.carDesc || '';
+frm.hireDate.value = x.hireDate ? fmtDate(x.hireDate) : '';
+frm.address.value = x.address || '';
+frm.idNo.value = x.idNo || '';
+frm.passportNo.value = x.passportNo || '';
+frm.nokName.value = x.nokName || '';
+frm.nokRelation.value = x.nokRelation || '';
+frm.nokPhone.value = x.nokPhone || '';
+frm.emergencyNotes.value = x.emergencyNotes || '';
+frm.family.value = x.family || '';
+
     frm._id.value = x._id;
     $('#dlgTitle').textContent='Edit Staff';
     dlg.showModal();
@@ -221,5 +273,104 @@
 
   load();
 </script>
+
+  <!-- Full details dialog (read-only) -->
+<dialog id="dlgDetails">
+  <div class="dlg-h">Staff details</div>
+  <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
+  <div class="dlg-f">
+    <button class="btn" id="btnDetClose">Close</button>
+    <button class="btn primary" id="btnDetPdf">Export PDF</button>
+  </div>
+</dialog>
+
+<script>
+  const dlgDetails = document.getElementById('dlgDetails');
+  const detailsBody = document.getElementById('detailsBody');
+  document.getElementById('btnDetClose').onclick = ()=> dlgDetails.close();
+  document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
+
+  function renderDetails(x){
+    const fld = (k)=> (x[k] ?? '').toString();
+    const yesno = (b)=> b ? 'Yes' : 'No';
+    const html = `
+      <div class="grid2">
+        <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
+        <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
+        <div><strong>Role</strong><br>${escapeHtml(fld('role'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
+        <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Staff Number</strong><br>${escapeHtml(fld('staffNo'))}</div>
+        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
+        <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
+      </div>
+      <div><strong>Address</strong><br>${escapeHtml(fld('address'))}</div>
+      <div class="grid2">
+        <div><strong>IC / NRIC / ID</strong><br>${escapeHtml(fld('idNo'))}</div>
+        <div><strong>Passport No.</strong><br>${escapeHtml(fld('passportNo'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Next of Kin — Name</strong><br>${escapeHtml(fld('nokName'))}</div>
+        <div><strong>Relation</strong><br>${escapeHtml(fld('nokRelation'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
+        <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
+      </div>
+      <div><strong>Family Members</strong><br>${escapeHtml(fld('family'))}</div>
+      <div class="grid2">
+        <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
+        <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
+      </div>
+      <div><strong>Notes</strong><br>${escapeHtml(fld('notes'))}</div>
+    `;
+    detailsBody.innerHTML = html;
+  }
+
+  function openDetails(id){
+    const x = data.find(y=>y._id===id);
+    if(!x) return;
+    renderDetails(x);
+    dlgDetails.showModal();
+  }
+  window.openDetails = openDetails;
+
+  function exportDetailsPdf(){
+    // Open print-friendly window for native "Save as PDF"
+    const w = window.open('', '_blank', 'width=800,height=900');
+    const css = `
+      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:20px;color:#0f172a}
+      h1{font-size:18px;margin:0 0 12px}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+      strong{display:block;color:#111827}
+    `;
+    w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
+    w.document.write('<h1>Staff details</h1>');
+    w.document.write('<div class="grid">');
+    // convert dialog body into printable blocks
+    const wrapper = document.createElement('div'); wrapper.innerHTML = detailsBody.innerHTML;
+    // Wrap each direct child in .block for nicer print
+    Array.from(wrapper.children).forEach(ch=>{
+      w.document.write('<div class="block">'+ch.outerHTML+'</div>');
+    });
+    w.document.write('</div>');
+    w.document.write('</body></html>');
+    w.document.close();
+    w.focus();
+    w.print();
+  }
+</script>
+
 </body>
 </html>
