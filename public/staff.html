@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Staff Directory — Asianloop Admin</title>
+<style>
+  :root{
+    --bg:#fff; --ink:#0f172a; --muted:#64748b; --card:#fafafa; --border:#e5e7eb;
+    --accent:#2563eb; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);
+    padding:14px 20px;display:flex;align-items:center;gap:12px}
+  header h1{font-size:18px;margin:0}
+  header a.back{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+  main{max-width:1100px;margin:0 auto;padding:18px 20px 40px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .btn{font-size:14px;padding:9px 12px;border:1px solid var(--border);background:#fff;border-radius:10px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  input,select{border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:14px}
+  .hint{font-size:12px;color:var(--muted)}
+  .table{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{position:sticky;top:0;background:#f8fafc;border-bottom:1px solid var(--border);text-align:left;padding:10px}
+  tbody td{border-bottom:1px solid var(--border);padding:10px;vertical-align:top}
+  tbody tr:hover{background:#fcfcfc}
+  .status{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border)}
+  .status.active{color:var(--ok);border-color:#ccebd6}
+  .status.suspended{color:var(--bad);border-color:#f3b5b5}
+  .right{display:flex;gap:6px;justify-content:flex-end}
+  dialog{border:none;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:0;max-width:640px;width:96%}
+  .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600}
+  .dlg-b{padding:16px;display:grid;gap:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dlg-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+  .muted{color:var(--muted)}
+  .link{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/public/admin.html">← Admin</a>
+  <h1>Staff Directory</h1>
+</header>
+<main>
+  <div class="bar">
+    <input id="q" placeholder="Search name/email/department…" />
+    <select id="fRole">
+      <option value="">All roles</option>
+      <option>admin</option>
+      <option>manager</option>
+      <option>viewer</option>
+    </select>
+    <select id="fStatus">
+      <option value="">All status</option>
+      <option value="Active">Active</option>
+      <option value="Suspended">Suspended</option>
+    </select>
+    <button class="btn" id="btnRefresh">Refresh</button>
+    <div style="flex:1"></div>
+    <button class="btn primary" id="btnNew">Add Staff</button>
+  </div>
+
+  <div class="table">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th style="width:22%">Name</th>
+          <th style="width:26%">Email</th>
+          <th style="width:14%">Dept</th>
+          <th style="width:12%">Role</th>
+          <th style="width:12%">Status</th>
+          <th style="width:14%">Last login</th>
+          <th style="width:170px"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="7" class="muted" style="padding:14px">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <p class="hint" style="margin-top:10px">Note: Emails must be within your allowed domain (e.g., @asian-loop.com).</p>
+</main>
+
+<!-- Add/Edit dialog -->
+<dialog id="dlg">
+  <div class="dlg-h" id="dlgTitle">Add Staff</div>
+  <form id="frm" class="dlg-b">
+    <div class="grid2">
+      <label>Name<br><input name="name" required></label>
+      <label>Email<br><input name="email" type="email" required></label>
+    </div>
+    <div class="grid2">
+      <label>Department<br><input name="dept"></label>
+      <label>Role<br>
+        <select name="role" required>
+          <option>viewer</option>
+          <option>manager</option>
+          <option>admin</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid2">
+      <label>Status<br>
+        <select name="status" required>
+          <option>Active</option>
+          <option>Suspended</option>
+        </select>
+      </label>
+      <label>MFA Enabled?<br>
+        <select name="mfaEnabled">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      </label>
+    </div>
+    <label>Notes (optional)<br><input name="notes" placeholder=""></label>
+    <input type="hidden" name="_id" />
+  </form>
+  <div class="dlg-f">
+    <button class="btn" id="btnCancel">Cancel</button>
+    <button class="btn primary" id="btnSave">Save</button>
+  </div>
+</dialog>
+
+<script>
+  const $ = (q, el=document) => el.querySelector(q);
+  const rowsEl = $('#rows'); let data = [];
+
+  function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function render(){
+    const q = $('#q').value.trim().toLowerCase();
+    const r = $('#fRole').value;
+    const s = $('#fStatus').value;
+    const filtered = data.filter(x=>{
+      const okQ = !q || (x.name?.toLowerCase().includes(q) || x.email?.toLowerCase().includes(q) || x.dept?.toLowerCase().includes(q));
+      const okR = !r || x.role===r;
+      const okS = !s || x.status===s;
+      return okQ && okR && okS;
+    });
+    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`; return; }
+    rowsEl.innerHTML = filtered.map(x=>{
+      const st = x.status==='Active' ? 'active' : 'suspended';
+      return `<tr>
+        <td>${escapeHtml(x.name||'')}</td>
+        <td>${escapeHtml(x.email||'')}</td>
+        <td>${escapeHtml(x.dept||'')}</td>
+        <td>${escapeHtml(x.role||'')}</td>
+        <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
+        <td>${fmtDate(x.lastLoginAt)}</td>
+        <td class="right">
+          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+          <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
+          <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function load(){
+    try{
+      const r = await fetch('/api/staff');
+      const j = await r.json();
+      data = Array.isArray(j)? j : (j.items||[]);
+    }catch(e){ data = []; console.error(e); }
+    render();
+  }
+
+  // dialogs
+  const dlg = $('#dlg'); const frm = $('#frm');
+  $('#btnNew').onclick = ()=>{ frm.reset(); frm.role.value='viewer'; frm.status.value='Active'; frm.mfaEnabled.value='false'; $('#dlgTitle').textContent='Add Staff'; dlg.showModal(); }
+  $('#btnCancel').onclick = ()=> dlg.close();
+
+  $('#btnSave').onclick = async ()=>{
+    const obj = Object.fromEntries(new FormData(frm).entries());
+    obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    let method='POST', url='/api/staff';
+    if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
+    const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+    if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
+    dlg.close(); await load();
+  };
+
+  function openEdit(id){
+    const x = data.find(y=>y._id===id); if(!x) return;
+    frm.name.value = x.name||'';
+    frm.email.value = x.email||'';
+    frm.dept.value = x.dept||'';
+    frm.role.value = x.role||'viewer';
+    frm.status.value = x.status||'Active';
+    frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
+    frm.notes.value = x.notes||'';
+    frm._id.value = x._id;
+    $('#dlgTitle').textContent='Edit Staff';
+    dlg.showModal();
+  }
+  window.openEdit = openEdit;
+
+  async function toggleStatus(id, current){
+    const next = current==='Active' ? 'Suspended' : 'Active';
+    if(!confirm(`Change status to ${next}?`)) return;
+    const r = await fetch(`/api/staff/${id}/status`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: next })});
+    if(!r.ok){ alert('Status change failed'); return; }
+    await load();
+  }
+  window.toggleStatus = toggleStatus;
+
+  async function doDelete(id){
+    if(!confirm('Delete this staff? (Soft delete)')) return;
+    const r = await fetch(`/api/staff/${id}`, { method:'DELETE' });
+    if(!r.ok){ alert('Delete failed'); return; }
+    await load();
+  }
+  window.doDelete = doDelete;
+
+  $('#q').oninput = render; $('#fRole').onchange = render; $('#fStatus').onchange = render;
+  $('#btnRefresh').onclick = load;
+
+  load();
+</script>
+</body>
+</html>
