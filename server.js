@@ -217,18 +217,33 @@ app.post('/api/licenses', async (req, res) => {
     }
 const doc = {
   name: String(name).trim(),
-  type: String(type).trim(),
-  vendor: vendor ? String(vendor).trim() : '',
-  seats: seats ? Number(seats) : 0,
-  startAt: new Date(startAt),
-  endAt: new Date(endAt),
-  notes: notes ? String(notes).trim() : '',
-  notify7d: !!(req.body && (req.body.notify7d === true || req.body.notify7d === 'true')),
-  notifications: [], // [{ when:'-7d', sentAt: Date }]
-  proofFileId: null,
+  email: String(email).trim().toLowerCase(),
+  dept: String(dept||'').trim(),
+  role: String(role||'viewer').trim(),
+  status: String(status||'Active').trim(),
+  mfaEnabled: !!mfaEnabled,
+  notes: String((req.body?.notes)||'').trim(),
+
+  staffNo: String((req.body?.staffNo)||'').trim(),
+  address: String((req.body?.address)||'').trim(),
+  idNo: String((req.body?.idNo)||'').trim(),
+  passportNo: String((req.body?.passportNo)||'').trim(),
+  hireDate: req.body?.hireDate ? new Date(req.body.hireDate) : null,
+
+  carReg: String((req.body?.carReg)||'').trim(),
+  carDesc: String((req.body?.carDesc)||'').trim(),
+
+  nokName: String((req.body?.nokName)||'').trim(),
+  nokRelation: String((req.body?.nokRelation)||'').trim(),
+  nokPhone: String((req.body?.nokPhone)||'').trim(),
+  emergencyNotes: String((req.body?.emergencyNotes)||'').trim(),
+
+  family: String((req.body?.family)||'').trim(),
+
   createdAt: new Date(),
   updatedAt: new Date()
 };
+
 
     const db = await licDb();
     const r = await licColl(db).insertOne(doc);
@@ -414,7 +429,15 @@ app.get('/api/staff', async (_req, res) => {
     const db = await staffDb();
     const items = await staffColl(db)
       .find({ archivedAt: { $exists: false } })
-      .project({ name:1, email:1, dept:1, role:1, status:1, lastLoginAt:1, mfaEnabled:1, notes:1 })
+.project({
+  name:1, email:1, dept:1, role:1, status:1, lastLoginAt:1, mfaEnabled:1, notes:1,
+  staffNo:1, address:1, idNo:1, passportNo:1, hireDate:1,
+  carReg:1, carDesc:1,
+  nokName:1, nokRelation:1, nokPhone:1, emergencyNotes:1,
+  family:1,
+  createdAt:1, updatedAt:1
+})
+
       .sort({ name: 1 })
       .toArray();
     res.json(items.map(x => ({ ...x, _id: String(x._id) })));
