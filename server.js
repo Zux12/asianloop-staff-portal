@@ -393,6 +393,130 @@ app.post('/api/licenses/:id/test-reminder', async (req, res) => {
 });
 
 
+/* ------------------ Staff Directory API (safe CRUD) ------------------ */
+// NOTE: uses same Mongo driver already required at top; no re-declare.
+let __mongoClientStaff = null;
+async function staffDb() {
+  if (!__mongoClientStaff) {
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!uri) throw new Error('MONGO_URI not set');
+    __mongoClientStaff = new MongoClient(uri);
+    await __mongoClientStaff.connect();
+    console.log('[STAFF] Mongo connected');
+  }
+  return __mongoClientStaff.db();
+}
+function staffColl(db){ return db.collection('users'); } // <-- using your existing users collection
+
+// GET /api/staff  (list non-archived)
+app.get('/api/staff', async (_req, res) => {
+  try{
+    const db = await staffDb();
+    const items = await staffColl(db)
+      .find({ archivedAt: { $exists: false } })
+      .project({ name:1, email:1, dept:1, role:1, status:1, lastLoginAt:1, mfaEnabled:1, notes:1 })
+      .sort({ name: 1 })
+      .toArray();
+    res.json(items.map(x => ({ ...x, _id: String(x._id) })));
+  }catch(e){
+    console.error('[STAFF] list error', e);
+    res.status(500).json({ ok:false, error:'Failed to load staff' });
+  }
+});
+
+// POST /api/staff  (create)
+app.post('/api/staff', async (req, res) => {
+  try{
+    const { name, email, dept='', role='viewer', status='Active', mfaEnabled=false, notes='' } = req.body || {};
+    if(!name || !email) return res.status(400).send('Name and email required');
+
+    // domain guard (use your ALLOWED_DOMAIN if present)
+    const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
+    if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
+
+    const doc = {
+      name: String(name).trim(),
+      email: String(email).trim().toLowerCase(),
+      dept: String(dept||'').trim(),
+      role: String(role||'viewer').trim(),
+      status: String(status||'Active').trim(),
+      mfaEnabled: !!mfaEnabled,
+      notes: String(notes||'').trim(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const db = await staffDb();
+    const r = await staffColl(db).insertOne(doc);
+    res.json({ ok:true, _id: String(r.insertedId) });
+  }catch(e){
+    console.error('[STAFF] create error', e);
+    res.status(500).json({ ok:false, error:'Create failed' });
+  }
+});
+
+// PUT /api/staff/:id  (update selected fields, don’t drop unknown fields)
+app.put('/api/staff/:id', async (req, res) => {
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+
+    const { name, email, dept, role, status, mfaEnabled, notes } = req.body || {};
+    const $set = { updatedAt: new Date() };
+    if(name !== undefined) $set.name = String(name).trim();
+    if(email !== undefined) $set.email = String(email).trim().toLowerCase();
+    if(dept !== undefined) $set.dept = String(dept).trim();
+    if(role !== undefined) $set.role = String(role).trim();
+    if(status !== undefined) $set.status = String(status).trim();
+    if(mfaEnabled !== undefined) $set.mfaEnabled = !!(mfaEnabled === true || mfaEnabled === 'true' || mfaEnabled === 'on' || mfaEnabled === 1 || mfaEnabled === '1');
+    if(notes !== undefined) $set.notes = String(notes).trim();
+
+    const db = await staffDb();
+    const r = await staffColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
+    res.json({ ok:true, matched: r.matchedCount, modified: r.modifiedCount });
+  }catch(e){
+    console.error('[STAFF] update error', e);
+    res.status(500).json({ ok:false, error:'Update failed' });
+  }
+});
+
+// PATCH /api/staff/:id/status  (enable/disable)
+app.patch('/api/staff/:id/status', async (req, res) => {
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const next = (req.body && req.body.status) ? String(req.body.status) : 'Active';
+
+    const db = await staffDb();
+    const r = await staffColl(db).updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status: next, updatedAt: new Date() } }
+    );
+    res.json({ ok:true, matched: r.matchedCount, modified: r.modifiedCount });
+  }catch(e){
+    console.error('[STAFF] status error', e);
+    res.status(500).json({ ok:false, error:'Status change failed' });
+  }
+});
+
+// DELETE /api/staff/:id  (soft delete)
+app.delete('/api/staff/:id', async (req, res) => {
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await staffDb();
+    const r = await staffColl(db).updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { archivedAt: new Date(), updatedAt: new Date() } }
+    );
+    res.json({ ok:true, archived: r.modifiedCount });
+  }catch(e){
+    console.error('[STAFF] delete error', e);
+    res.status(500).json({ ok:false, error:'Delete failed' });
+  }
+});
+/* -------------------------------------------------------------------- */
+
+
 // (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
 console.log('[BOOT] mount /api/commonFiles');
 app.use('/api', (req, _res, next) => {
