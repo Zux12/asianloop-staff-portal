@@ -47,6 +47,27 @@
     .fam-row{grid-template-columns:1fr 1fr;gap:6px}
     .fam-row button{justify-self:start}
   }
+
+/* --- Dialog polish --- */
+dialog{max-width:760px;width:96%}
+.dlg-h{display:flex;align-items:center;gap:10px}
+.dlg-b{max-height:60vh;overflow:auto}
+.sec-title{margin:6px 0 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.block{border:1px solid var(--border);background:#fff;border-radius:12px;padding:12px}
+.block + .block{margin-top:10px}
+/* compact labels */
+#frm label{font-size:13px;color:#111827}
+#frm input, #frm select{background:#fff}
+#frm .grid2{align-items:flex-start}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width: 900px){ .kv{grid-template-columns:1fr} }
+
+/* Family table (details view) */
+.fam-table{width:100%;border-collapse:collapse;font-size:14px}
+.fam-table th,.fam-table td{padding:6px;text-align:left;border-bottom:1px solid var(--border)}
+
+
+
 </style>
 </head>
 <body>
@@ -97,12 +118,13 @@
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
+<div class="sec-title">Basic</div>
+<div class="block">
   <!-- Basic -->
   <div class="grid2">
     <label>Name<br><input name="name" required></label>
     <label>Email<br><input name="email" type="email" required></label>
   </div>
-
   <div class="grid2">
     <label>Department<br><input name="dept"></label>
     <label>Role<br>
@@ -113,7 +135,6 @@
       </select>
     </label>
   </div>
-
   <div class="grid2">
     <label>Status<br>
       <select name="status" required>
@@ -128,50 +149,69 @@
       </select>
     </label>
   </div>
+</div>
 
-  <!-- Extended details -->
+<div class="sec-title">Employment</div>
+<div class="block">
   <div class="grid2">
     <label>Staff Number<br><input name="staffNo" placeholder="e.g., AL-0012"></label>
-    <label>Car Registration<br><input name="carReg" placeholder="e.g., VBR 1234"></label>
-  </div>
-
-  <div class="grid2">
-    <label>Car Make/Model<br><input name="carDesc" placeholder="e.g., Perodua Myvi"></label>
     <label>Hire Date<br><input name="hireDate" type="date"></label>
   </div>
+</div>
 
-  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
+<div class="sec-title">Vehicle</div>
+<div class="block">
+  <div class="grid2">
+    <label>Car Registration<br><input name="carReg" placeholder="e.g., VBR 1234"></label>
+    <label>Car Make/Model<br><input name="carDesc" placeholder="e.g., Perodua Myvi"></label>
+  </div>
+</div>
 
+<div class="sec-title">Identity</div>
+<div class="block">
   <div class="grid2">
     <label>IC / NRIC / ID No.<br><input name="idNo" placeholder="e.g., 900101-14-5678"></label>
     <label>Passport No.<br><input name="passportNo" placeholder="e.g., A12345678"></label>
   </div>
+</div>
 
+<div class="sec-title">Address</div>
+<div class="block">
+  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
+</div>
+
+<div class="sec-title">Next of Kin</div>
+<div class="block">
   <div class="grid2">
     <label>Next of Kin — Name<br><input name="nokName" placeholder="e.g., Nur Aisyah"></label>
-    <label>Next of Kin — Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
+    <label>Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
   </div>
-
   <div class="grid2">
-    <label>Next of Kin — Phone<br><input name="nokPhone" placeholder="+60-..."></label>
+    <label>Phone<br><input name="nokPhone" placeholder="+60-..."></label>
     <label>Emergency Notes (optional)<br><input name="emergencyNotes" placeholder="Allergies / conditions"></label>
   </div>
+</div>
 
-<div class="fam-sec">
-  <div class="fam-head">
-    <strong>Family Members</strong>
-    <button type="button" class="btn" id="btnAddFam">+ Add member</button>
+<div class="sec-title">Family Members</div>
+<div class="block">
+  <div class="fam-sec" style="border:none;padding:0">
+    <div class="fam-head">
+      <strong>Members</strong>
+      <button type="button" class="btn" id="btnAddFam">+ Add member</button>
+    </div>
+    <div class="fam-rows" id="familyRows"></div>
+    <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
   </div>
-  <div class="fam-rows" id="familyRows">
-    <!-- rows injected by JS -->
-  </div>
-  <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
+</div>
+
+<div class="sec-title">Notes</div>
+<div class="block">
+  <label>Notes (optional)<br><input name="notes" placeholder=""></label>
 </div>
 
 
-  <label>Notes (optional)<br><input name="notes" placeholder=""></label>
-  <input type="hidden" name="_id" />
-</form>
+    
+ 
 
   <div class="dlg-f">
     <button class="btn" id="btnCancel">Cancel</button>
@@ -310,7 +350,11 @@ renderFamily();
 
   <!-- Full details dialog (read-only) -->
 <dialog id="dlgDetails">
-  <div class="dlg-h">Staff details</div>
+<div class="dlg-h">
+  <img src="/public/images/logo.jpg" onerror="this.src='images/logo.jpg'" alt="logo" style="height:22px;width:auto;border-radius:4px">
+  <span>Staff details</span>
+</div>
+
   <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
   <div class="dlg-f">
     <button class="btn" id="btnDetClose">Close</button>
@@ -447,30 +491,68 @@ html += `
   window.openDetails = openDetails;
 
   function exportDetailsPdf(){
-    // Open print-friendly window for native "Save as PDF"
-    const w = window.open('', '_blank', 'width=800,height=900');
-    const css = `
-      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:20px;color:#0f172a}
-      h1{font-size:18px;margin:0 0 12px}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
-      strong{display:block;color:#111827}
-    `;
-    w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
-    w.document.write('<h1>Staff details</h1>');
-    w.document.write('<div class="grid">');
-    // convert dialog body into printable blocks
-    const wrapper = document.createElement('div'); wrapper.innerHTML = detailsBody.innerHTML;
-    // Wrap each direct child in .block for nicer print
-    Array.from(wrapper.children).forEach(ch=>{
-      w.document.write('<div class="block">'+ch.outerHTML+'</div>');
-    });
-    w.document.write('</div>');
-    w.document.write('</body></html>');
-    w.document.close();
-    w.focus();
-    w.print();
-  }
+  const w = window.open('', '_blank', 'width=900,height=1100');
+  const css = `
+    @page { margin: 20mm }
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0f172a}
+    header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    header img{height:28px;width:auto;border-radius:6px}
+    header .tt{font-size:18px;font-weight:700}
+    .date{font-size:12px;color:#64748b;margin-left:auto}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;break-inside:avoid}
+    strong{display:block;color:#111827}
+    h2{font-size:14px;margin:14px 0 6px;color:#111827}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{padding:6px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+    footer{position:fixed;left:0;right:0;bottom:0;margin:0 20mm 12mm 20mm;font-size:11px;color:#64748b}
+    .disc{border-top:1px solid #e5e7eb;padding-top:6px}
+  `;
+  w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
+
+  // Header with logo + title + date
+  const today = new Date().toISOString().slice(0,10);
+  const logo = '/public/images/logo.jpg';
+  w.document.write(
+    `<header>
+       <img src="${logo}" onerror="this.src='images/logo.jpg'">
+       <div class="tt">Asianloop — Staff Details</div>
+       <div class="date">Printed: ${today}</div>
+     </header>`
+  );
+
+  // Capture the dialog content and split into blocks
+  const wrapper = document.createElement('div'); 
+  wrapper.innerHTML = detailsBody.innerHTML;
+
+  // Optional: promote "Family Members" table to have standard table styling
+  const famTbl = wrapper.querySelector('table');
+  if (famTbl) famTbl.classList.add('fam-table');
+
+  // Write as blocks (two-column grid)
+  w.document.write('<div class="grid">');
+  Array.from(wrapper.children).forEach(ch=>{
+    w.document.write('<div class="block">'+ch.outerHTML+'</div>');
+  });
+  w.document.write('</div>');
+
+  // Footer disclaimer
+  w.document.write(
+    `<footer>
+       <div class="disc">
+         This document is generated for internal use by Asianloop Sdn Bhd. 
+         It may contain personal data and confidential information. 
+         Unauthorised distribution is strictly prohibited. © ${new Date().getFullYear()} Asianloop.
+       </div>
+     </footer>`
+  );
+
+  w.document.write('</body></html>');
+  w.document.close();
+  w.focus();
+  w.print();
+}
+
 </script>
 
 </body>
