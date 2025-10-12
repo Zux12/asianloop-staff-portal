@@ -37,6 +37,16 @@
   .dlg-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
   .muted{color:var(--muted)}
   .link{color:var(--accent);text-decoration:none}
+
+    .fam-sec{border:1px solid var(--border);border-radius:12px;background:#fff;padding:12px}
+  .fam-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .fam-rows{display:grid;gap:8px}
+  .fam-row{display:grid;grid-template-columns:1.2fr 0.9fr 1fr 1fr 1fr auto;gap:8px;align-items:center}
+  .fam-row input{border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:14px;width:100%}
+  @media (max-width: 900px){
+    .fam-row{grid-template-columns:1fr 1fr;gap:6px}
+    .fam-row button{justify-self:start}
+  }
 </style>
 </head>
 <body>
@@ -147,9 +157,17 @@
     <label>Emergency Notes (optional)<br><input name="emergencyNotes" placeholder="Allergies / conditions"></label>
   </div>
 
-  <label>Family Members (free text)<br>
-    <input name="family" placeholder="e.g., Hasbi (Son, 11), Alia (Daughter, 13)">
-  </label>
+<div class="fam-sec">
+  <div class="fam-head">
+    <strong>Family Members</strong>
+    <button type="button" class="btn" id="btnAddFam">+ Add member</button>
+  </div>
+  <div class="fam-rows" id="familyRows">
+    <!-- rows injected by JS -->
+  </div>
+  <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
+</div>
+
 
   <label>Notes (optional)<br><input name="notes" placeholder=""></label>
   <input type="hidden" name="_id" />
@@ -216,6 +234,8 @@
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
     obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    obj.family = fam;  // send structured family array
+
     let method='POST', url='/api/staff';
     if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
@@ -248,6 +268,20 @@ frm.family.value = x.family || '';
     frm._id.value = x._id;
     $('#dlgTitle').textContent='Edit Staff';
     dlg.showModal();
+ 
+  fam = Array.isArray(x.family)
+  ? x.family.map(m=>({
+      name: m?.name || '',
+      dob:  m?.dob  || '',
+      relation: m?.relation || '',
+      phone: m?.phone || '',
+      notes: m?.notes || ''
+    }))
+  : []; // migrate away from old free-text
+renderFamily();
+
+  
+  
   }
   window.openEdit = openEdit;
 
@@ -289,7 +323,44 @@ frm.family.value = x.family || '';
   const detailsBody = document.getElementById('detailsBody');
   document.getElementById('btnDetClose').onclick = ()=> dlgDetails.close();
   document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
+  document.getElementById('btnAddFam').onclick = ()=> addFam();
 
+
+let fam = []; // array of {name, dob, relation, phone, notes}
+
+function renderFamily(){
+  const rows = fam.map((m,i)=>`
+    <div class="fam-row">
+      <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
+      <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
+      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
+      <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
+      <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
+      <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
+    </div>
+  `).join('');
+  document.getElementById('familyRows').innerHTML =
+    rows || '<div class="muted">No family members yet.</div>';
+
+  // wire inputs to state
+  document.getElementById('familyRows').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', (e)=>{
+      const idx = Number(e.target.dataset.i);
+      const key = e.target.dataset.k;
+      let val = e.target.value;
+      if(key === 'dob' && val) { val = new Date(val).toISOString(); }
+      fam[idx][key] = val;
+    });
+  });
+}
+
+function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
+window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
+
+
+
+
+  
   function renderDetails(x){
     const fld = (k)=> (x[k] ?? '').toString();
     const yesno = (b)=> b ? 'Yes' : 'No';
@@ -327,7 +398,36 @@ frm.family.value = x.family || '';
         <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
         <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
       </div>
-      <div><strong>Family Members</strong><br>${escapeHtml(fld('family'))}</div>
+
+
+
+   // --- add this inside renderDetails(x) after the next-of-kin section ---
+const famHtml = (Array.isArray(x.family) && x.family.length)
+ ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
+      <thead><tr>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
+      </tr></thead>
+      <tbody>
+        ${x.family.map(m=>`
+          <tr>
+            <td style="padding:6px">${escapeHtml(m.name||'')}</td>
+            <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
+            <td style="padding:6px">${escapeHtml(m.relation||'')}</td>
+            <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
+            <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`
+ : '<span class="muted">No family members listed</span>';
+
+html += `
+<div><strong>Family Members</strong><br>${famHtml}</div>
+`;
+
       <div class="grid2">
         <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
         <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
