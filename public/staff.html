@@ -263,7 +263,7 @@ frm.nokName.value = x.nokName || '';
 frm.nokRelation.value = x.nokRelation || '';
 frm.nokPhone.value = x.nokPhone || '';
 frm.emergencyNotes.value = x.emergencyNotes || '';
-frm.family.value = x.family || '';
+
 
     frm._id.value = x._id;
     $('#dlgTitle').textContent='Edit Staff';
@@ -364,7 +364,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
   function renderDetails(x){
     const fld = (k)=> (x[k] ?? '').toString();
     const yesno = (b)=> b ? 'Yes' : 'No';
-    const html = `
+    let html = `
       <div class="grid2">
         <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
         <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
@@ -398,7 +398,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
         <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
         <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
       </div>
-
+`;
 
 
    // --- add this inside renderDetails(x) after the next-of-kin section ---
@@ -428,6 +428,7 @@ html += `
 <div><strong>Family Members</strong><br>${famHtml}</div>
 `;
 
+  html += `
       <div class="grid2">
         <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
         <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
