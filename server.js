@@ -465,6 +465,7 @@ app.post('/api/staff', async (req, res) => {
       status: String(status||'Active').trim(),
       mfaEnabled: !!mfaEnabled,
       notes: String(notes||'').trim(),
+        family: cleanFamily(req.body.family),
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -492,6 +493,7 @@ app.put('/api/staff/:id', async (req, res) => {
     if(status !== undefined) $set.status = String(status).trim();
     if(mfaEnabled !== undefined) $set.mfaEnabled = !!(mfaEnabled === true || mfaEnabled === 'true' || mfaEnabled === 'on' || mfaEnabled === 1 || mfaEnabled === '1');
     if(notes !== undefined) $set.notes = String(notes).trim();
+    if (req.body && 'family' in req.body) $set.family = cleanFamily(req.body.family);
 
     const db = await staffDb();
     const r = await staffColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
@@ -538,6 +540,24 @@ app.delete('/api/staff/:id', async (req, res) => {
   }
 });
 /* -------------------------------------------------------------------- */
+
+
+
+function cleanFamily(v){
+  if (!v) return [];
+  try{
+    const arr = Array.isArray(v) ? v : JSON.parse(v);
+    return arr.filter(Boolean).map(m=>({
+      name: String(m.name||'').trim(),
+      dob:  m.dob ? new Date(m.dob) : null,
+      relation: String(m.relation||'').trim(),
+      phone: String(m.phone||'').trim(),
+      notes: String(m.notes||'').trim()
+    }));
+  }catch(_){ return []; }
+}
+
+
 
 
 // (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
