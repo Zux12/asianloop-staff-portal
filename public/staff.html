@@ -199,9 +199,10 @@ td.actions .btn{
     <th style="width:14%">Dept</th>
     <th style="width:12%">Role</th>
     <th style="width:12%">Status</th>
-    <th class="actions right" style="width:320px">Actions</th>
+    <th class="actions right" style="width:360px">Actions</th>
   </tr>
 </thead>
+
 
 
 
@@ -349,17 +350,15 @@ const roleLabel = (v)=>{
 
 
   
- function render(){
-  const q = $('#q').value.trim().toLowerCase();
-  const r = $('#fRole').value;
-  const s = $('#fStatus').value;
+function render(){
+  const q = ($('#q')?.value || '').trim().toLowerCase();
+  const r = $('#fRole')?.value || '';
+  const s = $('#fStatus')?.value || '';
 
-  const filtered = data.filter(x=>{
-    const okQ = !q || (
-      (x.name||'').toLowerCase().includes(q) ||
-      (x.email||'').toLowerCase().includes(q) ||
-      (x.dept||'').toLowerCase().includes(q)
-    );
+  const filtered = (data||[]).filter(x=>{
+    const okQ = !q || (String(x.name||'').toLowerCase().includes(q) ||
+                       String(x.email||'').toLowerCase().includes(q) ||
+                       String(x.dept||'').toLowerCase().includes(q));
     const okR = !r || x.role===r;
     const okS = !s || x.status===s;
     return okQ && okR && okS;
@@ -371,18 +370,17 @@ const roleLabel = (v)=>{
   }
 
   rowsEl.innerHTML = filtered.map(x=>{
-    const st = x.status==='Active' ? 'active' : 'suspended';
+    const stCls = x.status==='Active' ? 'active' : 'suspended';
+    const staffNo = x.staffNo || x.staff_number || x.staff_no || '';
     return `
       <tr>
         <td>${escapeHtml(x.name||'')}</td>
-        <td>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</td>
+        <td>${escapeHtml(staffNo)}</td>
         <td>${escapeHtml(x.email||'')}</td>
         <td>${escapeHtml(x.dept||'')}</td>
-        <td>${escapeHtml(roleLabel(x.role))}</td>
-        <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
-
+        <td>${escapeHtml(roleLabel ? roleLabel(x.role) : (x.role||''))}</td>
+        <td><span class="status ${stCls}">${escapeHtml(x.status||'')}</span></td>
         <td class="actions right">
-
           <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
           <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
           <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
@@ -391,6 +389,7 @@ const roleLabel = (v)=>{
       </tr>`;
   }).join('');
 }
+
 
 
   async function load(){
