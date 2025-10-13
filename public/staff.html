@@ -101,17 +101,13 @@
 
 /* Compact on small screens; keep it readable */
 @media (max-width: 699px) {
-  .fam-row {
-    grid-template-columns: 1fr; /* stack on phones */
-  }
+  .fam-row { grid-template-columns: 1fr; } /* stack on phones */
 }
 
 /* On larger screens, give dialog body more breathing room */
 @media (min-width: 900px) {
   #dlg .dlg-b { padding-right: 4px; } /* avoid horizontal scrollbars */
 }
-
-
 
 /* Address grids */
 .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px }
@@ -120,27 +116,33 @@
   .grid3{ grid-template-columns: 1fr; }
 }
 
+/* ===== TABLE / HEADER / ACTIONS ===== */
+table { width:100%; border-collapse:collapse; table-layout:auto; } /* allow natural widths */
+thead tr { background: var(--table-head, #f5f7fb); }
+thead th { background: inherit; }
+th, td { vertical-align: middle; }
 
-/* Make header row cover the full table width */
-table{ width:100%; table-layout: fixed; border-collapse: collapse; }
-thead tr{ background: var(--table-head, #f5f7fb); }
-thead th{ background: inherit; }
+/* Actions column: enough width, wrap buttons, don't clip */
+th.actions, td.actions { width: 260px; } /* adjust if you want more/less */
+td.actions { white-space: normal; overflow: visible; }
+td.actions .btn {
+  display: inline-flex; align-items: center;
+  margin: 0 6px 6px 0; padding: 6px 10px;
+}
 
-/* Ensure the actions column has enough room and buttons wrap nicely */
-table{ width:100%; table-layout:fixed; border-collapse:collapse; }
-th, td{ overflow:hidden; text-overflow:ellipsis; }
+/* (Optional) If table sits in a scroll container, ensure it's visible on small screens */
+@media (max-width: 900px){
+  .table-wrap { overflow-x: auto; }
+}
 
-th.actions, td.actions{ width:320px; }
-td.actions{ white-space:normal; }
-td.actions .btn{ display:inline-flex; align-items:center; margin:0 6px 6px 0; padding:6px 10px; }
-
-
+/* Export All button (green) */
 .btn.success{
   background:#22c55e; /* green */
   color:#fff;
   border:1px solid #16a34a;
 }
 .btn.success:hover{ filter:brightness(.95); }
+
 
 </style>
 </head>
@@ -607,13 +609,14 @@ render();
   // --- Export all rows currently in `data` to CSV (Excel-friendly) ---
 function exportAllCSV(){
   // headers
-  const headers = [
-    'Name','Staff No','Email','Dept','Role','Status',
-    'Hire Date','Car Reg','Car Make/Model','Address',
-    'IC / NRIC / ID','Passport No',
-    'Next of Kin Name','Next of Kin Relation','Next of Kin Phone','Emergency Notes',
-    'Family (JSON)'
-  ];
+const headers = [
+  'Name','Staff No','Email','Dept','Role','Status',
+  'Hire Date','Car Reg','Car Make/Model','Address',
+  'IC / NRIC / ID','Passport No',
+  'Next of Kin Name','Next of Kin Relation','Next of Kin Phone','Emergency Notes',
+  'Family'
+];
+
   const esc = v => {
     const s = (v==null ? '' : String(v));
     // escape quotes/delims for CSV
@@ -621,29 +624,46 @@ function exportAllCSV(){
     return s;
   };
 
-  const rows = (data||[]).map(d=>{
-    const staffNo = d.staffNo || d.staff_number || d.staff_no || '';
-    const famJSON = Array.isArray(d.family) ? JSON.stringify(d.family) : '';
-    return [
-      d.name||'',
-      staffNo,
-      d.email||'',
-      d.dept||'',
-      d.role||'',
-      d.status||'',
-      d.hireDate||'',
-      d.carReg||'',
-      d.carDesc||'',
-      d.address||'',
-      d.idNo||'',
-      d.passportNo||'',
-      d.nokName||'',
-      d.nokRelation||'',
-      d.nokPhone||'',
-      d.emergencyNotes||'',
-      famJSON
-    ].map(esc).join(',');
-  });
+const ymd = v => {
+  if (!v) return '';
+  const d = new Date(v);
+  return isNaN(d) ? String(v) : d.toISOString().slice(0,10);
+};
+
+  
+ const rows = (data || []).map(d => {
+  const staffNo = d.staffNo || d.staff_number || d.staff_no || '';
+  const famStr = Array.isArray(d.family)
+    ? d.family.map(m => {
+        const name = m?.name || '';
+        const rel  = (m?.relation || m?.relationship || '');
+        const dob  = ymd(m?.dob);
+        const tail = [rel, dob].filter(Boolean).join(', ');
+        return [name, tail ? `(${tail})` : ''].filter(Boolean).join(' ');
+      }).join('; ')
+    : '';
+
+  return [
+    d.name || '',
+    staffNo,
+    d.email || '',
+    d.dept || '',
+    d.role || '',
+    d.status || '',
+    d.hireDate || '',
+    d.carReg || '',
+    d.carDesc || '',
+    d.address || '',
+    d.idNo || '',
+    d.passportNo || '',
+    d.nokName || '',
+    d.nokRelation || '',
+    d.nokPhone || '',
+    d.emergencyNotes || '',
+    famStr            // <-- use famStr (not famJSON)
+  ].map(esc).join(',');
+});
+
 
   const csv = ['\ufeff' + headers.join(','), ...rows].join('\n'); // BOM for Excel UTF-8
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
