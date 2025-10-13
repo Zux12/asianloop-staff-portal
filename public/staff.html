@@ -120,6 +120,12 @@
   .grid3{ grid-template-columns: 1fr; }
 }
 
+
+/* Make header row cover the full table width */
+table{ width:100%; table-layout: fixed; border-collapse: collapse; }
+thead tr{ background: var(--table-head, #f5f7fb); }
+thead th{ background: inherit; }
+  
 </style>
 </head>
 <body>
@@ -157,9 +163,10 @@
     <th style="width:14%">Dept</th>
     <th style="width:12%">Role</th>
     <th style="width:12%">Status</th>
-    <th style="width:170px" class="right">Actions</th>
+    <th style="width:14%" class="right">Actions</th>
   </tr>
 </thead>
+
 
       <tbody id="rows"><tr><td colspan="7" class="muted" style="padding:14px">Loading…</td></tr></tbody>
     </table>
