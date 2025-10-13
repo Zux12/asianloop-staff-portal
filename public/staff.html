@@ -341,59 +341,54 @@ function openAdd(){
   dlg.showModal();
 }
 
-function openEdit(id){
-  const x = data.find(y=>y._id===id);
-  if(!x) return;
+async function openEdit(id){
+  try{
+    const r = await fetch(`/api/staff/${id}`);
+    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    const x = await r.json();
 
-  frm.reset();
+    frm.reset();
+    const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
+    set('_id', x._id || '');
+    set('name', x.name);
+    set('email', x.email);
+    set('dept', x.dept);
+    set('role', x.role || 'viewer');
+    set('status', x.status || 'Active');
+    set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+    set('notes', x.notes);
+    set('staffNo', x.staffNo);
+    set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
+    set('carReg', x.carReg);
+    set('carDesc', x.carDesc);
+    set('address', x.address);
+    set('idNo', x.idNo);
+    set('passportNo', x.passportNo);
+    set('nokName', x.nokName);
+    set('nokRelation', x.nokRelation);
+    set('nokPhone', x.nokPhone);
+    set('emergencyNotes', x.emergencyNotes);
 
-  // Guarded setters
-  const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
+    // family (accept either `relationship` or `relation`)
+    if (typeof fam !== 'undefined') {
+      fam = Array.isArray(x.family) ? x.family.map(m=>({
+        name: m?.name || '',
+        dob: m?.dob || '',
+        relation: (m?.relationship ?? m?.relation ?? ''),
+        phone: m?.phone || '',
+        notes: m?.notes || ''
+      })) : [];
+      if (typeof renderFamily === 'function') renderFamily();
+    }
 
-  set('name', x.name);
-  set('email', x.email);
-  set('dept', x.dept);
-  set('role', x.role || 'viewer');
-  set('status', x.status || 'Active');
-  set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-  set('notes', x.notes);
-
-  set('staffNo', x.staffNo);
-  set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
-
-  set('carReg', x.carReg);
-  set('carDesc', x.carDesc);
-
-  set('address', x.address);
-  set('idNo', x.idNo);
-  set('passportNo', x.passportNo);
-
-  set('nokName', x.nokName);
-  set('nokRelation', x.nokRelation);
-  set('nokPhone', x.nokPhone);
-  set('emergencyNotes', x.emergencyNotes);
-
-  // Hidden _id (robust)
-  if (frm.elements['_id']) frm.elements['_id'].value = (x._id || '');
-
-  // Family (keep your current schema: name, dob, relation, phone, notes)
-  if (typeof fam !== 'undefined') {
-    fam = Array.isArray(x.family)
-      ? x.family.map(m=>({
-          name: m?.name || '',
-          dob:  m?.dob  || '',
-          relation: m?.relation || '',
-          phone: m?.phone || '',
-          notes: m?.notes || ''
-        }))
-      : [];
-    if (typeof renderFamily === 'function') renderFamily();
+    $('#dlgTitle').textContent='Edit Staff';
+    dlg.showModal();
+  }catch(e){
+    alert('Could not load staff for edit: ' + e.message);
   }
-
-  $('#dlgTitle').textContent='Edit Staff';
-  dlg.showModal();
 }
 window.openEdit = openEdit;
+
 
 
   async function toggleStatus(id, current){
