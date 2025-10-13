@@ -74,6 +74,43 @@
   overflow: auto;
 }
 
+
+/* === Wider input fields inside dialogs === */
+#dlg label,
+#dlgDetails label { display:block; }
+
+/* Make all form controls fill their column */
+#dlg input[type="text"],
+#dlg input[type="email"],
+#dlg input[type="date"],
+#dlg input[type="number"],
+#dlg input:not([type]),
+#dlg select,
+#dlg textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Give family row a proper grid so inputs have room */
+.fam-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 1fr 1fr 1.2fr auto; /* name, dob, rel, phone, notes, remove */
+  gap: 10px;
+}
+.fam-row input { width: 100%; }
+
+/* Compact on small screens; keep it readable */
+@media (max-width: 699px) {
+  .fam-row {
+    grid-template-columns: 1fr; /* stack on phones */
+  }
+}
+
+/* On larger screens, give dialog body more breathing room */
+@media (min-width: 900px) {
+  #dlg .dlg-b { padding-right: 4px; } /* avoid horizontal scrollbars */
+}
+
 </style>
 </head>
 <body>
