@@ -297,6 +297,25 @@ async function saveStaff(e){
   // Build payload from form
   const obj = Object.fromEntries(new FormData(frm).entries());
   obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    // --- normalize top-level aliases so backend & renderer agree ---
+  obj.staffNo      = obj.staffNo      || obj.staff_number || obj.staff_no || '';
+  obj.hireDate     = obj.hireDate     || obj.hire_date    || '';
+  obj.carReg       = obj.carReg       || obj.car_reg      || obj.carRegistration || '';
+  obj.carDesc      = obj.carDesc      || obj.car_desc     || obj.carMakeModel    || '';
+  obj.address      = obj.address      || obj.addr         || '';
+  obj.idNo         = obj.idNo         || obj.ic           || obj.nric || '';
+  obj.passportNo   = obj.passportNo   || obj.passport_no  || '';
+  obj.nokName      = obj.nokName      || obj.nextOfKinName || '';
+  obj.nokRelation  = obj.nokRelation  || obj.nextOfKinRelation || obj.relation || '';
+  obj.nokPhone     = obj.nokPhone     || obj.nextOfKinPhone || '';
+  obj.emergencyNotes = obj.emergencyNotes || obj.emergency_notes || '';
+
+  // ensure hireDate is YYYY-MM-DD (browser date inputs already do this)
+  if (obj.hireDate && /^\d{4}-\d{2}-\d{2}/.test(obj.hireDate) === false){
+    const d = new Date(obj.hireDate);
+    if (!isNaN(d)) obj.hireDate = d.toISOString().slice(0,10);
+  }
+
 
   // Map family: relation -> relationship; drop fully empty rows
   const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
@@ -539,6 +558,13 @@ function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(
 window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
 
 
+function pick(o, ...keys){
+  for (const k of keys){
+    const v = o && o[k];
+    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+  }
+  return '';
+}
 
 
   
@@ -559,25 +585,30 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
         <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
       </div>
       <div class="grid2">
-        <div><strong>Staff Number</strong><br>${escapeHtml(fld('staffNo'))}</div>
-        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
+<div><strong>Staff Number</strong><div>${escapeHtml(pick(x,'staffNo','staff_number','staff_no'))}</div></div>
+<div><strong>Hire Date</strong><div>${escapeHtml(pick(x,'hireDate','hire_date'))}</div></div>
+
       </div>
       <div class="grid2">
-        <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
-        <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
+<div><strong>Car Registration</strong><div>${escapeHtml(pick(x,'carReg','car_reg','carRegistration'))}</div></div>
+<div><strong>Car Make/Model</strong><div>${escapeHtml(pick(x,'carDesc','car_desc','carMakeModel'))}</div></div>
+
       </div>
-      <div><strong>Address</strong><br>${escapeHtml(fld('address'))}</div>
+<div><strong>Address</strong><div>${escapeHtml(pick(x,'address','addr'))}</div></div>
+
       <div class="grid2">
-        <div><strong>IC / NRIC / ID</strong><br>${escapeHtml(fld('idNo'))}</div>
-        <div><strong>Passport No.</strong><br>${escapeHtml(fld('passportNo'))}</div>
+<div><strong>IC / NRIC / ID</strong><div>${escapeHtml(pick(x,'idNo','ic','nric'))}</div></div>
+<div><strong>Passport No.</strong><div>${escapeHtml(pick(x,'passportNo','passport_no'))}</div></div>
+
       </div>
       <div class="grid2">
-        <div><strong>Next of Kin — Name</strong><br>${escapeHtml(fld('nokName'))}</div>
-        <div><strong>Relation</strong><br>${escapeHtml(fld('nokRelation'))}</div>
+<div><strong>Next of Kin — Name</strong><div>${escapeHtml(pick(x,'nokName','nextOfKinName'))}</div></div>
+<div><strong>Relation</strong><div>${escapeHtml(pick(x,'nokRelation','nextOfKinRelation','relation'))}</div></div>
+
       </div>
       <div class="grid2">
-        <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
-        <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
+<div><strong>Next of Kin — Phone</strong><div>${escapeHtml(pick(x,'nokPhone','nextOfKinPhone'))}</div></div>
+<div><strong>Emergency Notes</strong><div>${escapeHtml(pick(x,'emergencyNotes','emergency_notes'))}</div></div>
       </div>
 `;
 
