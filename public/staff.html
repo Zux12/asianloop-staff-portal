@@ -231,38 +231,63 @@ let lastDetails = null; // full record fetched by id (used by details & PDF)
   function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
   function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function render(){
-    const q = $('#q').value.trim().toLowerCase();
-    const r = $('#fRole').value;
-    const s = $('#fStatus').value;
-    const filtered = data.filter(x=>{
-      const okQ = !q || (x.name?.toLowerCase().includes(q) || x.email?.toLowerCase().includes(q) || x.dept?.toLowerCase().includes(q));
-      const okR = !r || x.role===r;
-      const okS = !s || x.status===s;
-      return okQ && okR && okS;
-    });
-    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`; return; }
-    rowsEl.innerHTML = filtered.map(x=>{
-      const st = x.status==='Active' ? 'active' : 'suspended';
-      return `<tr>
+ function render(){
+  const q = $('#q').value.trim().toLowerCase();
+  const r = $('#fRole').value;
+  const s = $('#fStatus').value;
+
+  const filtered = (data||[]).filter(x=>{
+    const okQ = !q || (String(x.name||'').toLowerCase().includes(q) || String(x.email||'').toLowerCase().includes(q) || String(x.dept||'').toLowerCase().includes(q));
+    const okR = !r || x.role===r;
+    const okS = !s || x.status===s;
+    return okQ && okR && okS;
+  });
+
+  if(!filtered.length){
+    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
+    return;
+  }
+
+  rowsEl.innerHTML = filtered.map(x=>{
+    const st = x.status==='Active' ? 'active' : 'suspended';
+    return `
+      <tr>
         <td>${escapeHtml(x.name||'')}</td>
         <td>${escapeHtml(x.email||'')}</td>
         <td>${escapeHtml(x.dept||'')}</td>
         <td>${escapeHtml(x.role||'')}</td>
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
         <td>${fmtDate(x.lastLoginAt)}</td>
-<td class="right">
-<button class="btn" onclick="openDetails('${x._id}')">Details</button>
-<button class="btn" onclick="openEdit('${x._id}')">Edit</button>
-
-  <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
-  <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
-</td>
-
+        <td class="right">
+          <button class="btn view"   data-id="${x._id}">Details</button>
+          <button class="btn edit"   data-id="${x._id}">Edit</button>
+          <button class="btn toggle" data-id="${x._id}" data-status="${x.status||'Active'}">${x.status==='Active'?'Disable':'Enable'}</button>
+          <button class="btn del"    data-id="${x._id}">Delete</button>
+        </td>
       </tr>`;
-    }).join('');
-  }
+  }).join('');
+}
 
+rowsEl.addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('button');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (!id) return;
+
+  if (btn.classList.contains('view')) {
+    openDetails(String(id));
+  } else if (btn.classList.contains('edit')) {
+    openEdit(String(id));
+  } else if (btn.classList.contains('toggle')) {
+    const status = btn.dataset.status || 'Active';
+    toggleStatus(String(id), status);
+  } else if (btn.classList.contains('del')) {
+    doDelete(String(id));
+  }
+});
+
+
+  
 async function load(){
   try{
     const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
