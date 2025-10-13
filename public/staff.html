@@ -125,7 +125,23 @@
 table{ width:100%; table-layout: fixed; border-collapse: collapse; }
 thead tr{ background: var(--table-head, #f5f7fb); }
 thead th{ background: inherit; }
-  
+
+/* Ensure the actions column has enough room and buttons wrap nicely */
+table{ width:100%; table-layout:fixed; border-collapse:collapse; }
+th, td{ overflow:hidden; text-overflow:ellipsis; }
+
+th.actions, td.actions{ width:320px; }
+td.actions{ white-space:normal; }
+td.actions .btn{ display:inline-flex; align-items:center; margin:0 6px 6px 0; padding:6px 10px; }
+
+
+.btn.success{
+  background:#22c55e; /* green */
+  color:#fff;
+  border:1px solid #16a34a;
+}
+.btn.success:hover{ filter:brightness(.95); }
+
 </style>
 </head>
 <body>
@@ -150,7 +166,11 @@ thead th{ background: inherit; }
     </select>
     <button class="btn" id="btnRefresh">Refresh</button>
     <div style="flex:1"></div>
-    <button class="btn primary" id="btnNew">Add Staff</button>
+<div class="toolbar-right" style="display:flex; gap:10px; align-items:center">
+  <button class="btn success" id="btnExportAll" title="Export all staff to CSV (Excel)">Export All</button>
+  <button class="btn primary" id="btnNew">Add Staff</button>
+</div>
+
   </div>
 
   <div class="table">
@@ -163,9 +183,10 @@ thead th{ background: inherit; }
     <th style="width:14%">Dept</th>
     <th style="width:12%">Role</th>
     <th style="width:12%">Status</th>
-    <th style="width:14%" class="right">Actions</th>
+    <th class="actions right" style="width:320px">Actions</th>
   </tr>
 </thead>
+
 
 
       <tbody id="rows"><tr><td colspan="7" class="muted" style="padding:14px">Loading…</td></tr></tbody>
@@ -343,7 +364,9 @@ const roleLabel = (v)=>{
         <td>${escapeHtml(x.dept||'')}</td>
         <td>${escapeHtml(roleLabel(x.role))}</td>
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
-        <td class="right">
+
+        <td class="actions right">
+
           <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
           <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
           <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
@@ -581,6 +604,60 @@ render();
   $('#q').oninput = render; $('#fRole').onchange = render; $('#fStatus').onchange = render;
   $('#btnRefresh').onclick = load;
 
+  // --- Export all rows currently in `data` to CSV (Excel-friendly) ---
+function exportAllCSV(){
+  // headers
+  const headers = [
+    'Name','Staff No','Email','Dept','Role','Status',
+    'Hire Date','Car Reg','Car Make/Model','Address',
+    'IC / NRIC / ID','Passport No',
+    'Next of Kin Name','Next of Kin Relation','Next of Kin Phone','Emergency Notes',
+    'Family (JSON)'
+  ];
+  const esc = v => {
+    const s = (v==null ? '' : String(v));
+    // escape quotes/delims for CSV
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+    return s;
+  };
+
+  const rows = (data||[]).map(d=>{
+    const staffNo = d.staffNo || d.staff_number || d.staff_no || '';
+    const famJSON = Array.isArray(d.family) ? JSON.stringify(d.family) : '';
+    return [
+      d.name||'',
+      staffNo,
+      d.email||'',
+      d.dept||'',
+      d.role||'',
+      d.status||'',
+      d.hireDate||'',
+      d.carReg||'',
+      d.carDesc||'',
+      d.address||'',
+      d.idNo||'',
+      d.passportNo||'',
+      d.nokName||'',
+      d.nokRelation||'',
+      d.nokPhone||'',
+      d.emergencyNotes||'',
+      famJSON
+    ].map(esc).join(',');
+  });
+
+  const csv = ['\ufeff' + headers.join(','), ...rows].join('\n'); // BOM for Excel UTF-8
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `staff_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+}
+
+document.getElementById('btnExportAll').onclick = exportAllCSV;
+
+  
   load();
 </script>
 
