@@ -41,7 +41,7 @@
     .fam-sec{border:1px solid var(--border);border-radius:12px;background:#fff;padding:12px}
   .fam-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .fam-rows{display:grid;gap:8px}
-  .fam-row{display:grid;grid-template-columns:1.2fr 0.9fr 1fr 1fr 1fr auto;gap:8px;align-items:center}
+  .fam-row{display:grid;grid-template-columns:1.2fr 0.9fr 1.2fr 1fr 1fr auto;gap:8px;align-items:center}
   .fam-row input{border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:14px;width:100%}
   @media (max-width: 900px){
     .fam-row{grid-template-columns:1fr 1fr;gap:6px}
@@ -184,7 +184,8 @@ thead th{ background: inherit; }
   <!-- Basic -->
   <div class="grid2">
     <label>Name<br><input name="name" required></label>
-    <label>Email<br><input name="email" type="email" required></label>
+<label>Email<br><input name="email" type="email" required placeholder="user@asian-loop.com"></label>
+
   </div>
 
   <div class="grid2">
@@ -248,7 +249,23 @@ thead th{ background: inherit; }
 
   <div class="grid2">
     <label>Next of Kin — Name<br><input name="nokName" placeholder="e.g., Nur Aisyah"></label>
-    <label>Next of Kin — Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
+<label>Relation<br>
+  <select name="nokRelation">
+    <option value="">Select relationship</option>
+    <option>Spouse</option>
+    <option>Parent</option>
+    <option>Child</option>
+    <option>Sibling</option>
+    <option>Grandparent</option>
+    <option>Grandchild</option>
+    <option>Relative</option>
+    <option>Guardian</option>
+    <option>Emergency Contact</option>
+    <option>Friend</option>
+    <option>Colleague</option>
+    <option>Other</option>
+  </select>
+</label>
   </div>
 
   <div class="grid2">
@@ -588,12 +605,30 @@ render();
   document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
   document.getElementById('btnAddFam')?.addEventListener('click', ()=> addFam());
 
- function renderFamily(){
+// --- shared relationship options ---
+const REL_OPTIONS = [
+  'Spouse','Parent','Child','Sibling','Grandparent','Grandchild',
+  'Relative','Guardian','Emergency Contact','Friend','Colleague','Other'
+];
+function relOptionsHTML(selected){
+  const sel = String(selected||'');
+  return REL_OPTIONS.map(opt=>{
+    const s = (opt===sel) ? ' selected' : '';
+    return `<option value="${opt}">${opt}</option>`;
+  }).join('');
+}
+
+
+  
+function renderFamily(){
   const rows = fam.map((m,i)=>`
     <div class="fam-row">
       <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
       <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
-      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
+      <select data-i="${i}" data-k="relation">
+        <option value="">Select relationship</option>
+        ${relOptionsHTML(m.relation)}
+      </select>
       <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
       <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
       <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
@@ -603,7 +638,9 @@ render();
   const famRows = document.getElementById('familyRows');
   if (famRows) {
     famRows.innerHTML = rows || '<div class="muted">No family members yet.</div>';
-    famRows.querySelectorAll('input').forEach(inp=>{
+
+    // wire inputs/selects to state
+    famRows.querySelectorAll('input, select').forEach(inp=>{
       inp.addEventListener('input', (e)=>{
         const idx = Number(e.target.dataset.i);
         const key = e.target.dataset.k;
@@ -611,9 +648,16 @@ render();
         if(key === 'dob' && val) { val = new Date(val).toISOString(); }
         fam[idx][key] = val;
       });
+      // for select, also listen to change (mobile browsers)
+      inp.addEventListener('change', (e)=>{
+        const idx = Number(e.target.dataset.i);
+        const key = e.target.dataset.k;
+        fam[idx][key] = e.target.value;
+      });
     });
   }
 }
+
 
 function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
 window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
