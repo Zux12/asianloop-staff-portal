@@ -425,106 +425,36 @@
   document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
   document.getElementById('btnAddFam')?.addEventListener('click', ()=> addFam());
 
-  function renderFamily(){
-    const rows = fam.map((m,i)=>`
-      <div class="fam-row">
-        <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
-        <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
-        <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
-        <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
-        <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
-        <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
-      </div>
-    ").join('');
-    const famRows = document.getElementById('familyRows');
-    if (famRows) {
-      famRows.innerHTML = rows || '<div class="muted">No family members yet.</div>';
-      famRows.querySelectorAll('input').forEach(inp=>{
-        inp.addEventListener('input', (e)=>{
-          const idx = Number(e.target.dataset.i);
-          const key = e.target.dataset.k;
-          let val = e.target.value;
-          if(key === 'dob' && val) { val = new Date(val).toISOString(); }
-          fam[idx][key] = val;
-        });
+ function renderFamily(){
+  const rows = fam.map((m,i)=>`
+    <div class="fam-row">
+      <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
+      <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
+      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
+      <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
+      <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
+      <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
+    </div>
+  `).join('');
+
+  const famRows = document.getElementById('familyRows');
+  if (famRows) {
+    famRows.innerHTML = rows || '<div class="muted">No family members yet.</div>';
+    famRows.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input', (e)=>{
+        const idx = Number(e.target.dataset.i);
+        const key = e.target.dataset.k;
+        let val = e.target.value;
+        if(key === 'dob' && val) { val = new Date(val).toISOString(); }
+        fam[idx][key] = val;
       });
-    }
+    });
   }
-  function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
-  window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
+}
 
-  function renderDetails(x){
-    const fld = (k)=> (x[k] ?? '').toString();
-    const yesno = (b)=> b ? 'Yes' : 'No';
-    let html = `
-      <div class="grid2">
-        <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
-        <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-        <div><strong>Role</strong><br>${escapeHtml(fld('role'))}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
-        <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Staff Number</strong><br>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</div>
-        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
-        <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
-      </div>
-      <div><strong>Address</strong><br>${escapeHtml(fld('address'))}</div>
-      <div class="grid2">
-        <div><strong>IC / NRIC / ID</strong><br>${escapeHtml(fld('idNo'))}</div>
-        <div><strong>Passport No.</strong><br>${escapeHtml(fld('passportNo'))}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Next of Kin — Name</strong><br>${escapeHtml(fld('nokName'))}</div>
-        <div><strong>Relation</strong><br>${escapeHtml(fld('nokRelation'))}</div>
-      </div>
-      <div class="grid2">
-        <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
-        <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
-      </div>
-    `;
+function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
+window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
 
-    const famHtml = (Array.isArray(x.family) && x.family.length)
-      ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
-          <thead><tr>
-            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
-            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
-            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
-            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
-            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
-          </tr></thead>
-          <tbody>
-            ${x.family.map(m=>`
-              <tr>
-                <td style="padding:6px">${escapeHtml(m.name||'')}</td>
-                <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
-                <td style="padding:6px">${escapeHtml((m.relationship || m.relation || ''))}</td>
-                <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
-                <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>`
-      : '<span class="muted">No family members listed</span>';
-
-    html += `<div><strong>Family Members</strong><br>${famHtml}</div>`;
-
-    html += `
-      <div class="grid2">
-        <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
-        <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
-      </div>
-      <div><strong>Notes</strong><br>${escapeHtml(fld('notes'))}</div>
-    `;
-    detailsBody.innerHTML = html;
-  }
 
   function openDetails(id){
     const rec = (data || []).find(d => String(d && d._id) === String(id));
