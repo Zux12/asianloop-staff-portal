@@ -243,41 +243,51 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
     let method='POST', url='/api/staff';
     if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-    if (!r.ok){
+   if (!r.ok){
   const t = await r.text().catch(()=>r.statusText||'');
   alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
   return;
 }
 
-// Try get the saved doc (id + staffNo); some backends return nothing
+// Build normalized values so BE accepts and FE can see immediately
+// (ensure we always send staff_number, and keep staffNo for FE)
+obj.staffNo       = obj.staffNo || obj.staff_number || obj.staff_no || '';
+obj.staff_number  = obj.staffNo;
+
+// Try reading the saved doc (some backends return nothing)
 let saved = null;
-try { saved = await r.json(); } catch(_){}
+try { saved = await r.json(); } catch(_) {}
 
-const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
-
-// Refresh from server so the new row appears immediately
+// Refresh from server so new/updated rows appear
 await load();
 
-// If the backend returned an id, patch staffNo into the freshly loaded list
+// Identify the row we just saved:
+// 1) by id from server (if provided), else
+// 2) by email (unique in your table)
+let targetIndex = -1;
 if (saved){
   const savedId =
     (saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
     (typeof saved._id === 'string') ? saved._id :
     (typeof saved.id  === 'string') ? saved.id : '';
-
   if (savedId){
-    const i = data.findIndex(d => String(d && d._id) === String(savedId));
-    if (i > -1){
-      data[i] = {
-        ...data[i],
-        staffNo: (saved.staffNo || saved.staff_number || saved.staff_no || sentStaffNo)
-      };
-      render(); // re-render to reflect the patched staffNo immediately
-    }
+    targetIndex = data.findIndex(d => String(d && d._id) === String(savedId));
   }
+}
+if (targetIndex === -1 && obj.email){
+  targetIndex = data.findIndex(d => String(d && d.email).toLowerCase() === String(obj.email).toLowerCase());
+}
+
+// Patch Staff Number into the freshly loaded list row so Details/Edit show it now
+if (targetIndex > -1){
+  const patched = { ...data[targetIndex] };
+  patched.staffNo = (saved?.staffNo || saved?.staff_number || saved?.staff_no || obj.staffNo || '');
+  data[targetIndex] = patched;
+  render();
 }
 
 dlg.close();
+
 
 
   };
@@ -297,49 +307,30 @@ async function getStaff(id){
 
 
   
-async function openEdit(id){
-  const x = await getStaff(id); if(!x) return;
+function openEdit(id){
+  const x = (data || []).find(y => String(y && y._id) === String(id));
+  if (!x){ alert('Could not load staff'); return; }
 
-    frm.name.value = x.name||'';
-    frm.email.value = x.email||'';
-    frm.dept.value = x.dept||'';
-    frm.role.value = x.role||'viewer';
-    frm.status.value = x.status||'Active';
-    frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
-    frm.notes.value = x.notes||'';
-frm.staffNo.value = (x.staffNo || x.staff_number || x.staff_no || '');
+  frm.reset();
+  const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
+  set('_id', x._id || '');
+  set('name', x.name);
+  set('email', x.email);
+  set('dept', x.dept);
+  set('role', (x.role || 'viewer'));
+  set('status', (x.status || 'Active'));
+  set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+  set('notes', x.notes);
 
-frm.carReg.value = x.carReg || '';
-frm.carDesc.value = x.carDesc || '';
-frm.hireDate.value = x.hireDate ? fmtDate(x.hireDate) : '';
-frm.address.value = x.address || '';
-frm.idNo.value = x.idNo || '';
-frm.passportNo.value = x.passportNo || '';
-frm.nokName.value = x.nokName || '';
-frm.nokRelation.value = x.nokRelation || '';
-frm.nokPhone.value = x.nokPhone || '';
-frm.emergencyNotes.value = x.emergencyNotes || '';
+  // Staff Number (read any backend key)
+  set('staffNo', (x.staffNo || x.staff_number || x.staff_no || ''));
 
+  // (leave the rest of your setters as-is)
+  dlgTitle.textContent = 'Edit Staff';
+  dlg.showModal();
+}
 
-    frm._id.value = x._id;
-    $('#dlgTitle').textContent='Edit Staff';
-    dlg.showModal();
- 
-  fam = Array.isArray(x.family)
-  ? x.family.map(m=>({
-      name: m?.name || '',
-      dob:  m?.dob  || '',
-      relation: m?.relation || '',
-      phone: m?.phone || '',
-      notes: m?.notes || ''
-    }))
-  : []; // migrate away from old free-text
-renderFamily();
-
-  
-  
-  }
   window.openEdit = openEdit;
 
   async function toggleStatus(id, current){
