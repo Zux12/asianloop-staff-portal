@@ -247,8 +247,24 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
     dlg.close(); await load();
   };
 
-  function openEdit(id){
-    const x = data.find(y=>y._id===id); if(!x) return;
+
+// Fetch full staff by id; fallback to list row if detail route isn't available
+async function getStaff(id){
+  try{
+    const r = await fetch(`/api/staff/${id}`, { headers:{ 'Accept':'application/json' }});
+    if (!r.ok) throw 0;
+    const obj = await r.json();
+    return obj && typeof obj === 'object' ? obj : (Array.isArray(obj) ? obj[0] : null);
+  }catch(_){
+    return data.find(y => y._id === id) || null;
+  }
+}
+
+
+  
+async function openEdit(id){
+  const x = await getStaff(id); if(!x) return;
+
     frm.name.value = x.name||'';
     frm.email.value = x.email||'';
     frm.dept.value = x.dept||'';
@@ -257,6 +273,7 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
     frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
     frm.notes.value = x.notes||'';
 frm.staffNo.value = (x.staffNo || x.staff_number || x.staff_no || '');
+
 
 frm.carReg.value = x.carReg || '';
 frm.carDesc.value = x.carDesc || '';
@@ -387,6 +404,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
   <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
 </div>
 
+
       <div class="grid2">
         <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
         <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
@@ -444,12 +462,13 @@ html += `
     detailsBody.innerHTML = html;
   }
 
-  function openDetails(id){
-    const x = data.find(y=>y._id===id);
-    if(!x) return;
-    renderDetails(x);
-    dlgDetails.showModal();
-  }
+async function openDetails(id){
+  const x = await getStaff(id);
+  if(!x) return;
+  renderDetails(x);
+  dlgDetails.showModal();
+}
+
   window.openDetails = openDetails;
 
   function exportDetailsPdf(){
