@@ -172,7 +172,7 @@
 
 
   <label>Notes (optional)<br><input name="notes" placeholder=""></label>
-  <input type="hidden" name="_id" />
+
 </form>
 
   <div class="dlg-f">
@@ -245,6 +245,8 @@ async function load(){
   const dlg = $('#dlg'); const frm = $('#frm');
 $('#btnNew').onclick = ()=>{
   frm.reset();
+  (document.getElementById('hid_id')||{}).value = '';
+
   if (frm.elements['_id']) frm.elements['_id'].value = '';
   if (frm.role) frm.role.value = 'viewer';
   if (frm.status) frm.status.value = 'Active';
@@ -275,7 +277,7 @@ const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
 obj.family = famClean;
 
 // --- decide create vs update using the hidden _id field ---
-const idField = (frm.elements['_id'] && String(frm.elements['_id'].value || '').trim()) || '';
+const idField = String((document.getElementById('hid_id')?.value || '')).trim();
 let method, url;
 if (idField){
   method = 'PUT';
@@ -286,6 +288,7 @@ if (idField){
   url = '/api/staff';
   delete obj._id;
 }
+
 
 
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
@@ -354,7 +357,8 @@ function openEdit(id){
   frm.reset();
   const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
-  set('_id', x._id || '');                 // <-- IMPORTANT
+(document.getElementById('hid_id')||{}).value = x._id || '';
+
   set('name', x.name);
   set('email', x.email);
   set('dept', x.dept);
