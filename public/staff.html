@@ -149,17 +149,18 @@
 
   <div class="table">
     <table id="tbl">
-      <thead>
-        <tr>
-          <th style="width:22%">Name</th>
-          <th style="width:26%">Email</th>
-          <th style="width:14%">Dept</th>
-          <th style="width:12%">Role</th>
-          <th style="width:12%">Status</th>
-          <th style="width:14%">Last login</th>
-          <th style="width:170px"></th>
-        </tr>
-      </thead>
+<thead>
+  <tr>
+    <th style="width:18%">Name</th>
+    <th style="width:14%">Staff No</th>
+    <th style="width:26%">Email</th>
+    <th style="width:14%">Dept</th>
+    <th style="width:12%">Role</th>
+    <th style="width:12%">Status</th>
+    <th style="width:170px" class="right">Actions</th>
+  </tr>
+</thead>
+
       <tbody id="rows"><tr><td colspan="7" class="muted" style="padding:14px">Loading…</td></tr></tbody>
     </table>
   </div>
@@ -287,27 +288,37 @@ const roleLabel = (v)=>{
 
 
   
-  function render(){
-    const q = $('#q').value.trim().toLowerCase();
-    const r = $('#fRole').value;
-    const s = $('#fStatus').value;
-    const filtered = data.filter(x=>{
-      const okQ = !q || (x.name?.toLowerCase().includes(q) || x.email?.toLowerCase().includes(q) || x.dept?.toLowerCase().includes(q));
-      const okR = !r || x.role===r;
-      const okS = !s || x.status===s;
-      return okQ && okR && okS;
-    });
-    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`; return; }
-    rowsEl.innerHTML = filtered.map(x=>{
-      const st = x.status==='Active' ? 'active' : 'suspended';
-      return `<tr>
+ function render(){
+  const q = $('#q').value.trim().toLowerCase();
+  const r = $('#fRole').value;
+  const s = $('#fStatus').value;
+
+  const filtered = data.filter(x=>{
+    const okQ = !q || (
+      (x.name||'').toLowerCase().includes(q) ||
+      (x.email||'').toLowerCase().includes(q) ||
+      (x.dept||'').toLowerCase().includes(q)
+    );
+    const okR = !r || x.role===r;
+    const okS = !s || x.status===s;
+    return okQ && okR && okS;
+  });
+
+  if(!filtered.length){
+    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
+    return;
+  }
+
+  rowsEl.innerHTML = filtered.map(x=>{
+    const st = x.status==='Active' ? 'active' : 'suspended';
+    return `
+      <tr>
         <td>${escapeHtml(x.name||'')}</td>
+        <td>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</td>
         <td>${escapeHtml(x.email||'')}</td>
         <td>${escapeHtml(x.dept||'')}</td>
-<td>${escapeHtml(roleLabel(x.role))}</td>
-
+        <td>${escapeHtml(roleLabel(x.role))}</td>
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
-        <td>${fmtDate(x.lastLoginAt)}</td>
         <td class="right">
           <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
           <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
@@ -315,8 +326,9 @@ const roleLabel = (v)=>{
           <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
         </td>
       </tr>`;
-    }).join('');
-  }
+  }).join('');
+}
+
 
   async function load(){
     try{
