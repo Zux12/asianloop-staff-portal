@@ -184,6 +184,7 @@
 <script>
   const $ = (q, el=document) => el.querySelector(q);
   const rowsEl = $('#rows'); let data = [];
+  let fam = []; // <- single global family array
 
   function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
   function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -208,171 +209,180 @@
         <td>${escapeHtml(x.role||'')}</td>
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
         <td>${fmtDate(x.lastLoginAt)}</td>
-<td class="right">
-  <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
-  <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
-  <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
-  <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
-</td>
-
+        <td class="right">
+          <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
+          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+          <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
+          <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
+        </td>
       </tr>`;
     }).join('');
   }
 
-async function load(){
-  try{
-    const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
-    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    const j = await r.json();
+  async function load(){
+    try{
+      const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      const j = await r.json();
 
-    const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
-    data = (arr || []).map(x => {
-      const id =
-        (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
-        (x && typeof x._id === 'string') ? x._id :
-        (x && typeof x.id  === 'string') ? x.id : '';
-      return { ...x, _id: id };
-    });
-  }catch(e){
-    console.error('[load]', e);
-    data = [];
+      const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
+      data = (arr || []).map(x => {
+        const id =
+          (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
+          (x && typeof x._id === 'string') ? x._id :
+          (x && typeof x.id  === 'string') ? x.id : '';
+        return { ...x, _id: id };
+      });
+    }catch(e){
+      console.error('[load]', e);
+      data = [];
+    }
+    render();
   }
-  render();
-}
-
 
   // dialogs
   const dlg = $('#dlg'); const frm = $('#frm');
-$('#btnNew').onclick = ()=>{
-  frm.reset();
-  (document.getElementById('hid_id')||{}).value = '';
 
-  if (frm.elements['_id']) frm.elements['_id'].value = '';
-  if (frm.role) frm.role.value = 'viewer';
-  if (frm.status) frm.status.value = 'Active';
-  if (frm.mfaEnabled) frm.mfaEnabled.value = 'false';
-  $('#dlgTitle').textContent = 'Add Staff';
-  dlg.showModal();
-};
+  $('#btnNew').onclick = ()=>{
+    frm.reset();
+    (document.getElementById('hid_id')||{}).value = '';
+    if (frm.role) frm.role.value = 'viewer';
+    if (frm.status) frm.status.value = 'Active';
+    if (frm.mfaEnabled) frm.mfaEnabled.value = 'false';
 
+    // clear Family section
+    fam = [];
+    const famRows = document.getElementById('familyRows');
+    if (famRows) famRows.innerHTML = '';
+    if (typeof renderFamily === 'function') renderFamily();
 
-  
-  $('#btnCancel').onclick = ()=> dlg.close();
+    $('#dlgTitle').textContent = 'Add Staff';
+    dlg.showModal();
+  };
+
+  $('#btnCancel').onclick = ()=>{
+    dlg.close();
+    // optional: clear family on cancel as well
+    fam = [];
+    const famRows = document.getElementById('familyRows');
+    if (famRows) famRows.innerHTML = '';
+  };
 
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
     obj.mfaEnabled = (obj.mfaEnabled === 'true');
-   // --- normalize fields ---
-obj.staffNo = obj.staffNo || obj.staff_number || obj.staff_no || '';
-obj.staff_number = obj.staffNo; // send snake_case too
 
-// --- family clean (relation -> relationship) ---
-const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
-  name: (m?.name || '').trim(),
-  dob: m?.dob || '',
-  relationship: (m?.relation || m?.relationship || '').trim(),
-  phone: (m?.phone || '').trim(),
-  notes: (m?.notes || '').trim(),
-})).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
-obj.family = famClean;
+    // normalize fields
+    obj.staffNo = obj.staffNo || obj.staff_number || obj.staff_no || '';
+    obj.staff_number = obj.staffNo; // send snake_case too
 
-// --- decide create vs update using the hidden _id field ---
-const idField = String((document.getElementById('hid_id')?.value || '')).trim();
-let method, url;
-if (idField){
-  method = 'PUT';
-  url = `/api/staff/${encodeURIComponent(idField)}`;
-  obj._id = idField;
-} else {
-  method = 'POST';
-  url = '/api/staff';
-  delete obj._id;
-}
+    // family clean (relation -> relationship)
+    const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
+      name: (m?.name || '').trim(),
+      dob: m?.dob || '',
+      relationship: (m?.relation || m?.relationship || '').trim(),
+      phone: (m?.phone || '').trim(),
+      notes: (m?.notes || '').trim(),
+    })).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
+    obj.family = famClean;
 
-
+    // decide create vs update using the hidden _id field
+    const idField = String((document.getElementById('hid_id')?.value || '')).trim();
+    let method, url;
+    if (idField){
+      method = 'PUT';
+      url = `/api/staff/${encodeURIComponent(idField)}`;
+      obj._id = idField;
+    } else {
+      method = 'POST';
+      url = '/api/staff';
+      delete obj._id;
+    }
 
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-  // --- after the fetch(...) call in your Save handler, replace the success block with this ---
-if (!r.ok){
-  const t = await r.text().catch(()=>r.statusText||'');
-  alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
-  return;
-}
+    if (!r.ok){
+      const t = await r.text().catch(()=>r.statusText||'');
+      alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
+      return;
+    }
 
-let saved = null;
-try { saved = await r.json(); } catch(_) {}
+    let saved = null;
+    try { saved = await r.json(); } catch(_) {}
 
-const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
+    const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
 
-// Always reload fresh list from server (do NOT add/unshift locally)
-await load();
+    // Always reload fresh list from server
+    await load();
 
-// Find the just-saved row by id (preferred) or email; then patch staffNo only
-let savedId =
-  (saved && saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
-  (saved && typeof saved._id === 'string') ? saved._id :
-  (saved && typeof saved.id  === 'string') ? saved.id :
-  (obj && obj._id) ? obj._id : '';
+    // Find the just-saved row by id (preferred) or email; then patch staffNo only
+    let savedId =
+      (saved && saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
+      (saved && typeof saved._id === 'string') ? saved._id :
+      (saved && typeof saved.id  === 'string') ? saved.id :
+      (obj && obj._id) ? obj._id : '';
 
-let i = -1;
-if (savedId) i = data.findIndex(d => String(d && d._id) === String(savedId));
-if (i === -1 && obj.email){
-  i = data.findIndex(d => String(d && d.email).toLowerCase() === String(obj.email).toLowerCase());
-}
-if (i > -1){
-  data[i] = {
-    ...data[i],
-    staffNo: (saved?.staffNo || saved?.staff_number || saved?.staff_no || sentStaffNo)
-  };
-  render();
-}
+    let i = -1;
+    if (savedId) i = data.findIndex(d => String(d && d._id) === String(savedId));
+    if (i === -1 && obj.email){
+      i = data.findIndex(d => String(d && d.email).toLowerCase() === String(obj.email).toLowerCase());
+    }
+    if (i > -1){
+      data[i] = {
+        ...data[i],
+        staffNo: (saved?.staffNo || saved?.staff_number || saved?.staff_no || sentStaffNo)
+      };
+      render();
+    }
 
-dlg.close();
-
-
-
-
+    dlg.close();
   };
 
-
-// Fetch full staff by id; fallback to list row if detail route isn't available
-async function getStaff(id){
-  try{
-    const r = await fetch(`/api/staff/${id}`, { headers:{ 'Accept':'application/json' }});
-    if (!r.ok) throw 0;
-    const obj = await r.json();
-    return obj && typeof obj === 'object' ? obj : (Array.isArray(obj) ? obj[0] : null);
-  }catch(_){
-    return data.find(y => y._id === id) || null;
+  // Fetch full staff by id; fallback to list row if detail route isn't available
+  async function getStaff(id){
+    try{
+      const r = await fetch(`/api/staff/${id}`, { headers:{ 'Accept':'application/json' }});
+      if (!r.ok) throw 0;
+      const obj = await r.json();
+      return obj && typeof obj === 'object' ? obj : (Array.isArray(obj) ? obj[0] : null);
+    }catch(_){
+      return data.find(y => y._id === id) || null;
+    }
   }
-}
 
+  // Ensure openEdit writes the _id into the hidden field (so Save does PUT)
+  function openEdit(id){
+    const x = (data || []).find(y => String(y && y._id) === String(id));
+    if (!x){ alert('Could not load staff'); return; }
 
-  
-// 1) Ensure openEdit writes the _id into the hidden field (so Save does PUT)
-function openEdit(id){
-  const x = (data || []).find(y => String(y && y._id) === String(id));
-  if (!x){ alert('Could not load staff'); return; }
+    frm.reset();
+    const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
-  frm.reset();
-  const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
+    (document.getElementById('hid_id')||{}).value = x._id || '';
 
-(document.getElementById('hid_id')||{}).value = x._id || '';
+    set('name', x.name);
+    set('email', x.email);
+    set('dept', x.dept);
+    set('role', x.role || 'viewer');
+    set('status', x.status || 'Active');
+    set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+    set('notes', x.notes);
+    set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
 
-  set('name', x.name);
-  set('email', x.email);
-  set('dept', x.dept);
-  set('role', x.role || 'viewer');
-  set('status', x.status || 'Active');
-  set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-  set('notes', x.notes);
-  set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
+    // rebuild Family for this record
+    fam = Array.isArray(x.family) ? x.family.map(m => ({
+      name: m?.name || '',
+      dob: m?.dob || '',
+      relation: (m?.relationship ?? m?.relation ?? ''),
+      phone: m?.phone || '',
+      notes: m?.notes || ''
+    })) : [];
+    const famRows = document.getElementById('familyRows');
+    if (famRows) famRows.innerHTML = '';
+    if (typeof renderFamily === 'function') renderFamily();
 
-  dlgTitle.textContent = 'Edit Staff';
-  dlg.showModal();
-}
-
-
+    $('#dlgTitle').textContent = 'Edit Staff';
+    dlg.showModal();
+  }
   window.openEdit = openEdit;
 
   async function toggleStatus(id, current){
@@ -398,7 +408,7 @@ function openEdit(id){
   load();
 </script>
 
-  <!-- Full details dialog (read-only) -->
+<!-- Full details dialog (read-only) -->
 <dialog id="dlgDetails">
   <div class="dlg-h">Staff details</div>
   <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
@@ -413,44 +423,36 @@ function openEdit(id){
   const detailsBody = document.getElementById('detailsBody');
   document.getElementById('btnDetClose').onclick = ()=> dlgDetails.close();
   document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
-  document.getElementById('btnAddFam').onclick = ()=> addFam();
+  document.getElementById('btnAddFam')?.addEventListener('click', ()=> addFam());
 
+  function renderFamily(){
+    const rows = fam.map((m,i)=>`
+      <div class="fam-row">
+        <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
+        <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
+        <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
+        <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
+        <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
+        <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
+      </div>
+    ").join('');
+    const famRows = document.getElementById('familyRows');
+    if (famRows) {
+      famRows.innerHTML = rows || '<div class="muted">No family members yet.</div>';
+      famRows.querySelectorAll('input').forEach(inp=>{
+        inp.addEventListener('input', (e)=>{
+          const idx = Number(e.target.dataset.i);
+          const key = e.target.dataset.k;
+          let val = e.target.value;
+          if(key === 'dob' && val) { val = new Date(val).toISOString(); }
+          fam[idx][key] = val;
+        });
+      });
+    }
+  }
+  function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
+  window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
 
-let fam = []; // array of {name, dob, relation, phone, notes}
-
-function renderFamily(){
-  const rows = fam.map((m,i)=>`
-    <div class="fam-row">
-      <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
-      <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
-      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
-      <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
-      <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
-      <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
-    </div>
-  `).join('');
-  document.getElementById('familyRows').innerHTML =
-    rows || '<div class="muted">No family members yet.</div>';
-
-  // wire inputs to state
-  document.getElementById('familyRows').querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('input', (e)=>{
-      const idx = Number(e.target.dataset.i);
-      const key = e.target.dataset.k;
-      let val = e.target.value;
-      if(key === 'dob' && val) { val = new Date(val).toISOString(); }
-      fam[idx][key] = val;
-    });
-  });
-}
-
-function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
-window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
-
-
-
-
-  
   function renderDetails(x){
     const fld = (k)=> (x[k] ?? '').toString();
     const yesno = (b)=> b ? 'Yes' : 'No';
@@ -467,13 +469,10 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
         <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
         <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
       </div>
-<div class="grid2">
-  <div><strong>Staff Number</strong><br>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</div>
-  <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
-</div>
-
-
-
+      <div class="grid2">
+        <div><strong>Staff Number</strong><br>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</div>
+        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
+      </div>
       <div class="grid2">
         <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
         <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
@@ -491,37 +490,33 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
         <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
         <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
       </div>
-`;
+    `;
 
+    const famHtml = (Array.isArray(x.family) && x.family.length)
+      ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead><tr>
+            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
+            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
+            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
+            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
+            <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
+          </tr></thead>
+          <tbody>
+            ${x.family.map(m=>`
+              <tr>
+                <td style="padding:6px">${escapeHtml(m.name||'')}</td>
+                <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
+                <td style="padding:6px">${escapeHtml((m.relationship || m.relation || ''))}</td>
+                <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
+                <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`
+      : '<span class="muted">No family members listed</span>';
 
-   // --- add this inside renderDetails(x) after the next-of-kin section ---
-const famHtml = (Array.isArray(x.family) && x.family.length)
- ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead><tr>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
-      </tr></thead>
-      <tbody>
-        ${x.family.map(m=>`
-          <tr>
-            <td style="padding:6px">${escapeHtml(m.name||'')}</td>
-            <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
-            <td style="padding:6px">${escapeHtml(m.relation||'')}</td>
-            <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
-            <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`
- : '<span class="muted">No family members listed</span>';
+    html += `<div><strong>Family Members</strong><br>${famHtml}</div>`;
 
-html += `
-<div><strong>Family Members</strong><br>${famHtml}</div>
-`;
-
-  html += `
+    html += `
       <div class="grid2">
         <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
         <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
@@ -531,18 +526,15 @@ html += `
     detailsBody.innerHTML = html;
   }
 
-function openDetails(id){
-  const rec = (data || []).find(d => String(d && d._id) === String(id));
-  if (!rec) { alert('Could not load details.'); return; }
-  renderDetails(rec);             // uses the in-memory row only
-  dlgDetails.showModal();
-}
-
-
+  function openDetails(id){
+    const rec = (data || []).find(d => String(d && d._id) === String(id));
+    if (!rec) { alert('Could not load details.'); return; }
+    renderDetails(rec);
+    dlgDetails.showModal();
+  }
   window.openDetails = openDetails;
 
   function exportDetailsPdf(){
-    // Open print-friendly window for native "Save as PDF"
     const w = window.open('', '_blank', 'width=800,height=900');
     const css = `
       body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:20px;color:#0f172a}
@@ -554,9 +546,7 @@ function openDetails(id){
     w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
     w.document.write('<h1>Staff details</h1>');
     w.document.write('<div class="grid">');
-    // convert dialog body into printable blocks
     const wrapper = document.createElement('div'); wrapper.innerHTML = detailsBody.innerHTML;
-    // Wrap each direct child in .block for nicer print
     Array.from(wrapper.children).forEach(ch=>{
       w.document.write('<div class="block">'+ch.outerHTML+'</div>');
     });
@@ -567,6 +557,7 @@ function openDetails(id){
     w.print();
   }
 </script>
+
 
 </body>
 </html>
