@@ -121,12 +121,13 @@
 <main>
   <div class="bar">
     <input id="q" placeholder="Search name/email/department…" />
-    <select id="fRole">
-      <option value="">All roles</option>
-      <option>admin</option>
-      <option>manager</option>
-      <option>viewer</option>
-    </select>
+<select id="fRole">
+  <option value="">All</option>
+  <option value="viewer">Executive</option>
+  <option value="manager">Non-Executive</option>
+  <option value="admin">Others</option>
+</select>
+
     <select id="fStatus">
       <option value="">All status</option>
       <option value="Active">Active</option>
@@ -171,13 +172,14 @@
 
   <div class="grid2">
     <label>Department<br><input name="dept"></label>
-    <label>Role<br>
-      <select name="role" required>
-        <option>viewer</option>
-        <option>manager</option>
-        <option>admin</option>
-      </select>
-    </label>
+<label>Role<br>
+  <select name="role" required>
+    <option value="viewer">Executive</option>
+    <option value="manager">Non-Executive</option>
+    <option value="admin">Others</option>
+  </select>
+</label>
+
   </div>
 
   <div class="grid2">
@@ -481,13 +483,17 @@ render();
 
 <!-- Full details dialog (read-only) -->
 <dialog id="dlgDetails">
-  <div class="dlg-h">Staff details</div>
+  <div class="dlg-h" style="display:flex;align-items:center;gap:10px">
+    <img src="/public/images/logo.jpg" onerror="this.src='images/logo.jpg'" alt="logo" style="height:22px;width:auto;border-radius:4px">
+    <span>Staff details</span>
+  </div>
   <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
   <div class="dlg-f">
     <button class="btn" id="btnDetClose">Close</button>
     <button class="btn primary" id="btnDetPdf">Export PDF</button>
   </div>
 </dialog>
+
 
 <script>
   const dlgDetails = document.getElementById('dlgDetails');
@@ -632,28 +638,47 @@ function openDetails(id){
 window.openDetails = openDetails;
 
 
-  function exportDetailsPdf(){
-    const w = window.open('', '_blank', 'width=800,height=900');
-    const css = `
-      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:20px;color:#0f172a}
-      h1{font-size:18px;margin:0 0 12px}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
-      strong{display:block;color:#111827}
-    `;
-    w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
-    w.document.write('<h1>Staff details</h1>');
-    w.document.write('<div class="grid">');
-    const wrapper = document.createElement('div'); wrapper.innerHTML = detailsBody.innerHTML;
-    Array.from(wrapper.children).forEach(ch=>{
-      w.document.write('<div class="block">'+ch.outerHTML+'</div>');
-    });
-    w.document.write('</div>');
-    w.document.write('</body></html>');
-    w.document.close();
-    w.focus();
-    w.print();
-  }
+function exportDetailsPdf(){
+  const w = window.open('', '_blank', 'width=800,height=900');
+  const css = `
+    @page{ margin:20mm }
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:0 20mm 20mm;color:#0f172a}
+    header{display:flex;align-items:center;gap:10px;margin:18px 0}
+    header img{height:28px;width:auto;border-radius:6px}
+    header .tt{font-size:18px;font-weight:700}
+    header .date{margin-left:auto;font-size:12px;color:#64748b}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;break-inside:avoid}
+    strong{display:block;color:#111827}
+  `;
+  w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
+
+  // Header with logo + title + date
+  const logo = '/public/images/logo.jpg';
+  const today = new Date().toISOString().slice(0,10);
+  w.document.write(
+    `<header>
+       <img src="${logo}" onerror="this.src='images/logo.jpg'">
+       <div class="tt">Asianloop — Staff Details</div>
+       <div class="date">Printed: ${today}</div>
+     </header>`
+  );
+
+  // Body copied from dialog content
+  w.document.write('<div class="grid">');
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = detailsBody.innerHTML;
+  Array.from(wrapper.children).forEach(ch=>{
+    w.document.write('<div class="block">'+ch.outerHTML+'</div>');
+  });
+  w.document.write('</div>');
+
+  w.document.write('</body></html>');
+  w.document.close();
+  w.focus();
+  w.print();
+}
+
 </script>
 
 
