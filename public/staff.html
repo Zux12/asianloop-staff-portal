@@ -265,50 +265,43 @@ if (!id || id === 'undefined' || id === 'null') {
 }
 
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-   if (!r.ok){
+  // --- after the fetch(...) call in your Save handler, replace the success block with this ---
+if (!r.ok){
   const t = await r.text().catch(()=>r.statusText||'');
   alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
   return;
 }
 
-// Build normalized values so BE accepts and FE can see immediately
-// (ensure we always send staff_number, and keep staffNo for FE)
-obj.staffNo       = obj.staffNo || obj.staff_number || obj.staff_no || '';
-obj.staff_number  = obj.staffNo;
-
-// Try reading the saved doc (some backends return nothing)
 let saved = null;
 try { saved = await r.json(); } catch(_) {}
 
-// Refresh from server so new/updated rows appear
+const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
+
+// Always reload fresh list from server (do NOT add/unshift locally)
 await load();
 
-// Identify the row we just saved:
-// 1) by id from server (if provided), else
-// 2) by email (unique in your table)
-let targetIndex = -1;
-if (saved){
-  const savedId =
-    (saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
-    (typeof saved._id === 'string') ? saved._id :
-    (typeof saved.id  === 'string') ? saved.id : '';
-  if (savedId){
-    targetIndex = data.findIndex(d => String(d && d._id) === String(savedId));
-  }
-}
-if (targetIndex === -1 && obj.email){
-  targetIndex = data.findIndex(d => String(d && d.email).toLowerCase() === String(obj.email).toLowerCase());
-}
+// Find the just-saved row by id (preferred) or email; then patch staffNo only
+let savedId =
+  (saved && saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
+  (saved && typeof saved._id === 'string') ? saved._id :
+  (saved && typeof saved.id  === 'string') ? saved.id :
+  (obj && obj._id) ? obj._id : '';
 
-// Patch Staff Number into the freshly loaded list row so Details/Edit show it now
-if (targetIndex > -1){
-  const patched = { ...data[targetIndex] };
-  patched.staffNo = (saved?.staffNo || saved?.staff_number || saved?.staff_no || obj.staffNo || '');
-  data[targetIndex] = patched;
+let i = -1;
+if (savedId) i = data.findIndex(d => String(d && d._id) === String(savedId));
+if (i === -1 && obj.email){
+  i = data.findIndex(d => String(d && d.email).toLowerCase() === String(obj.email).toLowerCase());
+}
+if (i > -1){
+  data[i] = {
+    ...data[i],
+    staffNo: (saved?.staffNo || saved?.staff_number || saved?.staff_no || sentStaffNo)
+  };
   render();
 }
 
 dlg.close();
+
 
 
 
