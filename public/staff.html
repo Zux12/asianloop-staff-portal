@@ -226,13 +226,17 @@
       const j = await r.json();
 
       const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
-      data = (arr || []).map(x => {
-        const id =
-          (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
-          (x && typeof x._id === 'string') ? x._id :
-          (x && typeof x.id  === 'string') ? x.id : '';
-        return { ...x, _id: id };
-      });
+data = (arr || []).map(x => {
+  const id =
+    (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
+    (x && typeof x._id === 'string') ? x._id :
+    (x && typeof x.id  === 'string') ? x.id : '';
+
+  const staffNoNorm = (x.staffNo || x.staff_number || x.staff_no || '');
+
+  return { ...x, _id: id, staffNo: staffNoNorm };
+});
+
     }catch(e){
       console.error('[load]', e);
       data = [];
@@ -313,6 +317,9 @@
 
     // Always reload fresh list from server
     await load();
+    data = data.map(d => ({ ...d, staffNo: (d.staffNo || d.staff_number || d.staff_no || '') }));
+render();
+
 
     // Find the just-saved row by id (preferred) or email; then patch staffNo only
     let savedId =
