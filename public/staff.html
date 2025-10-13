@@ -278,6 +278,15 @@
   function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
   function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+// Friendly labels for table display
+const roleLabel = (v)=>{
+  if (v === 'admin')   return 'others';
+  if (v === 'manager') return 'Non-Executive';
+  return 'Executive'; // viewer
+};
+
+
+  
   function render(){
     const q = $('#q').value.trim().toLowerCase();
     const r = $('#fRole').value;
@@ -295,7 +304,8 @@
         <td>${escapeHtml(x.name||'')}</td>
         <td>${escapeHtml(x.email||'')}</td>
         <td>${escapeHtml(x.dept||'')}</td>
-        <td>${escapeHtml(x.role||'')}</td>
+<td>${escapeHtml(roleLabel(x.role))}</td>
+
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
         <td>${fmtDate(x.lastLoginAt)}</td>
         <td class="right">
@@ -605,7 +615,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
     </div>
     <div class="grid2">
       <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-      <div><strong>Role</strong><br>${escapeHtml(fld('role'))}</div>
+      <div><strong>Role</strong><br>${escapeHtml(roleLabel(x.role))}</div>
     </div>
     <div class="grid2">
       <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
