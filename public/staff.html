@@ -252,8 +252,9 @@ let lastDetails = null; // full record fetched by id (used by details & PDF)
         <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
         <td>${fmtDate(x.lastLoginAt)}</td>
 <td class="right">
-  <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
-  <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+<button class="btn" onclick="openDetails('${x._id}')">Details</button>
+<button class="btn" onclick="openEdit('${x._id}')">Edit</button>
+
   <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
   <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
 </td>
@@ -355,25 +356,46 @@ function openAdd(){
   dlg.showModal();
 }
 
+  function unwrapStaff(payload){
+  if (!payload) return null;
+  if (Array.isArray(payload)) return payload[0] || null;
+  if (payload.data && typeof payload.data === 'object') return payload.data;
+  if (payload.item && typeof payload.item === 'object') return payload.item;
+  return payload; // assume it already is the record
+}
 
-// Tries several common endpoints; returns null if none work.
+
 async function fetchFullStaff(id){
   const safeId = encodeURIComponent(id || '');
   const candidates = [
-    `/api/staff/${safeId}`,        // REST style
-    `/api/staff?id=${safeId}`,     // Query style
-    `/api/staff/get/${safeId}`,    // Alt
-    `/api/staffs/${safeId}`        // Plural
+    `/api/staff/${safeId}`,
+    `/api/staff?id=${safeId}`,
+    `/api/staff/get/${safeId}`,
+    `/api/staffs/${safeId}`
   ];
   for (const url of candidates){
     try{
-      const r = await fetch(url, { headers: { 'Accept':'application/json' }});
-      if (r.ok) return await r.json();
-      if (r.status === 404) continue; // try next
-    }catch(_){ /* ignore and continue */ }
+      const r = await fetch(url, { headers:{ 'Accept':'application/json' }});
+      if (!r.ok){
+        if (r.status === 404) continue;
+        // non-404 failure; try next
+        continue;
+      }
+      const raw = await r.json();
+      const full = unwrapStaff(raw);
+      if (full && typeof full === 'object'){
+        // normalize its _id
+        const id2 =
+          (full._id && typeof full._id === 'object' && full._id.$oid) ? full._id.$oid :
+          (typeof full._id === 'string') ? full._id :
+          (typeof full.id  === 'string') ? full.id : String(id || '');
+        return { ...full, _id: id2 };
+      }
+    }catch(_){ /* ignore and try next */ }
   }
   return null;
 }
+
 
 
   
@@ -381,42 +403,56 @@ async function fetchFullStaff(id){
 async function openEdit(id){
   let x = null;
   if (id) x = await fetchFullStaff(id);         // try full doc
-  if (!x) x = data.find(y => y._id === id);     // fallback to lite row
+
+  if (!x) x = data.find(y => String(y && y._id) === String(id));
+
   if (!x){ alert('Could not load staff'); return; }
 
   frm.reset();
-  const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
-  set('_id', x._id || '');
-  set('name', x.name);
-  set('email', x.email);
-  set('dept', x.dept);
-  set('role', x.role || 'viewer');
-  set('status', x.status || 'Active');
-  set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-  set('notes', x.notes);
-  set('staffNo', x.staffNo);
-  set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
-  set('carReg', x.carReg);
-  set('carDesc', x.carDesc);
-  set('address', x.address);
-  set('idNo', x.idNo);
-  set('passportNo', x.passportNo);
-  set('nokName', x.nokName);
-  set('nokRelation', x.nokRelation);
-  set('nokPhone', x.nokPhone);
-  set('emergencyNotes', x.emergencyNotes);
+ const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
-  // family (accept either relationship or relation)
-  if (typeof fam !== 'undefined') {
-    fam = Array.isArray(x.family) ? x.family.map(m=>({
-      name: m?.name || '',
-      dob: m?.dob || '',
-      relation: (m?.relationship ?? m?.relation ?? ''),
-      phone: m?.phone || '',
-      notes: m?.notes || ''
-    })) : [];
-    if (typeof renderFamily === 'function') renderFamily();
-  }
+set('_id', x._id || '');
+set('name', x.name);
+set('email', x.email);
+set('dept', x.dept);
+set('role', (x.role || 'viewer'));
+set('status', (x.status || 'Active'));
+set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+set('notes', x.notes);
+
+// Employment
+set('staffNo', x.staffNo);
+set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
+
+// Vehicle
+set('carReg', x.carReg);
+set('carDesc', x.carDesc);
+
+// Identity
+set('idNo', x.idNo);
+set('passportNo', x.passportNo);
+
+// Address
+set('address', x.address);
+
+// Next of Kin
+set('nokName', x.nokName);
+set('nokRelation', (x.nokRelation || x.nextOfKinRelation || ''));
+set('nokPhone', x.nokPhone);
+set('emergencyNotes', x.emergencyNotes);
+
+// Family (accept either relationship or relation)
+if (typeof fam !== 'undefined'){
+  fam = Array.isArray(x.family) ? x.family.map(m=>({
+    name: m?.name || '',
+    dob: m?.dob || '',
+    relation: (m?.relationship ?? m?.relation ?? ''),
+    phone: m?.phone || '',
+    notes: m?.notes || ''
+  })) : [];
+  if (typeof renderFamily === 'function') renderFamily();
+}
+
 
   $('#dlgTitle').textContent='Edit Staff';
   dlg.showModal();
@@ -590,7 +626,9 @@ async function openDetails(id){
   if (id) full = await fetchFullStaff(id);
 
   // Fallback to the row in memory (so user still sees something)
-  const lite = data.find(y => y._id === id);
+
+  const lite = data.find(y => String(y && y._id) === String(id));
+
   const record = full || lite;
 
   if (!record){
