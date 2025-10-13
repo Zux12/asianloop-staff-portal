@@ -117,51 +117,47 @@
 }
 
 /* ===== TABLE LAYOUT (fix Actions visibility) ===== */
-/* IMPORTANT: remove the earlier ".table { overflow:hidden }" rule */
+/* ===== TABLE LAYOUT (clean widths, aligned lines) ===== */
 .table{
   border:1px solid var(--border);
   border-radius:14px;
   background:#fff;
-  overflow-x:visible;   /* <- was hidden; this was clipping the buttons */
+  overflow-x:auto;
 }
-
 table{
   width:100%;
   border-collapse:collapse;
-  table-layout:auto;    /* allow natural column growth */
+  table-layout:fixed;        /* honor <colgroup> widths */
+  min-width: 1100px;
 }
-
 thead tr{ background: var(--table-head, #f5f7fb); }
-thead th{ background: inherit; }
-th, td{ vertical-align:middle; padding:12px 14px; }
+thead th{ background: inherit; padding:12px 14px; text-align:left; }
+th, td{ vertical-align:middle; padding:12px 14px; border-bottom:1px solid var(--border); }
 
-/* Actions column: wider, wrap buttons, no clipping */
-th.actions{ width:420px; }
+/* Actions column */
+th.actions{ text-align:right; padding-right:18px; }   /* move “Actions” title right */
 td.actions{
-  width:420px;
   white-space:normal;
   overflow:visible;
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
-  justify-content:flex-end;
+  gap:6px;
+  justify-content:flex-end;   /* line up under header */
   align-items:center;
   padding-right:12px;
 }
 td.actions .btn{
-  display:inline-flex;
-  align-items:center;
-  padding:6px 10px;
+  font-size:12px;             /* smaller buttons */
+  padding:5px 8px;
   margin:0;
+  line-height:1.2;
 }
 
-/* Narrow screens: shrink Actions a bit, allow horizontal scroll if needed */
+/* Narrow screens: shrink Actions width a bit */
 @media (max-width: 1100px){
-  th.actions, td.actions{ width:320px; }
+  colgroup col:last-child{ width: 340px !important; }
 }
-@media (max-width: 900px){
-  .table{ overflow-x:auto; }  /* enable scroll on very small viewports */
-}
+
 
 
 
@@ -207,17 +203,29 @@ td.actions .btn{
 
   <div class="table">
     <table id="tbl">
+<!-- Column widths -->
+<colgroup>
+  <col style="width:26%">  <!-- Name (wider) -->
+  <col style="width:14%">  <!-- Staff No (same) -->
+  <col style="width:28%">  <!-- Email (wider) -->
+  <col style="width:14%">  <!-- Dept (same) -->
+  <col style="width:12%">  <!-- Role (same) -->
+  <col style="width:12%">  <!-- Status (same) -->
+  <col style="width:420px"> <!-- Actions (fixed) -->
+</colgroup>
+
 <thead>
   <tr>
-    <th style="width:18%">Name</th>
-    <th style="width:14%">Staff No</th>
-    <th style="width:26%">Email</th>
-    <th style="width:14%">Dept</th>
-    <th style="width:12%">Role</th>
-    <th style="width:12%">Status</th>
-    <th class="actions" style="width:420px">Actions</th>
+    <th>Name</th>
+    <th>Staff No</th>
+    <th>Email</th>
+    <th>Dept</th>
+    <th>Role</th>
+    <th>Status</th>
+    <th class="actions">Actions</th> <!-- right-aligned via CSS below -->
   </tr>
 </thead>
+
 
 
 
@@ -399,7 +407,7 @@ function render(){
         <td>${escapeHtml(roleLabel ? roleLabel(x.role) : (x.role||''))}</td>
         <td><span class="status ${stCls}">${escapeHtml(x.status||'')}</span></td>
 <td class="actions">
-  <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
+  <button class="btn" onclick='openDetails("${x._id}")'>Details</button>
   <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
   <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
   <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
