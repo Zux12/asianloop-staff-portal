@@ -457,18 +457,38 @@ app.post('/api/staff', async (req, res) => {
     const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
     if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
 
+    const staffNoVal = (req.body && (req.body.staffNo || req.body.staff_number || req.body.staff_no)) || '';
+
     const doc = {
-      name: String(name).trim(),
-      email: String(email).trim().toLowerCase(),
-      dept: String(dept||'').trim(),
-      role: String(role||'viewer').trim(),
-      status: String(status||'Active').trim(),
-      mfaEnabled: !!mfaEnabled,
-      notes: String(notes||'').trim(),
-        family: cleanFamily(req.body.family),
+      // basics
+      name: String((req.body && req.body.name) || '').trim(),
+      email: String((req.body && req.body.email) || '').trim().toLowerCase(),
+      dept: String((req.body && req.body.dept) || '').trim(),
+      role: String((req.body && req.body.role) || 'viewer').trim(),
+      status: String((req.body && req.body.status) || 'Active').trim(),
+      mfaEnabled: !!(req.body && req.body.mfaEnabled),
+      notes: String((req.body && req.body.notes) || '').trim(),
+
+      // employment + vehicle + identity + address + NOK
+      staffNo: String(staffNoVal || '').trim(),
+      hireDate: String((req.body && req.body.hireDate) || '').trim(),
+      carReg:   String((req.body && req.body.carReg)   || '').trim(),
+      carDesc:  String((req.body && req.body.carDesc)  || '').trim(),
+      address:  String((req.body && req.body.address)  || '').trim(),
+      idNo:          String((req.body && req.body.idNo)          || '').trim(),
+      passportNo:    String((req.body && req.body.passportNo)    || '').trim(),
+      nokName:       String((req.body && req.body.nokName)       || '').trim(),
+      nokRelation:   String((req.body && req.body.nokRelation)   || '').trim(),
+      nokPhone:      String((req.body && req.body.nokPhone)      || '').trim(),
+      emergencyNotes:String((req.body && req.body.emergencyNotes)|| '').trim(),
+
+      // family -> normalized array of {name,dob,relation,phone,notes}
+      family: cleanFamily(req.body && req.body.family),
+
       createdAt: new Date(),
       updatedAt: new Date()
     };
+
     const db = await staffDb();
     const r = await staffColl(db).insertOne(doc);
     res.json({ ok:true, _id: String(r.insertedId) });
@@ -484,16 +504,32 @@ app.put('/api/staff/:id', async (req, res) => {
     const id = req.params.id;
     if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
 
-    const { name, email, dept, role, status, mfaEnabled, notes } = req.body || {};
+    const b = req.body || {};
     const $set = { updatedAt: new Date() };
-    if(name !== undefined) $set.name = String(name).trim();
-    if(email !== undefined) $set.email = String(email).trim().toLowerCase();
-    if(dept !== undefined) $set.dept = String(dept).trim();
-    if(role !== undefined) $set.role = String(role).trim();
-    if(status !== undefined) $set.status = String(status).trim();
-    if(mfaEnabled !== undefined) $set.mfaEnabled = !!(mfaEnabled === true || mfaEnabled === 'true' || mfaEnabled === 'on' || mfaEnabled === 1 || mfaEnabled === '1');
-    if(notes !== undefined) $set.notes = String(notes).trim();
-    if (req.body && 'family' in req.body) $set.family = cleanFamily(req.body.family);
+
+    if (b.name        !== undefined) $set.name        = String(b.name).trim();
+    if (b.email       !== undefined) $set.email       = String(b.email).trim().toLowerCase();
+    if (b.dept        !== undefined) $set.dept        = String(b.dept).trim();
+    if (b.role        !== undefined) $set.role        = String(b.role).trim();
+    if (b.status      !== undefined) $set.status      = String(b.status).trim();
+    if (b.mfaEnabled  !== undefined) $set.mfaEnabled  = !!(b.mfaEnabled === true || b.mfaEnabled === 'true' || b.mfaEnabled === 'on' || b.mfaEnabled === 1 || b.mfaEnabled === '1');
+    if (b.notes       !== undefined) $set.notes       = String(b.notes).trim();
+
+    // employment + vehicle + identity + address + NOK
+    var staffVal = (b.staffNo != null ? b.staffNo : (b.staff_number != null ? b.staff_number : b.staff_no));
+    if (staffVal   !== undefined) $set.staffNo     = String(staffVal || '').trim();
+    if (b.hireDate !== undefined) $set.hireDate    = String(b.hireDate || '').trim();
+    if (b.carReg   !== undefined) $set.carReg      = String(b.carReg   || '').trim();
+    if (b.carDesc  !== undefined) $set.carDesc     = String(b.carDesc  || '').trim();
+    if (b.address  !== undefined) $set.address     = String(b.address  || '').trim();
+    if (b.idNo     !== undefined) $set.idNo        = String(b.idNo     || '').trim();
+    if (b.passportNo !== undefined) $set.passportNo  = String(b.passportNo || '').trim();
+    if (b.nokName  !== undefined) $set.nokName     = String(b.nokName  || '').trim();
+    if (b.nokRelation !== undefined) $set.nokRelation = String(b.nokRelation || '').trim();
+    if (b.nokPhone !== undefined) $set.nokPhone    = String(b.nokPhone || '').trim();
+    if (b.emergencyNotes !== undefined) $set.emergencyNotes = String(b.emergencyNotes || '').trim();
+
+    if (b.family !== undefined) $set.family = cleanFamily(b.family);
 
     const db = await staffDb();
     const r = await staffColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
@@ -548,14 +584,15 @@ function cleanFamily(v){
   try{
     const arr = Array.isArray(v) ? v : JSON.parse(v);
     return arr.filter(Boolean).map(m=>({
-      name: String(m.name||'').trim(),
-      dob:  m.dob ? new Date(m.dob) : null,
-      relation: String(m.relation||'').trim(),
-      phone: String(m.phone||'').trim(),
-      notes: String(m.notes||'').trim()
+      name: String((m && m.name) || '').trim(),
+      dob:  m && m.dob ? new Date(m.dob) : null,
+      relation: String((((m && m.relation) != null ? m.relation : (m && m.relationship)) || '')).trim(),
+      phone: String((m && m.phone) || '').trim(),
+      notes: String((m && m.notes) || '').trim()
     }));
   }catch(_){ return []; }
 }
+
 
 
 
