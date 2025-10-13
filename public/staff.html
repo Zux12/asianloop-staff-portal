@@ -47,6 +47,33 @@
     .fam-row{grid-template-columns:1fr 1fr;gap:6px}
     .fam-row button{justify-self:start}
   }
+
+
+/* --- Responsive dialog widths (Add/Edit & Full Details) --- */
+/* Mobile-first: compact */
+#dlg, #dlgDetails {
+  width: 96%;
+  max-width: 640px;   /* small on phones */
+}
+
+/* Medium screens (tablets / small laptops) */
+@media (min-width: 900px) {
+  #dlg        { max-width: 880px; }   /* Add/Edit dialog */
+  #dlgDetails { max-width: 1000px; }  /* Full details dialog */
+}
+
+/* Large laptops / desktops */
+@media (min-width: 1280px) {
+  #dlg        { max-width: 1100px; }
+  #dlgDetails { max-width: 1200px; }
+}
+
+/* Ensure the body is scrollable, footer stays visible */
+#dlg .dlg-b, #dlgDetails .dlg-b {
+  max-height: 70vh;
+  overflow: auto;
+}
+
 </style>
 </head>
 <body>
