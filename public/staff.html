@@ -223,554 +223,356 @@ dialog{max-width:760px;width:96%}
 </dialog>
 
 <script>
-const $ = (q, el=document) => el.querySelector(q);
-const rowsEl = $('#rows'); let data = [];
-let lastDetails = null; // full record fetched by id (used by details & PDF)
+document.addEventListener('DOMContentLoaded', () => {
+  // ---- ELEMENTS ----
+  const $ = (q, el=document) => el.querySelector(q);
+  const rowsEl      = $('#rows');
+  const frm         = $('#frm');
+  const dlg         = $('#dlg');
+  const dlgTitle    = $('#dlgTitle');
+  const dlgDetails  = $('#dlgDetails');
+  const detailsBody = $('#detailsBody');
 
+  const btnNew      = $('#btnNew');
+  const btnSave     = $('#btnSave');
+  const btnCancel   = $('#btnCancel');
+  const btnRefresh  = $('#btnRefresh');
 
-  function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
-  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  // ---- STATE ----
+  let data = [];
+  let lastDetails = null;   // full record for Details/PDF
+  let fam = [];             // family rows in the form (if used)
 
- function render(){
-  const q = $('#q').value.trim().toLowerCase();
-  const r = $('#fRole').value;
-  const s = $('#fStatus').value;
-
-  const filtered = (data||[]).filter(x=>{
-    const okQ = !q || (String(x.name||'').toLowerCase().includes(q) || String(x.email||'').toLowerCase().includes(q) || String(x.dept||'').toLowerCase().includes(q));
-    const okR = !r || x.role===r;
-    const okS = !s || x.status===s;
-    return okQ && okR && okS;
-  });
-
-  if(!filtered.length){
-    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
-    return;
+  // ---- HELPERS ----
+  function escapeHtml(s){
+    return String(s ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+  function fmtDate(v){
+    if(!v) return '';
+    const d = new Date(v);
+    if (isNaN(d)) return escapeHtml(v);
+    return d.toISOString().slice(0,10);
+  }
+  function pick(o, ...keys){
+    for (const k of keys){
+      const v = o && o[k];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+    }
+    return '';
+  }
+  function unwrapStaff(payload){
+    if (!payload) return null;
+    if (Array.isArray(payload)) return payload[0] || null;
+    if (payload.data && typeof payload.data === 'object') return payload.data;
+    if (payload.item && typeof payload.item === 'object') return payload.item;
+    return payload;
   }
 
-  rowsEl.innerHTML = filtered.map(x=>{
-    const st = x.status==='Active' ? 'active' : 'suspended';
-    return `
-      <tr>
-        <td>${escapeHtml(x.name||'')}</td>
-        <td>${escapeHtml(x.email||'')}</td>
-        <td>${escapeHtml(x.dept||'')}</td>
-        <td>${escapeHtml(x.role||'')}</td>
-        <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
-        <td>${fmtDate(x.lastLoginAt)}</td>
-        <td class="right">
-          <button class="btn view"   data-id="${x._id}">Details</button>
-          <button class="btn edit"   data-id="${x._id}">Edit</button>
-          <button class="btn toggle" data-id="${x._id}" data-status="${x.status||'Active'}">${x.status==='Active'?'Disable':'Enable'}</button>
-          <button class="btn del"    data-id="${x._id}">Delete</button>
-        </td>
-      </tr>`;
-  }).join('');
-}
-
-rowsEl.addEventListener('click', (ev)=>{
-  const btn = ev.target.closest('button');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  if (!id) return;
-
-  if (btn.classList.contains('view')) {
-    openDetails(String(id));
-  } else if (btn.classList.contains('edit')) {
-    openEdit(String(id));
-  } else if (btn.classList.contains('toggle')) {
-    toggleStatus(String(id), btn.dataset.status || 'Active');
-  } else if (btn.classList.contains('del')) {
-    doDelete(String(id));
+  async function fetchFullStaff(id){
+    const safeId = encodeURIComponent(id || '');
+    const candidates = [
+      `/api/staff/${safeId}`,
+      `/api/staff?id=${safeId}`,
+      `/api/staff/get/${safeId}`,
+      `/api/staffs/${safeId}`
+    ];
+    for (const url of candidates){
+      try{
+        const r = await fetch(url, { headers:{ 'Accept':'application/json' }});
+        if (!r.ok){
+          if (r.status === 404) continue;
+          continue;
+        }
+        const raw = await r.json();
+        const full = unwrapStaff(raw);
+        if (full && typeof full === 'object'){
+          const id2 =
+            (full._id && typeof full._id === 'object' && full._id.$oid) ? full._id.$oid :
+            (typeof full._id === 'string') ? full._id :
+            (typeof full.id  === 'string') ? full.id : String(id || '');
+          return { ...full, _id: id2 };
+        }
+      }catch(_){}
+    }
+    return null;
   }
-});
 
-// --- prevent native submit + require manual save ---
-document.getElementById('btnSave').setAttribute('type','button');
-document.getElementById('btnCancel').setAttribute('type','button');
-frm.setAttribute('novalidate','');
-frm.addEventListener('submit', (e)=> e.preventDefault());
-document.getElementById('btnSave').addEventListener('click', saveStaff);
+  // ---- RENDER TABLE ----
+  function render(){
+    const q = ($('#q')?.value || '').trim().toLowerCase();
+    const r = $('#fRole')?.value || '';
+    const s = $('#fStatus')?.value || '';
 
-
-
-  
-async function load(){
-  try{
-    const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
-    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    const j = await r.json();
-
-    // Normalize list + IDs: handles {_id:{$oid}}, {_id:""}, or {id:""}
-    const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
-    data = arr.map(x => {
-      const id =
-        (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
-        (x && typeof x._id === 'string') ? x._id :
-        (x && typeof x.id  === 'string') ? x.id : '';
-      return { ...x, _id: id };
+    const filtered = (data||[]).filter(x=>{
+      const okQ = !q || (String(x.name||'').toLowerCase().includes(q) || String(x.email||'').toLowerCase().includes(q) || String(x.dept||'').toLowerCase().includes(q));
+      const okR = !r || x.role===r;
+      const okS = !s || x.status===s;
+      return okQ && okR && okS;
     });
-  }catch(e){
-    console.error('[load]', e);
-    data = [];
-  }
-  render();
-}
 
-
-  // dialogs
-  const dlg = $('#dlg'); const frm = $('#frm');
-$('#btnNew').onclick = ()=> openAdd();
-  $('#btnCancel').onclick = ()=> dlg.close();
-
-async function saveStaff(e){
-  if (e) e.preventDefault();
-
-  // Build payload from form
-  const obj = Object.fromEntries(new FormData(frm).entries());
-  obj.mfaEnabled = (obj.mfaEnabled === 'true');
-    // --- normalize top-level aliases so backend & renderer agree ---
-  obj.staffNo      = obj.staffNo      || obj.staff_number || obj.staff_no || '';
-  obj.hireDate     = obj.hireDate     || obj.hire_date    || '';
-  obj.carReg       = obj.carReg       || obj.car_reg      || obj.carRegistration || '';
-  obj.carDesc      = obj.carDesc      || obj.car_desc     || obj.carMakeModel    || '';
-  obj.address      = obj.address      || obj.addr         || '';
-  obj.idNo         = obj.idNo         || obj.ic           || obj.nric || '';
-  obj.passportNo   = obj.passportNo   || obj.passport_no  || '';
-  obj.nokName      = obj.nokName      || obj.nextOfKinName || '';
-  obj.nokRelation  = obj.nokRelation  || obj.nextOfKinRelation || obj.relation || '';
-  obj.nokPhone     = obj.nokPhone     || obj.nextOfKinPhone || '';
-  obj.emergencyNotes = obj.emergencyNotes || obj.emergency_notes || '';
-
-  // ensure hireDate is YYYY-MM-DD (browser date inputs already do this)
-  if (obj.hireDate && /^\d{4}-\d{2}-\d{2}/.test(obj.hireDate) === false){
-    const d = new Date(obj.hireDate);
-    if (!isNaN(d)) obj.hireDate = d.toISOString().slice(0,10);
-  }
-
-
-  // Map family: relation -> relationship; drop fully empty rows
-  const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
-    name: (m?.name || '').trim(),
-    dob:  m?.dob || '',
-    relationship: (m?.relation || m?.relationship || '').trim(),
-    phone: (m?.phone || '').trim(),
-    notes: (m?.notes || '').trim(),
-  })).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
-  obj.family = famClean;
-
-  // Decide create vs update
-  let method = 'POST', url = '/api/staff';
-  if (obj._id) { method = 'PUT'; url = `/api/staff/${obj._id}`; }
-
-  // Disable Save to avoid double clicks
-  const btn = document.getElementById('btnSave'); 
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
-  try{
-    const r = await fetch(url, {
-      method,
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(obj)
-    });
-    if (!r.ok){
-      const t = await r.text().catch(()=>r.statusText||'');
-      alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
+    if(!filtered.length){
+      rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
       return;
     }
-    dlg.close();
-    await load(); // refresh table
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+
+    rowsEl.innerHTML = filtered.map(x=>{
+      const st = x.status==='Active' ? 'active' : 'suspended';
+      return `
+        <tr>
+          <td>${escapeHtml(x.name||'')}</td>
+          <td>${escapeHtml(x.email||'')}</td>
+          <td>${escapeHtml(x.dept||'')}</td>
+          <td>${escapeHtml(x.role||'')}</td>
+          <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
+          <td>${fmtDate(x.lastLoginAt)}</td>
+          <td class="right">
+            <button class="btn view"   data-id="${x._id}">Details</button>
+            <button class="btn edit"   data-id="${x._id}">Edit</button>
+            <button class="btn toggle" data-id="${x._id}" data-status="${x.status||'Active'}">${x.status==='Active'?'Disable':'Enable'}</button>
+            <button class="btn del"    data-id="${x._id}">Delete</button>
+          </td>
+        </tr>`;
+    }).join('');
   }
-}
 
-// Wire up both click and real form submit (Enter key)
-document.getElementById('btnSave').addEventListener('click', saveStaff);
-frm.addEventListener('submit', saveStaff);
+  // ---- ROW BUTTONS (event delegation) ----
+  rowsEl.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (!id) return;
 
-
-function openAdd(){
-  // Dialog title
-  $('#dlgTitle').textContent = 'Add Staff';
-
-  // Form defaults
-  frm.reset();
-  if (frm.elements['_id']) frm.elements['_id'].value = '';
-  if (frm.role) frm.role.value = 'viewer';
-  if (frm.status) frm.status.value = 'Active';
-  if (frm.mfaEnabled) frm.mfaEnabled.value = 'false';
-
-  // Family rows (clear)
-  if (typeof fam !== 'undefined') { fam = []; if (typeof renderFamily === 'function') renderFamily(); }
-
-  dlg.showModal();
-}
-
-  function unwrapStaff(payload){
-  if (!payload) return null;
-  if (Array.isArray(payload)) return payload[0] || null;
-  if (payload.data && typeof payload.data === 'object') return payload.data;
-  if (payload.item && typeof payload.item === 'object') return payload.item;
-  return payload; // assume it already is the record
-}
-
-
-async function fetchFullStaff(id){
-  const safeId = encodeURIComponent(id || '');
-  const candidates = [
-    `/api/staff/${safeId}`,
-    `/api/staff?id=${safeId}`,
-    `/api/staff/get/${safeId}`,
-    `/api/staffs/${safeId}`
-  ];
-  for (const url of candidates){
-    try{
-      const r = await fetch(url, { headers:{ 'Accept':'application/json' }});
-      if (!r.ok){
-        if (r.status === 404) continue;
-        // non-404 failure; try next
-        continue;
-      }
-      const raw = await r.json();
-      const full = unwrapStaff(raw);
-      if (full && typeof full === 'object'){
-        // normalize its _id
-        const id2 =
-          (full._id && typeof full._id === 'object' && full._id.$oid) ? full._id.$oid :
-          (typeof full._id === 'string') ? full._id :
-          (typeof full.id  === 'string') ? full.id : String(id || '');
-        return { ...full, _id: id2 };
-      }
-    }catch(_){ /* ignore and try next */ }
-  }
-  return null;
-}
-
-
-
-  
-  
-async function openEdit(id){
-  let x = null;
-  if (id) x = await fetchFullStaff(id);         // try full doc
-
-  if (!x) x = data.find(y => String(y && y._id) === String(id));
-
-  if (!x){ alert('Could not load staff'); return; }
-
-  frm.reset();
- const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
-
-set('_id', x._id || '');
-set('name', x.name);
-set('email', x.email);
-set('dept', x.dept);
-set('role', (x.role || 'viewer'));
-set('status', (x.status || 'Active'));
-set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-set('notes', x.notes);
-
-// Employment
-set('staffNo', x.staffNo);
-set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
-
-// Vehicle
-set('carReg', x.carReg);
-set('carDesc', x.carDesc);
-
-// Identity
-set('idNo', x.idNo);
-set('passportNo', x.passportNo);
-
-// Address
-set('address', x.address);
-
-// Next of Kin
-set('nokName', x.nokName);
-set('nokRelation', (x.nokRelation || x.nextOfKinRelation || ''));
-set('nokPhone', x.nokPhone);
-set('emergencyNotes', x.emergencyNotes);
-
-// Family (accept either relationship or relation)
-if (typeof fam !== 'undefined'){
-  fam = Array.isArray(x.family) ? x.family.map(m=>({
-    name: m?.name || '',
-    dob: m?.dob || '',
-    relation: (m?.relationship ?? m?.relation ?? ''),
-    phone: m?.phone || '',
-    notes: m?.notes || ''
-  })) : [];
-  if (typeof renderFamily === 'function') renderFamily();
-}
-
-
-  $('#dlgTitle').textContent='Edit Staff';
-  dlg.showModal();
-}
-window.openEdit = openEdit;
-
-
-
-
-  async function toggleStatus(id, current){
-    const next = current==='Active' ? 'Suspended' : 'Active';
-    if(!confirm(`Change status to ${next}?`)) return;
-    const r = await fetch(`/api/staff/${id}/status`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: next })});
-    if(!r.ok){ alert('Status change failed'); return; }
-    await load();
-  }
-  window.toggleStatus = toggleStatus;
-
-  async function doDelete(id){
-    if(!confirm('Delete this staff? (Soft delete)')) return;
-    const r = await fetch(`/api/staff/${id}`, { method:'DELETE' });
-    if(!r.ok){ alert('Delete failed'); return; }
-    await load();
-  }
-  window.doDelete = doDelete;
-
-  $('#q').oninput = render; $('#fRole').onchange = render; $('#fStatus').onchange = render;
-  $('#btnRefresh').onclick = load;
-
-  load();
-</script>
-
-  <!-- Full details dialog (read-only) -->
-<dialog id="dlgDetails">
-<div class="dlg-h">
-  <img src="/public/images/logo.jpg" onerror="this.src='images/logo.jpg'" alt="logo" style="height:22px;width:auto;border-radius:4px">
-  <span>Staff details</span>
-</div>
-
-  <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
-  <div class="dlg-f">
-    <button class="btn" id="btnDetClose">Close</button>
-    <button class="btn primary" id="btnDetPdf">Export PDF</button>
-  </div>
-</dialog>
-
-<script>
-  const dlgDetails = document.getElementById('dlgDetails');
-  const detailsBody = document.getElementById('detailsBody');
-  document.getElementById('btnDetClose').onclick = ()=> dlgDetails.close();
-  document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
-  document.getElementById('btnAddFam').onclick = ()=> addFam();
-
-
-let fam = []; // array of {name, dob, relation, phone, notes}
-
-function renderFamily(){
-  const rows = fam.map((m,i)=>`
-    <div class="fam-row">
-      <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
-      <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
-      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
-      <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
-      <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
-      <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
-    </div>
-  `).join('');
-  document.getElementById('familyRows').innerHTML =
-    rows || '<div class="muted">No family members yet.</div>';
-
-  // wire inputs to state
-  document.getElementById('familyRows').querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('input', (e)=>{
-      const idx = Number(e.target.dataset.i);
-      const key = e.target.dataset.k;
-      let val = e.target.value;
-      if(key === 'dob' && val) { val = new Date(val).toISOString(); }
-      fam[idx][key] = val;
-    });
+    if (btn.classList.contains('view')) {
+      openDetails(String(id));
+    } else if (btn.classList.contains('edit')) {
+      openEdit(String(id));
+    } else if (btn.classList.contains('toggle')) {
+      toggleStatus(String(id), btn.dataset.status || 'Active');
+    } else if (btn.classList.contains('del')) {
+      doDelete(String(id));
+    }
   });
-}
 
-function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
-window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
-
-
-function pick(o, ...keys){
-  for (const k of keys){
-    const v = o && o[k];
-    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
-  }
-  return '';
-}
-
-
-  
+  // ---- DETAILS RENDERER ----
   function renderDetails(x){
-    const fld = (k)=> (x[k] ?? '').toString();
-    const yesno = (b)=> b ? 'Yes' : 'No';
-    let html = `
+    // Build Details body using aliases via pick()
+    detailsBody.innerHTML = `
       <div class="grid2">
-        <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
-        <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
+        <div><strong>Name</strong><div>${escapeHtml(x.name||'')}</div></div>
+        <div><strong>Email</strong><div>${escapeHtml(x.email||'')}</div></div>
       </div>
+
+      <h2 class="sec-title">Employment</h2>
       <div class="grid2">
-        <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-        <div><strong>Role</strong><br>${escapeHtml(fld('role'))}</div>
+        <div><strong>Staff Number</strong><div>${escapeHtml(pick(x,'staffNo','staff_number','staff_no'))}</div></div>
+        <div><strong>Hire Date</strong><div>${escapeHtml(pick(x,'hireDate','hire_date'))}</div></div>
       </div>
+
+      <h2 class="sec-title">Vehicle</h2>
       <div class="grid2">
-        <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
-        <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
+        <div><strong>Car Registration</strong><div>${escapeHtml(pick(x,'carReg','car_reg','carRegistration'))}</div></div>
+        <div><strong>Car Make/Model</strong><div>${escapeHtml(pick(x,'carDesc','car_desc','carMakeModel'))}</div></div>
       </div>
+
+      <h2 class="sec-title">Identity</h2>
       <div class="grid2">
-<div><strong>Staff Number</strong><div>${escapeHtml(pick(x,'staffNo','staff_number','staff_no'))}</div></div>
-<div><strong>Hire Date</strong><div>${escapeHtml(pick(x,'hireDate','hire_date'))}</div></div>
-
+        <div><strong>IC / NRIC / ID</strong><div>${escapeHtml(pick(x,'idNo','ic','nric'))}</div></div>
+        <div><strong>Passport No.</strong><div>${escapeHtml(pick(x,'passportNo','passport_no'))}</div></div>
       </div>
+
+      <h2 class="sec-title">Address</h2>
       <div class="grid2">
-<div><strong>Car Registration</strong><div>${escapeHtml(pick(x,'carReg','car_reg','carRegistration'))}</div></div>
-<div><strong>Car Make/Model</strong><div>${escapeHtml(pick(x,'carDesc','car_desc','carMakeModel'))}</div></div>
-
+        <div><strong>Address</strong><div>${escapeHtml(pick(x,'address','addr'))}</div></div>
       </div>
-<div><strong>Address</strong><div>${escapeHtml(pick(x,'address','addr'))}</div></div>
 
+      <h2 class="sec-title">Next of Kin</h2>
       <div class="grid2">
-<div><strong>IC / NRIC / ID</strong><div>${escapeHtml(pick(x,'idNo','ic','nric'))}</div></div>
-<div><strong>Passport No.</strong><div>${escapeHtml(pick(x,'passportNo','passport_no'))}</div></div>
-
+        <div><strong>Next of Kin — Name</strong><div>${escapeHtml(pick(x,'nokName','nextOfKinName'))}</div></div>
+        <div><strong>Relation</strong><div>${escapeHtml(pick(x,'nokRelation','nextOfKinRelation','relation'))}</div></div>
+        <div><strong>Next of Kin — Phone</strong><div>${escapeHtml(pick(x,'nokPhone','nextOfKinPhone'))}</div></div>
+        <div><strong>Emergency Notes</strong><div>${escapeHtml(pick(x,'emergencyNotes','emergency_notes'))}</div></div>
       </div>
-      <div class="grid2">
-<div><strong>Next of Kin — Name</strong><div>${escapeHtml(pick(x,'nokName','nextOfKinName'))}</div></div>
-<div><strong>Relation</strong><div>${escapeHtml(pick(x,'nokRelation','nextOfKinRelation','relation'))}</div></div>
-
-      </div>
-      <div class="grid2">
-<div><strong>Next of Kin — Phone</strong><div>${escapeHtml(pick(x,'nokPhone','nextOfKinPhone'))}</div></div>
-<div><strong>Emergency Notes</strong><div>${escapeHtml(pick(x,'emergencyNotes','emergency_notes'))}</div></div>
-      </div>
-`;
-
-
-   // --- add this inside renderDetails(x) after the next-of-kin section ---
-const famHtml = (Array.isArray(x.family) && x.family.length)
- ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead><tr>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
-        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
-      </tr></thead>
-      <tbody>
-        ${x.family.map(m=>`
-          <tr>
-            <td style="padding:6px">${escapeHtml(m.name||'')}</td>
-            <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
-<td style="padding:6px">${escapeHtml((m.relationship || m.relation || ''))}</td>
-
-            <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
-            <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`
- : '<span class="muted">No family members listed</span>';
-
-html += `
-<div><strong>Family Members</strong><br>${famHtml}</div>
-`;
-
-  html += `
-      <div class="grid2">
-        <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
-        <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
-      </div>
-      <div><strong>Notes</strong><br>${escapeHtml(fld('notes'))}</div>
     `;
-    detailsBody.innerHTML = html;
   }
 
-async function openDetails(id){
-  // Try full record from server
-  let full = null;
-  if (id) full = await fetchFullStaff(id);
+  // ---- OPENERS ----
+  async function openDetails(id){
+    let full = null;
+    if (id) full = await fetchFullStaff(id);
+    const lite = data.find(y => String(y && y._id) === String(id));
+    const record = full || lite;
+    if (!record){ alert('Could not load full details and no cached row found.'); return; }
+    lastDetails = record;
+    renderDetails(record);
+    dlgDetails.showModal();
+  }
+  window.openDetails = openDetails; // in case inline attrs exist elsewhere
 
-  // Fallback to the row in memory (so user still sees something)
+  async function openEdit(id){
+    let x = null;
+    if (id) x = await fetchFullStaff(id);
+    if (!x) x = data.find(y => String(y && y._id) === String(id));
+    if (!x){ alert('Could not load staff'); return; }
 
-  const lite = data.find(y => String(y && y._id) === String(id));
+    frm.reset();
+    const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
-  const record = full || lite;
+    set('_id', x._id || '');
+    set('name', x.name);
+    set('email', x.email);
+    set('dept', x.dept);
+    set('role', (x.role || 'viewer'));
+    set('status', (x.status || 'Active'));
+    set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+    set('notes', x.notes);
 
-  if (!record){
-    alert('Could not load full details and no cached row found.');
-    return;
+    set('staffNo', x.staffNo);
+    set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
+    set('carReg', x.carReg);
+    set('carDesc', x.carDesc);
+    set('address', x.address);
+    set('idNo', x.idNo);
+    set('passportNo', x.passportNo);
+    set('nokName', x.nokName);
+    set('nokRelation', (x.nokRelation || x.nextOfKinRelation || ''));
+    set('nokPhone', x.nokPhone);
+    set('emergencyNotes', x.emergencyNotes);
+
+    // Family (optional)
+    if (typeof fam !== 'undefined'){
+      fam = Array.isArray(x.family) ? x.family.map(m=>({
+        name: m?.name || '',
+        dob: m?.dob || '',
+        relation: (m?.relationship ?? m?.relation ?? ''),
+        phone: m?.phone || '',
+        notes: m?.notes || ''
+      })) : [];
+      if (typeof window.renderFamily === 'function') window.renderFamily();
+    }
+
+    dlgTitle.textContent = 'Edit Staff';
+    dlg.showModal();
+  }
+  window.openEdit = openEdit;
+
+  function openAdd(){
+    dlgTitle.textContent = 'Add Staff';
+    frm.reset();
+    if (frm.elements['_id']) frm.elements['_id'].value = '';
+    if (frm.role) frm.role.value='viewer';
+    if (frm.status) frm.status.value='Active';
+    if (frm.mfaEnabled) frm.mfaEnabled.value='false';
+    if (typeof fam !== 'undefined'){ fam = []; if (typeof window.renderFamily === 'function') window.renderFamily(); }
+    dlg.showModal();
   }
 
-  lastDetails = record;          // also used by PDF
-  renderDetails(record);         // Employment/Vehicle/etc come through here
-  dlgDetails.showModal();
-}
-window.openDetails = openDetails;
+  // ---- SAVE ----
+  async function saveStaff(e){
+    if (e) e.preventDefault();
 
+    // Build payload from form
+    const obj = Object.fromEntries(new FormData(frm).entries());
+    obj.mfaEnabled = (obj.mfaEnabled === 'true');
 
+    // normalize aliases
+    obj.staffNo        = obj.staffNo        || obj.staff_number || obj.staff_no || '';
+    obj.hireDate       = obj.hireDate       || obj.hire_date    || '';
+    obj.carReg         = obj.carReg         || obj.car_reg      || obj.carRegistration || '';
+    obj.carDesc        = obj.carDesc        || obj.car_desc     || obj.carMakeModel    || '';
+    obj.address        = obj.address        || obj.addr         || '';
+    obj.idNo           = obj.idNo           || obj.ic           || obj.nric || '';
+    obj.passportNo     = obj.passportNo     || obj.passport_no  || '';
+    obj.nokName        = obj.nokName        || obj.nextOfKinName || '';
+    obj.nokRelation    = obj.nokRelation    || obj.nextOfKinRelation || obj.relation || '';
+    obj.nokPhone       = obj.nokPhone       || obj.nextOfKinPhone || '';
+    obj.emergencyNotes = obj.emergencyNotes || obj.emergency_notes || '';
 
-  function exportDetailsPdf(){
-  const w = window.open('', '_blank', 'width=900,height=1100');
-  const css = `
-    @page { margin: 20mm }
-    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0f172a}
-    header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-    header img{height:28px;width:auto;border-radius:6px}
-    header .tt{font-size:18px;font-weight:700}
-    .date{font-size:12px;color:#64748b;margin-left:auto}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;break-inside:avoid}
-    strong{display:block;color:#111827}
-    h2{font-size:14px;margin:14px 0 6px;color:#111827}
-    table{width:100%;border-collapse:collapse;font-size:12.5px}
-    th,td{padding:6px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
-    footer{position:fixed;left:0;right:0;bottom:0;margin:0 20mm 12mm 20mm;font-size:11px;color:#64748b}
-    .disc{border-top:1px solid #e5e7eb;padding-top:6px}
-  `;
-  w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
+    if (obj.hireDate && /^\d{4}-\d{2}-\d{2}/.test(obj.hireDate) === false){
+      const d = new Date(obj.hireDate);
+      if (!isNaN(d)) obj.hireDate = d.toISOString().slice(0,10);
+    }
 
-  // Header with logo + title + date
-  const today = new Date().toISOString().slice(0,10);
-  const logo = '/public/images/logo.jpg';
-  w.document.write(
-    `<header>
-       <img src="${logo}" onerror="this.src='images/logo.jpg'">
-       <div class="tt">Asianloop — Staff Details</div>
-       <div class="date">Printed: ${today}</div>
-     </header>`
-  );
+    // family
+    const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
+      name: (m?.name || '').trim(),
+      dob:  m?.dob || '',
+      relationship: (m?.relation || m?.relationship || '').trim(),
+      phone: (m?.phone || '').trim(),
+      notes: (m?.notes || '').trim(),
+    })).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
+    obj.family = famClean;
 
-  // Capture the dialog content and split into blocks
-  const wrapper = document.createElement('div'); 
-  wrapper.innerHTML = detailsBody.innerHTML;
+    let method = 'POST', url = '/api/staff';
+    if (obj._id) { method = 'PUT'; url = `/api/staff/${encodeURIComponent(obj._id)}`; }
 
-  // Optional: promote "Family Members" table to have standard table styling
-  const famTbl = wrapper.querySelector('table');
-  if (famTbl) famTbl.classList.add('fam-table');
+    if (btnSave){ btnSave.disabled = true; btnSave.textContent = 'Saving…'; }
+    try{
+      const r = await fetch(url, {
+        method,
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(obj)
+      });
+      if (!r.ok){
+        const t = await r.text().catch(()=>r.statusText||'');
+        alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
+        return;
+      }
+      dlg.close();
+      await load();
+    } finally {
+      if (btnSave){ btnSave.disabled = false; btnSave.textContent = 'Save'; }
+    }
+  }
 
-  // Write as blocks (two-column grid)
-  w.document.write('<div class="grid">');
-  Array.from(wrapper.children).forEach(ch=>{
-    w.document.write('<div class="block">'+ch.outerHTML+'</div>');
-  });
-  w.document.write('</div>');
+  // ---- LOAD ----
+  async function load(){
+    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Loading...</td></tr>`;
+    try{
+      const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      const j = await r.json();
 
-  // Footer disclaimer
-  w.document.write(
-    `<footer>
-       <div class="disc">
-         This document is generated for internal use by Asianloop Sdn Bhd. 
-         It may contain personal data and confidential information. 
-         Unauthorised distribution is strictly prohibited. © ${new Date().getFullYear()} Asianloop.
-       </div>
-     </footer>`
-  );
+      const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
+      data = arr.map(x => {
+        const id =
+          (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
+          (x && typeof x._id === 'string') ? x._id :
+          (x && typeof x.id  === 'string') ? x.id : '';
+        return { ...x, _id: id };
+      });
+    }catch(e){
+      console.error('[load]', e);
+      data = [];
+    }
+    render();
+  }
 
-  w.document.write('</body></html>');
-  w.document.close();
-  w.focus();
-  w.print();
-}
+  // ---- WIRING ----
+  // prevent native submit validation (dialogs hide fields -> "not focusable")
+  if (frm){
+    frm.setAttribute('novalidate','');
+    frm.addEventListener('submit', (e)=> e.preventDefault());
+  }
+  if (btnSave){ btnSave.setAttribute('type','button'); btnSave.addEventListener('click', saveStaff); }
+  if (btnCancel){ btnCancel.setAttribute('type','button'); btnCancel.addEventListener('click', ()=> dlg.close()); }
+  if (btnNew){ btnNew.addEventListener('click', openAdd); }
+  if (btnRefresh){ btnRefresh.addEventListener('click', load); }
 
+  // filters trigger re-render
+  $('#q')?.addEventListener('input', render);
+  $('#fRole')?.addEventListener('change', render);
+  $('#fStatus')?.addEventListener('change', render);
+
+  // kick off
+  load();
+});
 </script>
+
 
 </body>
 </html>
