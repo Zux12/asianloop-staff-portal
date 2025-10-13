@@ -262,14 +262,28 @@ let lastDetails = null; // full record fetched by id (used by details & PDF)
     }).join('');
   }
 
-  async function load(){
-    try{
-      const r = await fetch('/api/staff');
-      const j = await r.json();
-      data = Array.isArray(j)? j : (j.items||[]);
-    }catch(e){ data = []; console.error(e); }
-    render();
+async function load(){
+  try{
+    const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    const j = await r.json();
+
+    // Normalize list + IDs: handles {_id:{$oid}}, {_id:""}, or {id:""}
+    const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
+    data = arr.map(x => {
+      const id =
+        (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
+        (x && typeof x._id === 'string') ? x._id :
+        (x && typeof x.id  === 'string') ? x.id : '';
+      return { ...x, _id: id };
+    });
+  }catch(e){
+    console.error('[load]', e);
+    data = [];
   }
+  render();
+}
+
 
   // dialogs
   const dlg = $('#dlg'); const frm = $('#frm');
@@ -341,53 +355,74 @@ function openAdd(){
   dlg.showModal();
 }
 
-async function openEdit(id){
-  try{
-    const r = await fetch(`/api/staff/${id}`);
-    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    const x = await r.json();
 
-    frm.reset();
-    const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
-    set('_id', x._id || '');
-    set('name', x.name);
-    set('email', x.email);
-    set('dept', x.dept);
-    set('role', x.role || 'viewer');
-    set('status', x.status || 'Active');
-    set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-    set('notes', x.notes);
-    set('staffNo', x.staffNo);
-    set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
-    set('carReg', x.carReg);
-    set('carDesc', x.carDesc);
-    set('address', x.address);
-    set('idNo', x.idNo);
-    set('passportNo', x.passportNo);
-    set('nokName', x.nokName);
-    set('nokRelation', x.nokRelation);
-    set('nokPhone', x.nokPhone);
-    set('emergencyNotes', x.emergencyNotes);
-
-    // family (accept either `relationship` or `relation`)
-    if (typeof fam !== 'undefined') {
-      fam = Array.isArray(x.family) ? x.family.map(m=>({
-        name: m?.name || '',
-        dob: m?.dob || '',
-        relation: (m?.relationship ?? m?.relation ?? ''),
-        phone: m?.phone || '',
-        notes: m?.notes || ''
-      })) : [];
-      if (typeof renderFamily === 'function') renderFamily();
-    }
-
-    $('#dlgTitle').textContent='Edit Staff';
-    dlg.showModal();
-  }catch(e){
-    alert('Could not load staff for edit: ' + e.message);
+// Tries several common endpoints; returns null if none work.
+async function fetchFullStaff(id){
+  const safeId = encodeURIComponent(id || '');
+  const candidates = [
+    `/api/staff/${safeId}`,        // REST style
+    `/api/staff?id=${safeId}`,     // Query style
+    `/api/staff/get/${safeId}`,    // Alt
+    `/api/staffs/${safeId}`        // Plural
+  ];
+  for (const url of candidates){
+    try{
+      const r = await fetch(url, { headers: { 'Accept':'application/json' }});
+      if (r.ok) return await r.json();
+      if (r.status === 404) continue; // try next
+    }catch(_){ /* ignore and continue */ }
   }
+  return null;
+}
+
+
+  
+  
+async function openEdit(id){
+  let x = null;
+  if (id) x = await fetchFullStaff(id);         // try full doc
+  if (!x) x = data.find(y => y._id === id);     // fallback to lite row
+  if (!x){ alert('Could not load staff'); return; }
+
+  frm.reset();
+  const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
+  set('_id', x._id || '');
+  set('name', x.name);
+  set('email', x.email);
+  set('dept', x.dept);
+  set('role', x.role || 'viewer');
+  set('status', x.status || 'Active');
+  set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
+  set('notes', x.notes);
+  set('staffNo', x.staffNo);
+  set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
+  set('carReg', x.carReg);
+  set('carDesc', x.carDesc);
+  set('address', x.address);
+  set('idNo', x.idNo);
+  set('passportNo', x.passportNo);
+  set('nokName', x.nokName);
+  set('nokRelation', x.nokRelation);
+  set('nokPhone', x.nokPhone);
+  set('emergencyNotes', x.emergencyNotes);
+
+  // family (accept either relationship or relation)
+  if (typeof fam !== 'undefined') {
+    fam = Array.isArray(x.family) ? x.family.map(m=>({
+      name: m?.name || '',
+      dob: m?.dob || '',
+      relation: (m?.relationship ?? m?.relation ?? ''),
+      phone: m?.phone || '',
+      notes: m?.notes || ''
+    })) : [];
+    if (typeof renderFamily === 'function') renderFamily();
+  }
+
+  $('#dlgTitle').textContent='Edit Staff';
+  dlg.showModal();
 }
 window.openEdit = openEdit;
+
 
 
 
@@ -550,19 +585,25 @@ html += `
   }
 
 async function openDetails(id){
-  try{
-    // fetch full doc (not just the list fields)
-    const r = await fetch(`/api/staff/${id}`);
-    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    const full = await r.json();
-    lastDetails = full;            // keep for PDF use too
-    renderDetails(full);           // render from the FULL object
-    dlgDetails.showModal();
-  }catch(e){
-    alert('Could not load full details: ' + e.message);
+  // Try full record from server
+  let full = null;
+  if (id) full = await fetchFullStaff(id);
+
+  // Fallback to the row in memory (so user still sees something)
+  const lite = data.find(y => y._id === id);
+  const record = full || lite;
+
+  if (!record){
+    alert('Could not load full details and no cached row found.');
+    return;
   }
+
+  lastDetails = record;          // also used by PDF
+  renderDetails(record);         // Employment/Vehicle/etc come through here
+  dlgDetails.showModal();
 }
 window.openDetails = openDetails;
+
 
 
   function exportDetailsPdf(){
