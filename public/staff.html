@@ -47,27 +47,6 @@
     .fam-row{grid-template-columns:1fr 1fr;gap:6px}
     .fam-row button{justify-self:start}
   }
-
-/* --- Dialog polish --- */
-dialog{max-width:760px;width:96%}
-.dlg-h{display:flex;align-items:center;gap:10px}
-.dlg-b{max-height:60vh;overflow:auto}
-.sec-title{margin:6px 0 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.block{border:1px solid var(--border);background:#fff;border-radius:12px;padding:12px}
-.block + .block{margin-top:10px}
-/* compact labels */
-#frm label{font-size:13px;color:#111827}
-#frm input, #frm select{background:#fff}
-#frm .grid2{align-items:flex-start}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width: 900px){ .kv{grid-template-columns:1fr} }
-
-/* Family table (details view) */
-.fam-table{width:100%;border-collapse:collapse;font-size:14px}
-.fam-table th,.fam-table td{padding:6px;text-align:left;border-bottom:1px solid var(--border)}
-
-
-
 </style>
 </head>
 <body>
@@ -118,15 +97,12 @@ dialog{max-width:760px;width:96%}
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
-    <input type="hidden" name="_id" id="hid_id" value="">
-
-<div class="sec-title">Basic</div>
-<div class="block">
   <!-- Basic -->
   <div class="grid2">
     <label>Name<br><input name="name" required></label>
     <label>Email<br><input name="email" type="email" required></label>
   </div>
+
   <div class="grid2">
     <label>Department<br><input name="dept"></label>
     <label>Role<br>
@@ -137,6 +113,7 @@ dialog{max-width:760px;width:96%}
       </select>
     </label>
   </div>
+
   <div class="grid2">
     <label>Status<br>
       <select name="status" required>
@@ -151,428 +128,350 @@ dialog{max-width:760px;width:96%}
       </select>
     </label>
   </div>
-</div>
 
-<div class="sec-title">Employment</div>
-<div class="block">
+  <!-- Extended details -->
   <div class="grid2">
     <label>Staff Number<br><input name="staffNo" placeholder="e.g., AL-0012"></label>
+    <label>Car Registration<br><input name="carReg" placeholder="e.g., VBR 1234"></label>
+  </div>
+
+  <div class="grid2">
+    <label>Car Make/Model<br><input name="carDesc" placeholder="e.g., Perodua Myvi"></label>
     <label>Hire Date<br><input name="hireDate" type="date"></label>
   </div>
-</div>
 
-<div class="sec-title">Vehicle</div>
-<div class="block">
-  <div class="grid2">
-    <label>Car Registration<br><input name="carReg" placeholder="e.g., VBR 1234"></label>
-    <label>Car Make/Model<br><input name="carDesc" placeholder="e.g., Perodua Myvi"></label>
-  </div>
-</div>
+  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
 
-<div class="sec-title">Identity</div>
-<div class="block">
   <div class="grid2">
     <label>IC / NRIC / ID No.<br><input name="idNo" placeholder="e.g., 900101-14-5678"></label>
     <label>Passport No.<br><input name="passportNo" placeholder="e.g., A12345678"></label>
   </div>
-</div>
 
-<div class="sec-title">Address</div>
-<div class="block">
-  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
-</div>
-
-<div class="sec-title">Next of Kin</div>
-<div class="block">
   <div class="grid2">
     <label>Next of Kin — Name<br><input name="nokName" placeholder="e.g., Nur Aisyah"></label>
-    <label>Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
+    <label>Next of Kin — Relation<br><input name="nokRelation" placeholder="e.g., Spouse"></label>
   </div>
+
   <div class="grid2">
-    <label>Phone<br><input name="nokPhone" placeholder="+60-..."></label>
+    <label>Next of Kin — Phone<br><input name="nokPhone" placeholder="+60-..."></label>
     <label>Emergency Notes (optional)<br><input name="emergencyNotes" placeholder="Allergies / conditions"></label>
   </div>
-</div>
 
-<div class="sec-title">Family Members</div>
-<div class="block">
-  <div class="fam-sec" style="border:none;padding:0">
-    <div class="fam-head">
-      <strong>Members</strong>
-      <button type="button" class="btn" id="btnAddFam">+ Add member</button>
-    </div>
-    <div class="fam-rows" id="familyRows"></div>
-    <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
+<div class="fam-sec">
+  <div class="fam-head">
+    <strong>Family Members</strong>
+    <button type="button" class="btn" id="btnAddFam">+ Add member</button>
   </div>
+  <div class="fam-rows" id="familyRows">
+    <!-- rows injected by JS -->
+  </div>
+  <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
 </div>
 
-<div class="sec-title">Notes</div>
-<div class="block">
+
   <label>Notes (optional)<br><input name="notes" placeholder=""></label>
-</div>
+  <input type="hidden" name="_id" />
+</form>
 
-
-    
- 
-
-<div class="dlg-f">
-  <button type="button" class="btn" id="btnCancel">Cancel</button>
-  <button type="button" class="btn primary" id="btnSave">Save</button>
-</div>
-
+  <div class="dlg-f">
+    <button class="btn" id="btnCancel">Cancel</button>
+    <button class="btn primary" id="btnSave">Save</button>
+  </div>
 </dialog>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ---- ELEMENTS ----
   const $ = (q, el=document) => el.querySelector(q);
-  const rowsEl      = $('#rows');
-  const frm         = $('#frm');
-  const dlg         = $('#dlg');
-  const dlgTitle    = $('#dlgTitle');
-  const dlgDetails  = $('#dlgDetails');
-  const detailsBody = $('#detailsBody');
+  const rowsEl = $('#rows'); let data = [];
 
-  const btnNew      = $('#btnNew');
-  const btnSave     = $('#btnSave');
-  const btnCancel   = $('#btnCancel');
-  const btnRefresh  = $('#btnRefresh');
+  function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  // ---- STATE ----
-  let data = [];
-  let lastDetails = null;   // full record for Details/PDF
-  let fam = [];             // family rows in the form (if used)
-
-  // ---- HELPERS ----
-  function escapeHtml(s){
-    return String(s ?? '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
-  }
-  function fmtDate(v){
-    if(!v) return '';
-    const d = new Date(v);
-    if (isNaN(d)) return escapeHtml(v);
-    return d.toISOString().slice(0,10);
-  }
-  function pick(o, ...keys){
-    for (const k of keys){
-      const v = o && o[k];
-      if (v !== undefined && v !== null && String(v).trim() !== '') return v;
-    }
-    return '';
-  }
-  function unwrapStaff(payload){
-    if (!payload) return null;
-    if (Array.isArray(payload)) return payload[0] || null;
-    if (payload.data && typeof payload.data === 'object') return payload.data;
-    if (payload.item && typeof payload.item === 'object') return payload.item;
-    return payload;
-  }
-
-  async function fetchFullStaff(id){
-    const safeId = encodeURIComponent(id || '');
-    const candidates = [
-      `/api/staff/${safeId}`,
-      `/api/staff?id=${safeId}`,
-      `/api/staff/get/${safeId}`,
-      `/api/staffs/${safeId}`
-    ];
-    for (const url of candidates){
-      try{
-        const r = await fetch(url, { headers:{ 'Accept':'application/json' }});
-        if (!r.ok){
-          if (r.status === 404) continue;
-          continue;
-        }
-        const raw = await r.json();
-        const full = unwrapStaff(raw);
-        if (full && typeof full === 'object'){
-          const id2 =
-            (full._id && typeof full._id === 'object' && full._id.$oid) ? full._id.$oid :
-            (typeof full._id === 'string') ? full._id :
-            (typeof full.id  === 'string') ? full.id : String(id || '');
-          return { ...full, _id: id2 };
-        }
-      }catch(_){}
-    }
-    return null;
-  }
-
-  // ---- RENDER TABLE ----
   function render(){
-    const q = ($('#q')?.value || '').trim().toLowerCase();
-    const r = $('#fRole')?.value || '';
-    const s = $('#fStatus')?.value || '';
-
-    const filtered = (data||[]).filter(x=>{
-      const okQ = !q || (String(x.name||'').toLowerCase().includes(q) || String(x.email||'').toLowerCase().includes(q) || String(x.dept||'').toLowerCase().includes(q));
+    const q = $('#q').value.trim().toLowerCase();
+    const r = $('#fRole').value;
+    const s = $('#fStatus').value;
+    const filtered = data.filter(x=>{
+      const okQ = !q || (x.name?.toLowerCase().includes(q) || x.email?.toLowerCase().includes(q) || x.dept?.toLowerCase().includes(q));
       const okR = !r || x.role===r;
       const okS = !s || x.status===s;
       return okQ && okR && okS;
     });
-
-    if(!filtered.length){
-      rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
-      return;
-    }
-
+    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`; return; }
     rowsEl.innerHTML = filtered.map(x=>{
       const st = x.status==='Active' ? 'active' : 'suspended';
-      return `
-        <tr>
-          <td>${escapeHtml(x.name||'')}</td>
-          <td>${escapeHtml(x.email||'')}</td>
-          <td>${escapeHtml(x.dept||'')}</td>
-          <td>${escapeHtml(x.role||'')}</td>
-          <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
-          <td>${fmtDate(x.lastLoginAt)}</td>
-          <td class="right">
-            <button class="btn view"   data-id="${x._id}">Details</button>
-            <button class="btn edit"   data-id="${x._id}">Edit</button>
-            <button class="btn toggle" data-id="${x._id}" data-status="${x.status||'Active'}">${x.status==='Active'?'Disable':'Enable'}</button>
-            <button class="btn del"    data-id="${x._id}">Delete</button>
-          </td>
-        </tr>`;
+      return `<tr>
+        <td>${escapeHtml(x.name||'')}</td>
+        <td>${escapeHtml(x.email||'')}</td>
+        <td>${escapeHtml(x.dept||'')}</td>
+        <td>${escapeHtml(x.role||'')}</td>
+        <td><span class="status ${st}">${escapeHtml(x.status||'')}</span></td>
+        <td>${fmtDate(x.lastLoginAt)}</td>
+<td class="right">
+  <button class="btn" onclick='openDetails("${x._id}")'>Full details</button>
+  <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+  <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
+  <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
+</td>
+
+      </tr>`;
     }).join('');
   }
 
-  // ---- ROW BUTTONS (event delegation) ----
-  rowsEl.addEventListener('click', (ev)=>{
-    const btn = ev.target.closest('button');
-    if (!btn) return;
-    const id = btn.dataset.id;
-    if (!id) return;
-
-    if (btn.classList.contains('view')) {
-      openDetails(String(id));
-    } else if (btn.classList.contains('edit')) {
-      openEdit(String(id));
-    } else if (btn.classList.contains('toggle')) {
-      toggleStatus(String(id), btn.dataset.status || 'Active');
-    } else if (btn.classList.contains('del')) {
-      doDelete(String(id));
-    }
-  });
-
-  // ---- DETAILS RENDERER ----
-  function renderDetails(x){
-    // Build Details body using aliases via pick()
-    detailsBody.innerHTML = `
-      <div class="grid2">
-        <div><strong>Name</strong><div>${escapeHtml(x.name||'')}</div></div>
-        <div><strong>Email</strong><div>${escapeHtml(x.email||'')}</div></div>
-      </div>
-
-      <h2 class="sec-title">Employment</h2>
-      <div class="grid2">
-        <div><strong>Staff Number</strong><div>${escapeHtml(pick(x,'staffNo','staff_number','staff_no'))}</div></div>
-        <div><strong>Hire Date</strong><div>${escapeHtml(pick(x,'hireDate','hire_date'))}</div></div>
-      </div>
-
-      <h2 class="sec-title">Vehicle</h2>
-      <div class="grid2">
-        <div><strong>Car Registration</strong><div>${escapeHtml(pick(x,'carReg','car_reg','carRegistration'))}</div></div>
-        <div><strong>Car Make/Model</strong><div>${escapeHtml(pick(x,'carDesc','car_desc','carMakeModel'))}</div></div>
-      </div>
-
-      <h2 class="sec-title">Identity</h2>
-      <div class="grid2">
-        <div><strong>IC / NRIC / ID</strong><div>${escapeHtml(pick(x,'idNo','ic','nric'))}</div></div>
-        <div><strong>Passport No.</strong><div>${escapeHtml(pick(x,'passportNo','passport_no'))}</div></div>
-      </div>
-
-      <h2 class="sec-title">Address</h2>
-      <div class="grid2">
-        <div><strong>Address</strong><div>${escapeHtml(pick(x,'address','addr'))}</div></div>
-      </div>
-
-      <h2 class="sec-title">Next of Kin</h2>
-      <div class="grid2">
-        <div><strong>Next of Kin — Name</strong><div>${escapeHtml(pick(x,'nokName','nextOfKinName'))}</div></div>
-        <div><strong>Relation</strong><div>${escapeHtml(pick(x,'nokRelation','nextOfKinRelation','relation'))}</div></div>
-        <div><strong>Next of Kin — Phone</strong><div>${escapeHtml(pick(x,'nokPhone','nextOfKinPhone'))}</div></div>
-        <div><strong>Emergency Notes</strong><div>${escapeHtml(pick(x,'emergencyNotes','emergency_notes'))}</div></div>
-      </div>
-    `;
-  }
-
-  // ---- OPENERS ----
-  async function openDetails(id){
-    let full = null;
-    if (id) full = await fetchFullStaff(id);
-    const lite = data.find(y => String(y && y._id) === String(id));
-    const record = full || lite;
-    if (!record){ alert('Could not load full details and no cached row found.'); return; }
-    lastDetails = record;
-    renderDetails(record);
-    dlgDetails.showModal();
-  }
-  window.openDetails = openDetails; // in case inline attrs exist elsewhere
-
-  async function openEdit(id){
-    let x = null;
-    if (id) x = await fetchFullStaff(id);
-    if (!x) x = data.find(y => String(y && y._id) === String(id));
-    if (!x){ alert('Could not load staff'); return; }
-
-    frm.reset();
-    const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
-
-    set('_id', x._id || '');
-    set('name', x.name);
-    set('email', x.email);
-    set('dept', x.dept);
-    set('role', (x.role || 'viewer'));
-    set('status', (x.status || 'Active'));
-    set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
-    set('notes', x.notes);
-
-    set('staffNo', x.staffNo);
-    set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
-    set('carReg', x.carReg);
-    set('carDesc', x.carDesc);
-    set('address', x.address);
-    set('idNo', x.idNo);
-    set('passportNo', x.passportNo);
-    set('nokName', x.nokName);
-    set('nokRelation', (x.nokRelation || x.nextOfKinRelation || ''));
-    set('nokPhone', x.nokPhone);
-    set('emergencyNotes', x.emergencyNotes);
-
-    // Family (optional)
-    if (typeof fam !== 'undefined'){
-      fam = Array.isArray(x.family) ? x.family.map(m=>({
-        name: m?.name || '',
-        dob: m?.dob || '',
-        relation: (m?.relationship ?? m?.relation ?? ''),
-        phone: m?.phone || '',
-        notes: m?.notes || ''
-      })) : [];
-      if (typeof window.renderFamily === 'function') window.renderFamily();
-    }
-
-    dlgTitle.textContent = 'Edit Staff';
-    dlg.showModal();
-  }
-  window.openEdit = openEdit;
-
-  function openAdd(){
-    dlgTitle.textContent = 'Add Staff';
-    frm.reset();
-    if (frm.elements['_id']) frm.elements['_id'].value = '';
-    if (frm.role) frm.role.value='viewer';
-    if (frm.status) frm.status.value='Active';
-    if (frm.mfaEnabled) frm.mfaEnabled.value='false';
-    if (typeof fam !== 'undefined'){ fam = []; if (typeof window.renderFamily === 'function') window.renderFamily(); }
-    dlg.showModal();
-  }
-
-  // ---- SAVE ----
-  async function saveStaff(e){
-    if (e) e.preventDefault();
-
-    // Build payload from form
-    const obj = Object.fromEntries(new FormData(frm).entries());
-    obj.mfaEnabled = (obj.mfaEnabled === 'true');
-
-    // normalize aliases
-    obj.staffNo        = obj.staffNo        || obj.staff_number || obj.staff_no || '';
-    obj.hireDate       = obj.hireDate       || obj.hire_date    || '';
-    obj.carReg         = obj.carReg         || obj.car_reg      || obj.carRegistration || '';
-    obj.carDesc        = obj.carDesc        || obj.car_desc     || obj.carMakeModel    || '';
-    obj.address        = obj.address        || obj.addr         || '';
-    obj.idNo           = obj.idNo           || obj.ic           || obj.nric || '';
-    obj.passportNo     = obj.passportNo     || obj.passport_no  || '';
-    obj.nokName        = obj.nokName        || obj.nextOfKinName || '';
-    obj.nokRelation    = obj.nokRelation    || obj.nextOfKinRelation || obj.relation || '';
-    obj.nokPhone       = obj.nokPhone       || obj.nextOfKinPhone || '';
-    obj.emergencyNotes = obj.emergencyNotes || obj.emergency_notes || '';
-
-    if (obj.hireDate && /^\d{4}-\d{2}-\d{2}/.test(obj.hireDate) === false){
-      const d = new Date(obj.hireDate);
-      if (!isNaN(d)) obj.hireDate = d.toISOString().slice(0,10);
-    }
-
-    // family
-    const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
-      name: (m?.name || '').trim(),
-      dob:  m?.dob || '',
-      relationship: (m?.relation || m?.relationship || '').trim(),
-      phone: (m?.phone || '').trim(),
-      notes: (m?.notes || '').trim(),
-    })).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
-    obj.family = famClean;
-
-    let method = 'POST', url = '/api/staff';
-    if (obj._id) { method = 'PUT'; url = `/api/staff/${encodeURIComponent(obj._id)}`; }
-
-    if (btnSave){ btnSave.disabled = true; btnSave.textContent = 'Saving…'; }
-    try{
-      const r = await fetch(url, {
-        method,
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(obj)
-      });
-      if (!r.ok){
-        const t = await r.text().catch(()=>r.statusText||'');
-        alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
-        return;
-      }
-      dlg.close();
-      await load();
-    } finally {
-      if (btnSave){ btnSave.disabled = false; btnSave.textContent = 'Save'; }
-    }
-  }
-
-  // ---- LOAD ----
   async function load(){
-    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Loading...</td></tr>`;
     try{
-      const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
-      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      const r = await fetch('/api/staff');
       const j = await r.json();
-
-      const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
-      data = arr.map(x => {
-        const id =
-          (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
-          (x && typeof x._id === 'string') ? x._id :
-          (x && typeof x.id  === 'string') ? x.id : '';
-        return { ...x, _id: id };
-      });
-    }catch(e){
-      console.error('[load]', e);
-      data = [];
-    }
+      data = Array.isArray(j)? j : (j.items||[]);
+    }catch(e){ data = []; console.error(e); }
     render();
   }
 
-  // ---- WIRING ----
-  // prevent native submit validation (dialogs hide fields -> "not focusable")
-  if (frm){
-    frm.setAttribute('novalidate','');
-    frm.addEventListener('submit', (e)=> e.preventDefault());
+  // dialogs
+  const dlg = $('#dlg'); const frm = $('#frm');
+  $('#btnNew').onclick = ()=>{ frm.reset(); frm.role.value='viewer'; frm.status.value='Active'; frm.mfaEnabled.value='false'; $('#dlgTitle').textContent='Add Staff'; dlg.showModal(); }
+  $('#btnCancel').onclick = ()=> dlg.close();
+
+  $('#btnSave').onclick = async ()=>{
+    const obj = Object.fromEntries(new FormData(frm).entries());
+    obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    obj.family = fam;  // send structured family array
+
+    let method='POST', url='/api/staff';
+    if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
+    const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+    if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
+    dlg.close(); await load();
+  };
+
+  function openEdit(id){
+    const x = data.find(y=>y._id===id); if(!x) return;
+    frm.name.value = x.name||'';
+    frm.email.value = x.email||'';
+    frm.dept.value = x.dept||'';
+    frm.role.value = x.role||'viewer';
+    frm.status.value = x.status||'Active';
+    frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
+    frm.notes.value = x.notes||'';
+    frm.staffNo.value = x.staffNo || '';
+frm.carReg.value = x.carReg || '';
+frm.carDesc.value = x.carDesc || '';
+frm.hireDate.value = x.hireDate ? fmtDate(x.hireDate) : '';
+frm.address.value = x.address || '';
+frm.idNo.value = x.idNo || '';
+frm.passportNo.value = x.passportNo || '';
+frm.nokName.value = x.nokName || '';
+frm.nokRelation.value = x.nokRelation || '';
+frm.nokPhone.value = x.nokPhone || '';
+frm.emergencyNotes.value = x.emergencyNotes || '';
+
+
+    frm._id.value = x._id;
+    $('#dlgTitle').textContent='Edit Staff';
+    dlg.showModal();
+ 
+  fam = Array.isArray(x.family)
+  ? x.family.map(m=>({
+      name: m?.name || '',
+      dob:  m?.dob  || '',
+      relation: m?.relation || '',
+      phone: m?.phone || '',
+      notes: m?.notes || ''
+    }))
+  : []; // migrate away from old free-text
+renderFamily();
+
+  
+  
   }
-  if (btnSave){ btnSave.setAttribute('type','button'); btnSave.addEventListener('click', saveStaff); }
-  if (btnCancel){ btnCancel.setAttribute('type','button'); btnCancel.addEventListener('click', ()=> dlg.close()); }
-  if (btnNew){ btnNew.addEventListener('click', openAdd); }
-  if (btnRefresh){ btnRefresh.addEventListener('click', load); }
+  window.openEdit = openEdit;
 
-  // filters trigger re-render
-  $('#q')?.addEventListener('input', render);
-  $('#fRole')?.addEventListener('change', render);
-  $('#fStatus')?.addEventListener('change', render);
+  async function toggleStatus(id, current){
+    const next = current==='Active' ? 'Suspended' : 'Active';
+    if(!confirm(`Change status to ${next}?`)) return;
+    const r = await fetch(`/api/staff/${id}/status`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: next })});
+    if(!r.ok){ alert('Status change failed'); return; }
+    await load();
+  }
+  window.toggleStatus = toggleStatus;
 
-  // kick off
+  async function doDelete(id){
+    if(!confirm('Delete this staff? (Soft delete)')) return;
+    const r = await fetch(`/api/staff/${id}`, { method:'DELETE' });
+    if(!r.ok){ alert('Delete failed'); return; }
+    await load();
+  }
+  window.doDelete = doDelete;
+
+  $('#q').oninput = render; $('#fRole').onchange = render; $('#fStatus').onchange = render;
+  $('#btnRefresh').onclick = load;
+
   load();
-});
 </script>
 
+  <!-- Full details dialog (read-only) -->
+<dialog id="dlgDetails">
+  <div class="dlg-h">Staff details</div>
+  <div class="dlg-b" id="detailsBody" style="max-height:60vh;overflow:auto"></div>
+  <div class="dlg-f">
+    <button class="btn" id="btnDetClose">Close</button>
+    <button class="btn primary" id="btnDetPdf">Export PDF</button>
+  </div>
+</dialog>
+
+<script>
+  const dlgDetails = document.getElementById('dlgDetails');
+  const detailsBody = document.getElementById('detailsBody');
+  document.getElementById('btnDetClose').onclick = ()=> dlgDetails.close();
+  document.getElementById('btnDetPdf').onclick = ()=> exportDetailsPdf();
+  document.getElementById('btnAddFam').onclick = ()=> addFam();
+
+
+let fam = []; // array of {name, dob, relation, phone, notes}
+
+function renderFamily(){
+  const rows = fam.map((m,i)=>`
+    <div class="fam-row">
+      <input placeholder="Full name" value="${escapeHtml(m.name||'')}" data-i="${i}" data-k="name">
+      <input type="date" value="${m.dob ? fmtDate(m.dob) : ''}" data-i="${i}" data-k="dob">
+      <input placeholder="Relationship" value="${escapeHtml(m.relation||'')}" data-i="${i}" data-k="relation">
+      <input placeholder="Phone" value="${escapeHtml(m.phone||'')}" data-i="${i}" data-k="phone">
+      <input placeholder="Notes" value="${escapeHtml(m.notes||'')}" data-i="${i}" data-k="notes">
+      <button type="button" class="btn" onclick="delFam(${i})">Remove</button>
+    </div>
+  `).join('');
+  document.getElementById('familyRows').innerHTML =
+    rows || '<div class="muted">No family members yet.</div>';
+
+  // wire inputs to state
+  document.getElementById('familyRows').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', (e)=>{
+      const idx = Number(e.target.dataset.i);
+      const key = e.target.dataset.k;
+      let val = e.target.value;
+      if(key === 'dob' && val) { val = new Date(val).toISOString(); }
+      fam[idx][key] = val;
+    });
+  });
+}
+
+function addFam(m={name:'', dob:'', relation:'', phone:'', notes:''}){ fam.push(m); renderFamily(); }
+window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
+
+
+
+
+  
+  function renderDetails(x){
+    const fld = (k)=> (x[k] ?? '').toString();
+    const yesno = (b)=> b ? 'Yes' : 'No';
+    let html = `
+      <div class="grid2">
+        <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
+        <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
+        <div><strong>Role</strong><br>${escapeHtml(fld('role'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
+        <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Staff Number</strong><br>${escapeHtml(fld('staffNo'))}</div>
+        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
+        <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
+      </div>
+      <div><strong>Address</strong><br>${escapeHtml(fld('address'))}</div>
+      <div class="grid2">
+        <div><strong>IC / NRIC / ID</strong><br>${escapeHtml(fld('idNo'))}</div>
+        <div><strong>Passport No.</strong><br>${escapeHtml(fld('passportNo'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Next of Kin — Name</strong><br>${escapeHtml(fld('nokName'))}</div>
+        <div><strong>Relation</strong><br>${escapeHtml(fld('nokRelation'))}</div>
+      </div>
+      <div class="grid2">
+        <div><strong>Next of Kin — Phone</strong><br>${escapeHtml(fld('nokPhone'))}</div>
+        <div><strong>Emergency Notes</strong><br>${escapeHtml(fld('emergencyNotes'))}</div>
+      </div>
+`;
+
+
+   // --- add this inside renderDetails(x) after the next-of-kin section ---
+const famHtml = (Array.isArray(x.family) && x.family.length)
+ ? `<table style="width:100%;border-collapse:collapse;font-size:14px">
+      <thead><tr>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Name</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">DOB</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Relationship</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Phone</th>
+        <th style="text-align:left;border-bottom:1px solid var(--border);padding:6px">Notes</th>
+      </tr></thead>
+      <tbody>
+        ${x.family.map(m=>`
+          <tr>
+            <td style="padding:6px">${escapeHtml(m.name||'')}</td>
+            <td style="padding:6px">${m.dob? fmtDate(m.dob):''}</td>
+            <td style="padding:6px">${escapeHtml(m.relation||'')}</td>
+            <td style="padding:6px">${escapeHtml(m.phone||'')}</td>
+            <td style="padding:6px">${escapeHtml(m.notes||'')}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`
+ : '<span class="muted">No family members listed</span>';
+
+html += `
+<div><strong>Family Members</strong><br>${famHtml}</div>
+`;
+
+  html += `
+      <div class="grid2">
+        <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
+        <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
+      </div>
+      <div><strong>Notes</strong><br>${escapeHtml(fld('notes'))}</div>
+    `;
+    detailsBody.innerHTML = html;
+  }
+
+  function openDetails(id){
+    const x = data.find(y=>y._id===id);
+    if(!x) return;
+    renderDetails(x);
+    dlgDetails.showModal();
+  }
+  window.openDetails = openDetails;
+
+  function exportDetailsPdf(){
+    // Open print-friendly window for native "Save as PDF"
+    const w = window.open('', '_blank', 'width=800,height=900');
+    const css = `
+      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:20px;color:#0f172a}
+      h1{font-size:18px;margin:0 0 12px}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .block{margin:8px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+      strong{display:block;color:#111827}
+    `;
+    w.document.write('<!doctype html><html><head><title>Staff details</title><style>'+css+'</style></head><body>');
+    w.document.write('<h1>Staff details</h1>');
+    w.document.write('<div class="grid">');
+    // convert dialog body into printable blocks
+    const wrapper = document.createElement('div'); wrapper.innerHTML = detailsBody.innerHTML;
+    // Wrap each direct child in .block for nicer print
+    Array.from(wrapper.children).forEach(ch=>{
+      w.document.write('<div class="block">'+ch.outerHTML+'</div>');
+    });
+    w.document.write('</div>');
+    w.document.write('</body></html>');
+    w.document.close();
+    w.focus();
+    w.print();
+  }
+</script>
 
 </body>
 </html>
