@@ -219,14 +219,27 @@
     }).join('');
   }
 
-  async function load(){
-    try{
-      const r = await fetch('/api/staff');
-      const j = await r.json();
-      data = Array.isArray(j)? j : (j.items||[]);
-    }catch(e){ data = []; console.error(e); }
-    render();
+async function load(){
+  try{
+    const r = await fetch('/api/staff', { headers:{ 'Accept':'application/json' }});
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    const j = await r.json();
+
+    const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : []);
+    data = (arr || []).map(x => {
+      const id =
+        (x && x._id && typeof x._id === 'object' && x._id.$oid) ? x._id.$oid :
+        (x && typeof x._id === 'string') ? x._id :
+        (x && typeof x.id  === 'string') ? x.id : '';
+      return { ...x, _id: id };
+    });
+  }catch(e){
+    console.error('[load]', e);
+    data = [];
   }
+  render();
+}
+
 
   // dialogs
   const dlg = $('#dlg'); const frm = $('#frm');
@@ -240,29 +253,40 @@ $('#btnNew').onclick = ()=>{
   dlg.showModal();
 };
 
+
   
   $('#btnCancel').onclick = ()=> dlg.close();
 
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
     obj.mfaEnabled = (obj.mfaEnabled === 'true');
-    // Normalize Staff Number for both FE/BE naming
+   // --- normalize fields ---
 obj.staffNo = obj.staffNo || obj.staff_number || obj.staff_no || '';
-obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting it
+obj.staff_number = obj.staffNo; // send snake_case too
 
-    obj.family = fam;  // send structured family array
+// --- family clean (relation -> relationship) ---
+const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
+  name: (m?.name || '').trim(),
+  dob: m?.dob || '',
+  relationship: (m?.relation || m?.relationship || '').trim(),
+  phone: (m?.phone || '').trim(),
+  notes: (m?.notes || '').trim(),
+})).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
+obj.family = famClean;
 
-// Decide create vs update (treat 'undefined'/'null' as empty)
+// --- decide create vs update using the hidden _id field ---
+const idField = (frm.elements['_id'] && String(frm.elements['_id'].value || '').trim()) || '';
 let method, url;
-let id = (obj._id ?? '').toString().trim();
-if (!id || id === 'undefined' || id === 'null') {
+if (idField){
+  method = 'PUT';
+  url = `/api/staff/${encodeURIComponent(idField)}`;
+  obj._id = idField;
+} else {
   method = 'POST';
   url = '/api/staff';
-  delete obj._id; // don't send empty id
-} else {
-  method = 'PUT';
-  url = `/api/staff/${encodeURIComponent(id)}`;
+  delete obj._id;
 }
+
 
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
   // --- after the fetch(...) call in your Save handler, replace the success block with this ---
@@ -322,6 +346,7 @@ async function getStaff(id){
 
 
   
+// 1) Ensure openEdit writes the _id into the hidden field (so Save does PUT)
 function openEdit(id){
   const x = (data || []).find(y => String(y && y._id) === String(id));
   if (!x){ alert('Could not load staff'); return; }
@@ -329,22 +354,20 @@ function openEdit(id){
   frm.reset();
   const set = (n,v)=>{ if (frm.elements[n]) frm.elements[n].value = (v ?? ''); };
 
-  set('_id', x._id || '');
+  set('_id', x._id || '');                 // <-- IMPORTANT
   set('name', x.name);
   set('email', x.email);
   set('dept', x.dept);
-  set('role', (x.role || 'viewer'));
-  set('status', (x.status || 'Active'));
+  set('role', x.role || 'viewer');
+  set('status', x.status || 'Active');
   set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
   set('notes', x.notes);
+  set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
 
-  // Staff Number (read any backend key)
-  set('staffNo', (x.staffNo || x.staff_number || x.staff_no || ''));
-
-  // (leave the rest of your setters as-is)
   dlgTitle.textContent = 'Edit Staff';
   dlg.showModal();
 }
+
 
   window.openEdit = openEdit;
 
