@@ -116,24 +116,38 @@
   .grid3{ grid-template-columns: 1fr; }
 }
 
-/* ===== TABLE / HEADER / ACTIONS ===== */
-table { width:100%; border-collapse:collapse; table-layout:auto; } /* allow natural widths */
-thead tr { background: var(--table-head, #f5f7fb); }
-thead th { background: inherit; }
-th, td { vertical-align: middle; }
+/* ===== TABLE LAYOUT (fix Actions overlap) ===== */
+table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+thead tr{ background: var(--table-head, #f5f7fb); }
+thead th{ background: inherit; }
+th, td{ vertical-align:middle; padding:12px 14px; }
 
-/* Actions column: enough width, wrap buttons, don't clip */
-th.actions, td.actions { width: 260px; } /* adjust if you want more/less */
-td.actions { white-space: normal; overflow: visible; }
-td.actions .btn {
+/* Actions column: fixed width, flex-wrap the buttons, no clipping */
+th.actions{ width: 360px; }                    /* give the column enough room */
+td.actions{
+  width: 360px;                                /* match header */
+  white-space: normal;
+  overflow: visible;
+  padding-right: 8px;
+  display: flex;                               
+  flex-wrap: wrap;                             
+  gap: 8px;                                    
+  justify-content: flex-end;                   
+  align-items: center;
+}
+td.actions .btn{
   display: inline-flex; align-items: center;
-  margin: 0 6px 6px 0; padding: 6px 10px;
+  padding: 6px 10px; margin: 0;                 /* no extra margins to spill out */
 }
 
-/* (Optional) If table sits in a scroll container, ensure it's visible on small screens */
-@media (max-width: 900px){
-  .table-wrap { overflow-x: auto; }
+/* Small screens: allow horizontal scroll instead of overlap */
+@media (max-width: 1100px){
+  th.actions, td.actions{ width: 280px; }
 }
+@media (max-width: 900px){
+  .table-wrap{ overflow-x:auto; }
+}
+
 
 /* Export All button (green) */
 .btn.success{
