@@ -111,6 +111,15 @@
   #dlg .dlg-b { padding-right: 4px; } /* avoid horizontal scrollbars */
 }
 
+
+
+/* Address grids */
+.grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px }
+.grid1{ display:grid; grid-template-columns: 1fr; gap:10px }
+@media (max-width: 900px){
+  .grid3{ grid-template-columns: 1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -208,7 +217,21 @@
     <label>Hire Date<br><input name="hireDate" type="date"></label>
   </div>
 
-  <label>Address<br><input name="address" placeholder="Street, City, State, Postcode, Country"></label>
+<div class="sec-title">Address</div>
+<div class="block">
+  <div class="grid2">
+    <label>Address Line 1<br><input name="address1" placeholder="Street address (line 1)"></label>
+    <label>Address Line 2 (optional)<br><input name="address2" placeholder="Apartment, suite, etc. (line 2)"></label>
+  </div>
+  <div class="grid3">
+    <label>City<br><input name="city" placeholder="City / Town"></label>
+    <label>State / Province<br><input name="state" placeholder="State / Province"></label>
+    <label>Postcode / ZIP<br><input name="postcode" placeholder="Postcode / ZIP"></label>
+  </div>
+  <div class="grid1">
+    <label>Country<br><input name="country" placeholder="Country"></label>
+  </div>
+</div>
 
   <div class="grid2">
     <label>IC / NRIC / ID No.<br><input name="idNo" placeholder="e.g., 900101-14-5678"></label>
@@ -341,6 +364,19 @@ data = (arr || []).map(x => {
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
     obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    // --- build combined address string from structured fields ---
+const parts = [
+  (obj.address1||'').trim(),
+  (obj.address2||'').trim(),
+  (obj.city||'').trim(),
+  (obj.state||'').trim(),
+  (obj.postcode||'').trim(),
+  (obj.country||'').trim()
+].filter(Boolean);
+obj.address = parts.join(', ');
+
+// (optional) keep structured fields in payload for future use; backend can ignore
+
 
     // normalize fields
     obj.staffNo = obj.staffNo || obj.staff_number || obj.staff_no || '';
@@ -441,6 +477,27 @@ render();
     set('notes', x.notes);
     set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
 
+// --- prefill structured address fields from single address string if present ---
+(function(){
+  const addr = (typeof x.address === 'string' ? x.address : '').split(',').map(s=>s.trim()).filter(Boolean);
+  // Heuristic: [addr1, addr2, city, state, postcode, country] from left to right
+  const [a1='', a2='', c='', st='', pc='', co=''] = [
+    addr[0]||'',
+    addr[1]||'',
+    addr[2]||'',
+    addr[3]||'',
+    addr[4]||'',
+    addr[5]||''
+  ];
+  if (frm.address1) frm.address1.value = a1;
+  if (frm.address2) frm.address2.value = a2;
+  if (frm.city)     frm.city.value     = c;
+  if (frm.state)    frm.state.value    = st;
+  if (frm.postcode) frm.postcode.value = pc;
+  if (frm.country)  frm.country.value  = co;
+})();
+
+    
     // rebuild Family for this record
     fam = Array.isArray(x.family) ? x.family.map(m => ({
       name: m?.name || '',
@@ -562,7 +619,21 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
       <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
       <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
     </div>
-    <div><strong>Address</strong><br>${escapeHtml(fld('address'))}</div>
+<div><strong>Address</strong><br>${
+  (()=>{
+    const a1 = (x.address1||'').trim();
+    const a2 = (x.address2||'').trim();
+    const c  = (x.city||'').trim();
+    const st = (x.state||'').trim();
+    const pc = (x.postcode||'').trim();
+    const co = (x.country||'').trim();
+    const parts = [a1,a2,c, [st,pc].filter(Boolean).join(' '), co].filter(Boolean);
+    if (parts.length) return escapeHtml(parts.join('\n')).replace(/\n/g,'<br>');
+    // fallback to single string
+    return escapeHtml((x.address||'').trim());
+  })()
+}</div>
+
     <div class="grid2">
       <div><strong>IC / NRIC / ID</strong><br>${escapeHtml(fld('idNo'))}</div>
       <div><strong>Passport No.</strong><br>${escapeHtml(fld('passportNo'))}</div>
