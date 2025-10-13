@@ -279,12 +279,19 @@ rowsEl.addEventListener('click', (ev)=>{
   } else if (btn.classList.contains('edit')) {
     openEdit(String(id));
   } else if (btn.classList.contains('toggle')) {
-    const status = btn.dataset.status || 'Active';
-    toggleStatus(String(id), status);
+    toggleStatus(String(id), btn.dataset.status || 'Active');
   } else if (btn.classList.contains('del')) {
     doDelete(String(id));
   }
 });
+
+// --- prevent native submit + require manual save ---
+document.getElementById('btnSave').setAttribute('type','button');
+document.getElementById('btnCancel').setAttribute('type','button');
+frm.setAttribute('novalidate','');
+frm.addEventListener('submit', (e)=> e.preventDefault());
+document.getElementById('btnSave').addEventListener('click', saveStaff);
+
 
 
   
