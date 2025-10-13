@@ -234,6 +234,10 @@
   $('#btnSave').onclick = async ()=>{
     const obj = Object.fromEntries(new FormData(frm).entries());
     obj.mfaEnabled = (obj.mfaEnabled === 'true');
+    // Normalize Staff Number for both FE/BE naming
+obj.staffNo = obj.staffNo || obj.staff_number || obj.staff_no || '';
+obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting it
+
     obj.family = fam;  // send structured family array
 
     let method='POST', url='/api/staff';
@@ -252,7 +256,8 @@
     frm.status.value = x.status||'Active';
     frm.mfaEnabled.value = x.mfaEnabled ? 'true' : 'false';
     frm.notes.value = x.notes||'';
-    frm.staffNo.value = x.staffNo || '';
+frm.staffNo.value = (x.staffNo || x.staff_number || x.staff_no || '');
+
 frm.carReg.value = x.carReg || '';
 frm.carDesc.value = x.carDesc || '';
 frm.hireDate.value = x.hireDate ? fmtDate(x.hireDate) : '';
@@ -377,10 +382,11 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
         <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
         <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
       </div>
-      <div class="grid2">
-        <div><strong>Staff Number</strong><br>${escapeHtml(fld('staffNo'))}</div>
-        <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
-      </div>
+<div class="grid2">
+  <div><strong>Staff Number</strong><br>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</div>
+  <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
+</div>
+
       <div class="grid2">
         <div><strong>Car Registration</strong><br>${escapeHtml(fld('carReg'))}</div>
         <div><strong>Car Make/Model</strong><br>${escapeHtml(fld('carDesc'))}</div>
