@@ -457,10 +457,7 @@ app.post('/api/staff', async (req, res) => {
     const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
     if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
 
-      const staffNoVal = (req.body?.staffNo ?? req.body?.staff_number ?? req.body?.staff_no ?? '');
-
     const doc = {
-      // basics
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       dept: String(dept||'').trim(),
@@ -468,27 +465,10 @@ app.post('/api/staff', async (req, res) => {
       status: String(status||'Active').trim(),
       mfaEnabled: !!mfaEnabled,
       notes: String(notes||'').trim(),
-
-      // employment + vehicle + identity + address + NOK
-      staffNo: String(staffNoVal||'').trim(),
-      hireDate: req.body?.hireDate ? String(req.body.hireDate).trim() : '',
-      carReg:   req.body?.carReg   ? String(req.body.carReg).trim()   : '',
-      carDesc:  req.body?.carDesc  ? String(req.body.carDesc).trim()  : '',
-      address:  req.body?.address  ? String(req.body.address).trim()  : '',
-      idNo:          req.body?.idNo          ? String(req.body.idNo).trim()          : '',
-      passportNo:    req.body?.passportNo    ? String(req.body.passportNo).trim()    : '',
-      nokName:       req.body?.nokName       ? String(req.body.nokName).trim()       : '',
-      nokRelation:   req.body?.nokRelation   ? String(req.body.nokRelation).trim()   : '',
-      nokPhone:      req.body?.nokPhone      ? String(req.body.nokPhone).trim()      : '',
-      emergencyNotes:req.body?.emergencyNotes? String(req.body.emergencyNotes).trim(): '',
-
-      // family -> normalized
-      family: cleanFamily(req.body.family),
-
+        family: cleanFamily(req.body.family),
       createdAt: new Date(),
       updatedAt: new Date()
     };
-
     const db = await staffDb();
     const r = await staffColl(db).insertOne(doc);
     res.json({ ok:true, _id: String(r.insertedId) });
@@ -504,38 +484,16 @@ app.put('/api/staff/:id', async (req, res) => {
     const id = req.params.id;
     if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
 
-        const {
-      name, email, dept, role, status, mfaEnabled, notes,
-      staffNo, staff_number, staff_no,
-      hireDate, carReg, carDesc, address, idNo, passportNo,
-      nokName, nokRelation, nokPhone, emergencyNotes, family
-    } = req.body || {};
-
+    const { name, email, dept, role, status, mfaEnabled, notes } = req.body || {};
     const $set = { updatedAt: new Date() };
-    if (name        !== undefined) $set.name        = String(name).trim();
-    if (email       !== undefined) $set.email       = String(email).trim().toLowerCase();
-    if (dept        !== undefined) $set.dept        = String(dept).trim();
-    if (role        !== undefined) $set.role        = String(role).trim();
-    if (status      !== undefined) $set.status      = String(status).trim();
-    if (mfaEnabled  !== undefined) $set.mfaEnabled  = !!(mfaEnabled === true || mfaEnabled === 'true' || mfaEnabled === 'on' || mfaEnabled === 1 || mfaEnabled === '1');
-    if (notes       !== undefined) $set.notes       = String(notes).trim();
-
-    // employment + vehicle + identity + address + NOK
-    const staffVal = (staffNo ?? staff_number ?? staff_no);
-    if (staffVal    !== undefined) $set.staffNo     = String(staffVal||'').trim();
-    if (hireDate    !== undefined) $set.hireDate    = String(hireDate||'').trim();
-    if (carReg      !== undefined) $set.carReg      = String(carReg||'').trim();
-    if (carDesc     !== undefined) $set.carDesc     = String(carDesc||'').trim();
-    if (address     !== undefined) $set.address     = String(address||'').trim();
-    if (idNo        !== undefined) $set.idNo        = String(idNo||'').trim();
-    if (passportNo  !== undefined) $set.passportNo  = String(passportNo||'').trim();
-    if (nokName     !== undefined) $set.nokName     = String(nokName||'').trim();
-    if (nokRelation !== undefined) $set.nokRelation = String(nokRelation||'').trim();
-    if (nokPhone    !== undefined) $set.nokPhone    = String(nokPhone||'').trim();
-    if (emergencyNotes !== undefined) $set.emergencyNotes = String(emergencyNotes||'').trim();
-
-    if (family !== undefined) $set.family = cleanFamily(family);
-
+    if(name !== undefined) $set.name = String(name).trim();
+    if(email !== undefined) $set.email = String(email).trim().toLowerCase();
+    if(dept !== undefined) $set.dept = String(dept).trim();
+    if(role !== undefined) $set.role = String(role).trim();
+    if(status !== undefined) $set.status = String(status).trim();
+    if(mfaEnabled !== undefined) $set.mfaEnabled = !!(mfaEnabled === true || mfaEnabled === 'true' || mfaEnabled === 'on' || mfaEnabled === 1 || mfaEnabled === '1');
+    if(notes !== undefined) $set.notes = String(notes).trim();
+    if (req.body && 'family' in req.body) $set.family = cleanFamily(req.body.family);
 
     const db = await staffDb();
     const r = await staffColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
@@ -585,8 +543,19 @@ app.delete('/api/staff/:id', async (req, res) => {
 
 
 
-      relation: String((m.relation ?? m.relationship) || '').trim(),
-
+function cleanFamily(v){
+  if (!v) return [];
+  try{
+    const arr = Array.isArray(v) ? v : JSON.parse(v);
+    return arr.filter(Boolean).map(m=>({
+      name: String(m.name||'').trim(),
+      dob:  m.dob ? new Date(m.dob) : null,
+      relation: String(m.relation||'').trim(),
+      phone: String(m.phone||'').trim(),
+      notes: String(m.notes||'').trim()
+    }));
+  }catch(_){ return []; }
+}
 
 
 
