@@ -97,6 +97,8 @@
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
+    <input type="hidden" name="_id" id="hid_id" value="">
+
   <!-- Basic -->
   <div class="grid2">
     <label>Name<br><input name="name" required></label>
@@ -228,7 +230,17 @@
 
   // dialogs
   const dlg = $('#dlg'); const frm = $('#frm');
-  $('#btnNew').onclick = ()=>{ frm.reset(); frm.role.value='viewer'; frm.status.value='Active'; frm.mfaEnabled.value='false'; $('#dlgTitle').textContent='Add Staff'; dlg.showModal(); }
+$('#btnNew').onclick = ()=>{
+  frm.reset();
+  if (frm.elements['_id']) frm.elements['_id'].value = '';
+  if (frm.role) frm.role.value = 'viewer';
+  if (frm.status) frm.status.value = 'Active';
+  if (frm.mfaEnabled) frm.mfaEnabled.value = 'false';
+  $('#dlgTitle').textContent = 'Add Staff';
+  dlg.showModal();
+};
+
+  
   $('#btnCancel').onclick = ()=> dlg.close();
 
   $('#btnSave').onclick = async ()=>{
@@ -240,8 +252,18 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
 
     obj.family = fam;  // send structured family array
 
-    let method='POST', url='/api/staff';
-    if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
+// Decide create vs update (treat 'undefined'/'null' as empty)
+let method, url;
+let id = (obj._id ?? '').toString().trim();
+if (!id || id === 'undefined' || id === 'null') {
+  method = 'POST';
+  url = '/api/staff';
+  delete obj._id; // don't send empty id
+} else {
+  method = 'PUT';
+  url = `/api/staff/${encodeURIComponent(id)}`;
+}
+
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
    if (!r.ok){
   const t = await r.text().catch(()=>r.statusText||'');
