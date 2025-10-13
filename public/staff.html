@@ -243,37 +243,42 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
     let method='POST', url='/api/staff';
     if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-    if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
-// Try to read the saved record (if API returns it)
+    if (!r.ok){
+  const t = await r.text().catch(()=>r.statusText||'');
+  alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
+  return;
+}
+
+// Try get the saved doc (id + staffNo); some backends return nothing
 let saved = null;
-try { saved = await r.json(); } catch(_) {}
+try { saved = await r.json(); } catch(_){}
 
 const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
 
-// Work out the saved id
-const savedId =
-  (saved && saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
-  (saved && typeof saved._id === 'string') ? saved._id :
-  (saved && typeof saved.id  === 'string') ? saved.id :
-  (obj && obj._id) ? obj._id : '';
+// Refresh from server so the new row appears immediately
+await load();
 
-// Update the in-memory row so Details/Edit can see staffNo
-if (savedId){
-  const i = data.findIndex(d => String(d && d._id) === String(savedId));
-  if (i > -1){
-    data[i] = { ...data[i], staffNo: sentStaffNo };
-  } else if (saved){ // new record case
-    const newRow = { ...saved };
-    // normalize _id if it's in {$oid:...} form
-    if (newRow._id && typeof newRow._id === 'object' && newRow._id.$oid) newRow._id = newRow._id.$oid;
-    newRow.staffNo = newRow.staffNo || sentStaffNo;
-    data.unshift(newRow);
+// If the backend returned an id, patch staffNo into the freshly loaded list
+if (saved){
+  const savedId =
+    (saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
+    (typeof saved._id === 'string') ? saved._id :
+    (typeof saved.id  === 'string') ? saved.id : '';
+
+  if (savedId){
+    const i = data.findIndex(d => String(d && d._id) === String(savedId));
+    if (i > -1){
+      data[i] = {
+        ...data[i],
+        staffNo: (saved.staffNo || saved.staff_number || saved.staff_no || sentStaffNo)
+      };
+      render(); // re-render to reflect the patched staffNo immediately
+    }
   }
 }
 
-// Close and re-render (no reload to avoid losing staffNo from shallow list)
 dlg.close();
-render();
+
 
   };
 
@@ -493,12 +498,13 @@ html += `
     detailsBody.innerHTML = html;
   }
 
-async function openDetails(id){
-  const x = await getStaff(id);
-  if(!x) return;
-  renderDetails(x);
+function openDetails(id){
+  const rec = (data || []).find(d => String(d && d._id) === String(id));
+  if (!rec) { alert('Could not load details.'); return; }
+  renderDetails(rec);             // uses the in-memory row only
   dlgDetails.showModal();
 }
+
 
   window.openDetails = openDetails;
 
