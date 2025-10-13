@@ -215,10 +215,11 @@ dialog{max-width:760px;width:96%}
     
  
 
-  <div class="dlg-f">
-    <button class="btn" id="btnCancel">Cancel</button>
-    <button class="btn primary" id="btnSave">Save</button>
-  </div>
+<div class="dlg-f">
+  <button type="button" class="btn" id="btnCancel">Cancel</button>
+  <button type="button" class="btn primary" id="btnSave">Save</button>
+</div>
+
 </dialog>
 
 <script>
@@ -273,17 +274,53 @@ dialog{max-width:760px;width:96%}
 $('#btnNew').onclick = ()=> openAdd();
   $('#btnCancel').onclick = ()=> dlg.close();
 
-  $('#btnSave').onclick = async ()=>{
-    const obj = Object.fromEntries(new FormData(frm).entries());
-    obj.mfaEnabled = (obj.mfaEnabled === 'true');
-    obj.family = fam;  // send structured family array
+async function saveStaff(e){
+  if (e) e.preventDefault();
 
-    let method='POST', url='/api/staff';
-    if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
-    const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-    if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
-    dlg.close(); await load();
-  };
+  // Build payload from form
+  const obj = Object.fromEntries(new FormData(frm).entries());
+  obj.mfaEnabled = (obj.mfaEnabled === 'true');
+
+  // Map family: relation -> relationship; drop fully empty rows
+  const famClean = (Array.isArray(fam) ? fam : []).map(m => ({
+    name: (m?.name || '').trim(),
+    dob:  m?.dob || '',
+    relationship: (m?.relation || m?.relationship || '').trim(),
+    phone: (m?.phone || '').trim(),
+    notes: (m?.notes || '').trim(),
+  })).filter(m => m.name || m.relationship || m.phone || m.notes || m.dob);
+  obj.family = famClean;
+
+  // Decide create vs update
+  let method = 'POST', url = '/api/staff';
+  if (obj._id) { method = 'PUT'; url = `/api/staff/${obj._id}`; }
+
+  // Disable Save to avoid double clicks
+  const btn = document.getElementById('btnSave'); 
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try{
+    const r = await fetch(url, {
+      method,
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(obj)
+    });
+    if (!r.ok){
+      const t = await r.text().catch(()=>r.statusText||'');
+      alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
+      return;
+    }
+    dlg.close();
+    await load(); // refresh table
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+}
+
+// Wire up both click and real form submit (Enter key)
+document.getElementById('btnSave').addEventListener('click', saveStaff);
+frm.addEventListener('submit', saveStaff);
+
 
 function openAdd(){
   // Dialog title
