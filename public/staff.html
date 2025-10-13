@@ -244,7 +244,37 @@ obj.staff_number = obj.staffNo;   // also send snake_case for backends expecting
     if(obj._id){ method='PUT'; url=`/api/staff/${obj._id}`; }
     const r = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
     if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
-    dlg.close(); await load();
+// Try to read the saved record (if API returns it)
+let saved = null;
+try { saved = await r.json(); } catch(_) {}
+
+const sentStaffNo = (obj.staffNo || obj.staff_number || obj.staff_no || '');
+
+// Work out the saved id
+const savedId =
+  (saved && saved._id && typeof saved._id === 'object' && saved._id.$oid) ? saved._id.$oid :
+  (saved && typeof saved._id === 'string') ? saved._id :
+  (saved && typeof saved.id  === 'string') ? saved.id :
+  (obj && obj._id) ? obj._id : '';
+
+// Update the in-memory row so Details/Edit can see staffNo
+if (savedId){
+  const i = data.findIndex(d => String(d && d._id) === String(savedId));
+  if (i > -1){
+    data[i] = { ...data[i], staffNo: sentStaffNo };
+  } else if (saved){ // new record case
+    const newRow = { ...saved };
+    // normalize _id if it's in {$oid:...} form
+    if (newRow._id && typeof newRow._id === 'object' && newRow._id.$oid) newRow._id = newRow._id.$oid;
+    newRow.staffNo = newRow.staffNo || sentStaffNo;
+    data.unshift(newRow);
+  }
+}
+
+// Close and re-render (no reload to avoid losing staffNo from shallow list)
+dlg.close();
+render();
+
   };
 
 
@@ -403,6 +433,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
   <div><strong>Staff Number</strong><br>${escapeHtml(x.staffNo || x.staff_number || x.staff_no || '')}</div>
   <div><strong>Hire Date</strong><br>${fmtDate(fld('hireDate'))}</div>
 </div>
+
 
 
       <div class="grid2">
