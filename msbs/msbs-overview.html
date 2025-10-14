@@ -56,6 +56,45 @@
       background: var(--card); color: var(--ink); border-radius: 8px; cursor: pointer;
     }
   </style>
+  <style id="contrast-patch">
+  /* Stronger, high-contrast ink for LIGHT mode only */
+  html[data-theme="light"], :root {
+    --ink: #111111;         /* near-black for body text */
+    --muted: #334155;       /* darker muted text */
+  }
+
+  /* Make sure most text elements actually use --ink */
+  body, .al-main, .al-header, .al-sidemenu, .al-footer,
+  .card, .table,
+  h1, h2, h3, h4, h5, h6,
+  p, li, dt, dd, small, span, label, legend {
+    color: var(--ink);
+  }
+
+  /* Links in light mode: darker and readable */
+  html[data-theme="light"] a { color: #0b5dd7; }
+  html[data-theme="light"] a:hover { color: #083a9b; }
+
+  /* Tables: headers + cells */
+  .table th { color: #111111; font-weight: 600; }
+  .table td { color: var(--ink); }
+
+  /* Any “muted” helpers */
+  .muted, [class*="muted"] { color: var(--muted) !important; }
+
+  /* Buttons */
+  .btn, .btn-ghost { color: var(--ink); }
+  .btn-primary { background: var(--accent); color: #ffffff; }
+
+  /* Side menu items */
+  .al-sidemenu .item,
+  .al-sidemenu .item .label { color: var(--ink); }
+
+  /* Inputs + placeholders */
+  input, textarea, select { color: var(--ink); background: var(--card); }
+  ::placeholder { color: #64748b; opacity: 1; }
+</style>
+
 </head>
 <body data-init="light">
 
