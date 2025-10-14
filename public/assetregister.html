@@ -197,55 +197,60 @@ function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); }
 const statusClass = s => s==='Active' ? 'active' : (s==='Retired' ? 'retired' : 'repair');
 
+
+function buildAssetRow(x){
+  const id = String((x && x._id) || '');
+  const esc = escapeHtml;
+  return [
+    '<tr>',
+      '<td>', esc(x.assetTag || ''), '</td>',
+      '<td>', esc(x.name || ''), '</td>',
+      '<td>', esc(x.category || ''), '</td>',
+      '<td>', esc(x.location || ''), '</td>',
+      '<td><span class="status ', (x.status==='Active' ? 'active' : (x.status==='Retired' ? 'retired' : 'repair')), '">',
+          esc(x.status || ''), '</span></td>',
+      '<td>', fmtDate(x.warrantyEnd), '</td>',
+      '<td class="actions">',
+        '<button class="btn js-det"  data-id="', id, '">Details</button>',
+        '<button class="btn js-edit" data-id="', id, '">Edit</button>',
+        '<button class="btn js-del"  data-id="', id, '">Delete</button>',
+      '</td>',
+    '</tr>'
+  ].join('');
+}
+
+  
 function render(){
-  const q = ($('#q')?.value || '').toLowerCase().trim();
+  const q  = ($('#q')?.value || '').toLowerCase().trim();
   const fs = $('#fStatus')?.value || '';
   const fc = $('#fCategory')?.value || '';
 
-  const filtered = (data||[]).filter(x=>{
+  const filtered = (data || []).filter(x=>{
     const okQ = !q || ['assetTag','name','location','vendor','serialNo']
-      .some(k => String(x[k]||'').toLowerCase().includes(q));
-    const okS = !fs || x.status===fs;
-    const okC = !fc || x.category===fc;
+      .some(k => String(x[k] || '').toLowerCase().includes(q));
+    const okS = !fs || x.status === fs;
+    const okC = !fc || x.category === fc;
     return okQ && okS && okC;
   });
 
-  if(!filtered.length){
-    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No assets</td></tr>`;
-    return;
+  if (!filtered.length){
+    rowsEl.innerHTML = '<tr><td colspan="7" class="muted" style="padding:14px">No assets</td></tr>';
+  } else {
+    rowsEl.innerHTML = filtered.map(buildAssetRow).join('');
   }
 
-  rowsEl.innerHTML = filtered.map(x=>{
-    const id = String(x && x._id || '');
-
-    return `<tr>
-      <td>${escapeHtml(x.assetTag||'')}</td>
-      <td>${escapeHtml(x.name||'')}</td>
-      <td>${escapeHtml(x.category||'')}</td>
-      <td>${escapeHtml(x.location||'')}</td>
-      <td><span class="status ${statusClass(x.status||'')}">${escapeHtml(x.status||'')}</span></td>
-      <td>${fmtDate(x.warrantyEnd)}</td>
-<td class="actions">
-  <button class="btn js-det"  data-id="${id}">Details</button>
-  <button class="btn js-edit" data-id="${id}">Edit</button>
-  <button class="btn js-del"  data-id="${id}">Delete</button>
-</td>
-
-    </tr>`;
-  }).join('');
-
-  // wire row buttons
-rowsEl.querySelectorAll('.js-det').forEach(btn=>{
-  btn.addEventListener('click', ()=> openDetails(btn.dataset.id));
-});
-rowsEl.querySelectorAll('.js-edit').forEach(btn=>{
-  btn.addEventListener('click', ()=> openEdit(btn.dataset.id));
-});
-rowsEl.querySelectorAll('.js-del').forEach(btn=>{
-  btn.addEventListener('click', ()=> doDelete(btn.dataset.id));
-});
-
+  // Wire row buttons AFTER rendering
+  rowsEl.querySelectorAll('.js-det').forEach(btn=>{
+    btn.addEventListener('click', ()=> openDetails(btn.dataset.id));
+  });
+  rowsEl.querySelectorAll('.js-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> openEdit(btn.dataset.id));
+  });
+  rowsEl.querySelectorAll('.js-del').forEach(btn=>{
+    btn.addEventListener('click', ()=> doDelete(btn.dataset.id));
+  });
 }
+
 
 async function load(){
   try{
