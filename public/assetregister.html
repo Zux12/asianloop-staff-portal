@@ -194,7 +194,7 @@ const $ = (q, el=document) => el.querySelector(q);
 const rowsEl = $('#rows'); let data = [];
 
 function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 const statusClass = s => s==='Active' ? 'active' : (s==='Retired' ? 'retired' : 'repair');
 
 
