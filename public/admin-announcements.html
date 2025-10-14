@@ -28,13 +28,25 @@
   .st-scheduled{color:#92400e;border-color:#fcd34d}
   .st-ended{color:#7c2d12;border-color:#fecaca}
   .st-draft{color:#374151;border-color:#e5e7eb}
-  dialog{border:none;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:0;max-width:900px;width:96%}
+  dialog{border:none;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:0;max-width:1200px;width:min(96vw,1200px)}
+
   .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600}
   .dlg-b{padding:16px;display:grid;gap:10px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .grid1{display:grid;grid-template-columns:1fr;gap:10px}
   .dlg-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center}
   .hint{font-size:12px;color:var(--muted)}
+
+
+/* Make form fields span full dialog width */
+#dlg .dlg-b{ max-width:none }
+#dlg label{ display:block; width:100% }
+#dlg input, #dlg select, #dlg textarea{ width:100% !important; }
+
+/* Make the two date inputs also stretch inside their 2-col row */
+#dlg .grid2 > label > input{ width:100% !important; }
+
+
 </style>
 </head>
 <body>
