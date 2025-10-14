@@ -95,6 +95,27 @@
   ::placeholder { color: #64748b; opacity: 1; }
 </style>
 
+  <style id="sidemenu-ink">
+  /* Force black-ish text on left nav when NOT hovered */
+  html[data-theme="light"] .al-sidemenu .item:not(:hover):not(.active),
+  html[data-theme="light"] .al-sidemenu a.item:not(:hover):not(.active),
+  html[data-theme="light"] .al-sidemenu .item:not(:hover):not(.active) .label {
+    color: #111111 !important;
+  }
+
+  /* If your items include icons, make them dark by default too */
+  html[data-theme="light"] .al-sidemenu .item:not(:hover):not(.active) svg {
+    stroke: #111111 !important;
+    fill: none;
+  }
+
+  /* Keep hover behavior you like (don’t change your existing hover styles) */
+  /* Example: if you need explicit contrast on hover text, uncomment:
+  .al-sidemenu .item:hover,
+  .al-sidemenu .item:hover .label { color: #0b1220; }
+  */
+</style>
+
 </head>
 <body data-init="light">
 
