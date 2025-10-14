@@ -195,6 +195,7 @@ async function licDb() {
   return __mongoClientLic.db(); // default DB from URI
 }
 function licColl(db) { return db.collection('licenses'); }
+function assetsColl(db){ return db.collection('assets'); }
 
 // GET /api/licenses
 app.get('/api/licenses', async (_req, res) => {
@@ -289,6 +290,9 @@ app.put('/api/licenses/:id', async (req, res) => {
     return res.status(500).json({ ok:false, error:'Update failed' });
   }
 });
+
+
+
 
 
 // DELETE /api/licenses/:id
@@ -572,6 +576,115 @@ app.delete('/api/staff/:id', async (req, res) => {
   }
 });
 /* -------------------------------------------------------------------- */
+
+
+// === Assets API ===
+
+// List
+app.get('/api/assets', async (req, res) => {
+  try{
+    const db = await licDb(); // reuse same DB helper
+    const items = await assetsColl(db).find({ isDeleted: { $ne: true } })
+      .project({ })
+      .sort({ assetTag: 1 })
+      .toArray();
+    res.json(items);
+  }catch(e){
+    console.error('[ASSETS] list', e);
+    res.status(500).json({ ok:false, error:'List failed' });
+  }
+});
+
+// Details
+app.get('/api/assets/:id', async (req, res) => {
+  try{
+    const db = await licDb();
+    const _id = new ObjectId(req.params.id);
+    const x = await assetsColl(db).findOne({ _id, isDeleted: { $ne:true } });
+    if (!x) return res.status(404).send('Not found');
+    res.json(x);
+  }catch(e){
+    console.error('[ASSETS] details', e);
+    res.status(500).json({ ok:false, error:'Details failed' });
+  }
+});
+
+// Create
+app.post('/api/assets', async (req, res) => {
+  try{
+    const b = req.body || {};
+    if (!b.assetTag || !b.name) {
+      return res.status(400).json({ ok:false, error:'assetTag and name are required' });
+    }
+    const doc = {
+      assetTag: String(b.assetTag).trim(),
+      name: String(b.name).trim(),
+      category: String(b.category || 'Other').trim(),
+      location: String(b.location || '').trim(),
+      status: String(b.status || 'Active').trim(),
+      vendor: String(b.vendor || '').trim(),
+      serialNo: String(b.serialNo || '').trim(),
+      cost: Number.isFinite(+b.cost) ? +b.cost : 0,
+      purchaseDate: b.purchaseDate ? new Date(b.purchaseDate) : null,
+      warrantyEnd:  b.warrantyEnd  ? new Date(b.warrantyEnd)  : null,
+      ownerEmail: String(b.ownerEmail || '').trim(),
+      notes: String(b.notes || '').trim(),
+      isDeleted: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const db = await licDb();
+    const r = await assetsColl(db).insertOne(doc);
+    res.json({ ok:true, _id: String(r.insertedId) });
+  }catch(e){
+    console.error('[ASSETS] create', e);
+    res.status(500).json({ ok:false, error:'Create failed' });
+  }
+});
+
+// Update
+app.put('/api/assets/:id', async (req, res) => {
+  try{
+    const b = req.body || {};
+    const _id = new ObjectId(req.params.id);
+    const $set = {
+      assetTag: String(b.assetTag || '').trim(),
+      name: String(b.name || '').trim(),
+      category: String(b.category || 'Other').trim(),
+      location: String(b.location || '').trim(),
+      status: String(b.status || 'Active').trim(),
+      vendor: String(b.vendor || '').trim(),
+      serialNo: String(b.serialNo || '').trim(),
+      cost: Number.isFinite(+b.cost) ? +b.cost : 0,
+      purchaseDate: b.purchaseDate ? new Date(b.purchaseDate) : null,
+      warrantyEnd:  b.warrantyEnd  ? new Date(b.warrantyEnd)  : null,
+      ownerEmail: String(b.ownerEmail || '').trim(),
+      notes: String(b.notes || '').trim(),
+      updatedAt: new Date()
+    };
+    const db = await licDb();
+    await assetsColl(db).updateOne({ _id }, { $set });
+    res.json({ ok:true, _id: String(_id) });
+  }catch(e){
+    console.error('[ASSETS] update', e);
+    res.status(500).json({ ok:false, error:'Update failed' });
+  }
+});
+
+// Delete (soft)
+app.delete('/api/assets/:id', async (req, res) => {
+  try{
+    const db = await licDb();
+    const _id = new ObjectId(req.params.id);
+    await assetsColl(db).updateOne({ _id }, { $set: { isDeleted:true, updatedAt:new Date() } });
+    res.json({ ok:true });
+  }catch(e){
+    console.error('[ASSETS] delete', e);
+    res.status(500).json({ ok:false, error:'Delete failed' });
+  }
+});
+
+
 
 
 
