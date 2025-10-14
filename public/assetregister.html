@@ -216,6 +216,8 @@ function render(){
   }
 
   rowsEl.innerHTML = filtered.map(x=>{
+    const id = String(x && x._id || '');
+
     return `<tr>
       <td>${escapeHtml(x.assetTag||'')}</td>
       <td>${escapeHtml(x.name||'')}</td>
@@ -223,13 +225,26 @@ function render(){
       <td>${escapeHtml(x.location||'')}</td>
       <td><span class="status ${statusClass(x.status||'')}">${escapeHtml(x.status||'')}</span></td>
       <td>${fmtDate(x.warrantyEnd)}</td>
-      <td class="actions">
-        <button class="btn" onclick='openDetails("${x._id}")'>Details</button>
-        <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
-        <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
-      </td>
+<td class="actions">
+  <button class="btn js-det"  data-id="${id}">Details</button>
+  <button class="btn js-edit" data-id="${id}">Edit</button>
+  <button class="btn js-del"  data-id="${id}">Delete</button>
+</td>
+
     </tr>`;
   }).join('');
+
+  // wire row buttons
+rowsEl.querySelectorAll('.js-det').forEach(btn=>{
+  btn.addEventListener('click', ()=> openDetails(btn.dataset.id));
+});
+rowsEl.querySelectorAll('.js-edit').forEach(btn=>{
+  btn.addEventListener('click', ()=> openEdit(btn.dataset.id));
+});
+rowsEl.querySelectorAll('.js-del').forEach(btn=>{
+  btn.addEventListener('click', ()=> doDelete(btn.dataset.id));
+});
+
 }
 
 async function load(){
