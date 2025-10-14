@@ -188,7 +188,7 @@ tbody tr td:last-child{ padding-right:16px; }
   <option value="">All</option>
   <option value="viewer">Executive</option>
   <option value="manager">Non-Executive</option>
-  <option value="admin">Others</option>
+  <option value="admin">Management</option>
 </select>
 
     <select id="fStatus">
@@ -262,7 +262,7 @@ tbody tr td:last-child{ padding-right:16px; }
   <select name="role" required>
     <option value="viewer">Executive</option>
     <option value="manager">Non-Executive</option>
-    <option value="admin">Others</option>
+    <option value="admin">Management</option>
   </select>
 </label>
 
@@ -373,7 +373,7 @@ tbody tr td:last-child{ padding-right:16px; }
 
 // Friendly labels for table display
 const roleLabel = (v)=>{
-  if (v === 'admin')   return 'others';
+  if (v === 'admin')   return 'Management';
   if (v === 'manager') return 'Non-Executive';
   return 'Executive'; // viewer
 };
