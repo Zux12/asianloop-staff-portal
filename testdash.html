@@ -650,6 +650,32 @@ body.light .chip-live{
         .catch(function(){});
     } catch (_) {}
   })();
+
+
+  // === Load live announcements for dashboard ===
+(function(){
+  var list = document.getElementById('annList');
+  if(!list) return;
+  try{
+    fetch('/api/announcements',{cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(items){
+        if(!Array.isArray(items) || !items.length) return; // keep fallback
+        list.innerHTML = items.map(function(x){
+          var d = new Date(x.startAt);
+          var dstr = d.toLocaleString(undefined, { month:'short', day:'numeric', year:'numeric' });
+          var cat = x.category ? ('•<span>'+x.category+'</span>') : '';
+          return '<article class="ann">'
+            + '<div class="meta"><span class="dot" aria-hidden="true"></span><span>'+dstr+'</span>'+cat+'</div>'
+            + '<h4>'+ (x.title||'') +'</h4>'
+            + '<p>'+ (x.body||'') +'</p>'
+          + '</article>';
+        }).join('');
+      })
+      .catch(function(){});
+  }catch(_){}
+})();
+
 </script>
 
 
