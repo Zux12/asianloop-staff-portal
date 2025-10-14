@@ -196,6 +196,8 @@ async function licDb() {
 }
 function licColl(db) { return db.collection('licenses'); }
 function assetsColl(db){ return db.collection('assets'); }
+function announcementsColl(db){ return db.collection('announcements'); }
+
 
 // GET /api/licenses
 app.get('/api/licenses', async (_req, res) => {
@@ -685,6 +687,100 @@ app.delete('/api/assets/:id', async (req, res) => {
 });
 
 
+// === Announcements API ===
+
+// Admin list (all, for table)
+app.get('/api/admin/announcements', async (req, res) => {
+  try{
+    const db = await licDb();
+    const items = await announcementsColl(db).find({ deleted: { $ne:true } })
+      .sort({ pinned:-1, startAt:-1, createdAt:-1 }).toArray();
+    res.json(items);
+  }catch(e){ console.error('[ANN] list', e); res.status(500).json([]); }
+});
+
+// Create
+app.post('/api/admin/announcements', async (req, res) => {
+  try{
+    const b = req.body || {};
+    if(!b.title || !b.body || !b.startAt || !b.endAt) return res.status(400).json({ ok:false, error:'Missing fields' });
+    const doc = {
+      title: String(b.title).trim(),
+      category: String(b.category||'').trim(),
+      body: String(b.body||'').trim(),
+      startAt: new Date(b.startAt),
+      endAt: new Date(b.endAt),
+      pinned: !!b.pinned,
+      deployed: !!b.deployNow, // immediate deploy flag
+      deleted: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      authorEmail: (req.user && req.user.email) || null
+    };
+    const db = await licDb();
+    const r = await announcementsColl(db).insertOne(doc);
+    res.json({ ok:true, _id:String(r.insertedId) });
+  }catch(e){ console.error('[ANN] create', e); res.status(500).json({ ok:false }); }
+});
+
+// Update
+app.put('/api/admin/announcements/:id', async (req, res) => {
+  try{
+    const b = req.body || {};
+    const _id = new ObjectId(req.params.id);
+    const $set = {
+      title: String(b.title||'').trim(),
+      category: String(b.category||'').trim(),
+      body: String(b.body||'').trim(),
+      startAt: b.startAt ? new Date(b.startAt) : null,
+      endAt:   b.endAt   ? new Date(b.endAt)   : null,
+      pinned: !!b.pinned,
+      updatedAt: new Date()
+    };
+    const db = await licDb();
+    await announcementsColl(db).updateOne({ _id }, { $set });
+    res.json({ ok:true });
+  }catch(e){ console.error('[ANN] update', e); res.status(500).json({ ok:false }); }
+});
+
+// Deploy toggle
+app.post('/api/admin/announcements/:id/deploy', async (req, res) => {
+  try{
+    const _id = new ObjectId(req.params.id);
+    const on = !!(req.body && req.body.deployed);
+    const db = await licDb();
+    await announcementsColl(db).updateOne({ _id }, { $set: { deployed:on, updatedAt:new Date() } });
+    res.json({ ok:true, deployed:on });
+  }catch(e){ console.error('[ANN] deploy', e); res.status(500).json({ ok:false }); }
+});
+
+// Soft delete
+app.delete('/api/admin/announcements/:id', async (req, res) => {
+  try{
+    const _id = new ObjectId(req.params.id);
+    const db = await licDb();
+    await announcementsColl(db).updateOne({ _id }, { $set: { deleted:true, deployed:false, updatedAt:new Date() } });
+    res.json({ ok:true });
+  }catch(e){ console.error('[ANN] delete', e); res.status(500).json({ ok:false }); }
+});
+
+// Public feed for dashboard (testdash)
+app.get('/api/announcements', async (req, res) => {
+  try{
+    const now = new Date();
+    const db = await licDb();
+    const items = await announcementsColl(db).find({
+      deleted: { $ne:true },
+      deployed: true,
+      startAt: { $lte: now },
+      endAt:   { $gt: now }
+    }).project({ title:1, category:1, body:1, startAt:1, endAt:1, pinned:1, createdAt:1 })
+      .sort({ pinned:-1, startAt:-1, createdAt:-1 })
+      .limit(10)
+      .toArray();
+    res.json(items);
+  }catch(e){ console.error('[ANN] public', e); res.status(500).json([]); }
+});
 
 
 
