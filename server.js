@@ -209,50 +209,46 @@ app.get('/api/licenses', async (_req, res) => {
 });
 
 // POST /api/licenses
+// POST /api/licenses
 app.post('/api/licenses', async (req, res) => {
   try {
-    const { name, type, vendor, seats, startAt, endAt, notes } = req.body || {};
+    const b = req.body || {};
+    const { name, type, vendor, seats, startAt, endAt, notes } = b;
+
+    // Required fields
     if (!name || !type || !startAt || !endAt) {
-      return res.status(400).json({ ok:false, error:'Missing required fields' });
+      return res.status(400).json({ ok: false, error: 'Missing required fields' });
     }
-const doc = {
-  name: String(name).trim(),
-  email: String(email).trim().toLowerCase(),
-  dept: String(dept||'').trim(),
-  role: String(role||'viewer').trim(),
-  status: String(status||'Active').trim(),
-  mfaEnabled: !!mfaEnabled,
-  notes: String((req.body?.notes)||'').trim(),
 
-  staffNo: String((req.body?.staffNo)||'').trim(),
-  address: String((req.body?.address)||'').trim(),
-  idNo: String((req.body?.idNo)||'').trim(),
-  passportNo: String((req.body?.passportNo)||'').trim(),
-  hireDate: req.body?.hireDate ? new Date(req.body.hireDate) : null,
-
-  carReg: String((req.body?.carReg)||'').trim(),
-  carDesc: String((req.body?.carDesc)||'').trim(),
-
-  nokName: String((req.body?.nokName)||'').trim(),
-  nokRelation: String((req.body?.nokRelation)||'').trim(),
-  nokPhone: String((req.body?.nokPhone)||'').trim(),
-  emergencyNotes: String((req.body?.emergencyNotes)||'').trim(),
-
-  family: String((req.body?.family)||'').trim(),
-
-  createdAt: new Date(),
-  updatedAt: new Date()
-};
-
+    // Coerce and sanitize
+    const doc = {
+      name: String(name).trim(),
+      type: String(type).trim(),
+      vendor: String(vendor || '').trim(),
+      seats: Number.isFinite(+seats) ? +seats : 0,
+      startAt: new Date(startAt),
+      endAt: new Date(endAt),
+      notes: String(notes || '').trim(),
+      notify7d: !!(
+        b.notify7d === true ||
+        b.notify7d === 'true' ||
+        b.notify7d === 'on' ||
+        b.notify7d === 1 ||
+        b.notify7d === '1'
+      ),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
     const db = await licDb();
     const r = await licColl(db).insertOne(doc);
-    res.json({ ok: true, _id: String(r.insertedId) });
+    return res.json({ ok: true, _id: String(r.insertedId) });
   } catch (e) {
     console.error('[LIC] create error', e);
-    res.status(500).json({ ok:false, error:'Create failed' });
+    return res.status(500).json({ ok: false, error: 'Create failed' });
   }
 });
+
 
 // PUT /api/licenses/:id
 // PUT /api/licenses/:id
