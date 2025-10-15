@@ -3144,7 +3144,49 @@
   "tags": ["LNG","GIIGNL","custody","handbook"],
   "standards": ["GIIGNL LNG Custody Transfer Handbook","ISO 6976","API MPMS Ch. 14.5"],
   "lastReviewed": "2025-10-07"
+},
+
+{
+  "id": "z-config-definition",
+  "question": "What is a Z-configuration and why does it matter in custody metering?",
+  "answer": "<p><b>Z-configuration</b> refers to two elbows in series set in <i>different planes</i> (often called <i>out-of-plane double elbows</i>) creating strong swirl and asymmetric velocity profiles. This disturbance degrades meter linearity/repeatability—especially for <b>ultrasonic</b>, <b>turbine</b>, and <b>orifice (DP)</b> systems—unless mitigated by sufficient straight runs and/or certified flow conditioning. In custody transfer, unmanaged Z-config effects can push errors beyond contractual limits.</p>",
+  "tags": ["installation","z-configuration","elbows","swirl","profile"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8/5.9","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "z-config-straight-run",
+  "question": "How much straight run is recommended downstream of a Z-configuration?",
+  "answer": "<p>Exact lengths depend on meter type/size and Reynolds number. As a rule of thumb from industry practice and standards guidance: <b>ultrasonic</b> meters often need a <b>certified flow conditioner</b> plus ~<b>5–10D upstream</b> and ~<b>3–5D downstream</b>; without a conditioner, required upstream can be much longer. <b>Turbine</b> and <b>orifice/DP</b> systems typically require more upstream length following Z-configurations. Always verify with the meter datasheet and the applicable standard, then confirm by proving or diagnostics.</p>",
+  "tags": ["installation","straight runs","ultrasonic","turbine","orifice"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8/5.9","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "z-config-mitigation",
+  "question": "What mitigation options exist for Z-configuration disturbances?",
+  "answer": "<p>Recommended mitigations include: (1) repositioning piping to eliminate the Z-layout if feasible; (2) installing an <b>approved flow conditioner</b> (e.g., Zanker/CPA/perforated plate) at the manufacturer-recommended distance from the meter; (3) increasing <b>backpressure</b> and avoiding partially open valves near the meter; (4) ensuring <b>concentric reducers</b> where transitions are unavoidable; and (5) validating with <b>proving</b> and/or <b>ultrasonic diagnostics</b> (swirl/asymmetry indices). Document any residual bias and include it in uncertainty.</p>",
+  "tags": ["flow conditioner","installation","reducers","proving","diagnostics"],
+  "standards": ["AGA 9","API MPMS Ch. 5.8/5.9","API MPMS Ch. 4.8"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "z-config-diagnostics",
+  "question": "How do I detect Z-configuration effects using meter diagnostics?",
+  "answer": "<p><b>Ultrasonic</b> meters provide path-based diagnostics: asymmetry/swirl/turbulence indices, path velocity ratios, gain and SNR. Z-config disturbances show up as persistent asymmetry and chord-to-chord imbalance. For <b>orifice/DP</b> systems, unexpected shifts in discharge coefficient or unstable DP at steady flow suggest profile distortion. Trend diagnostics over time and correlate with proving results; if repeatability worsens or SOS checks (AGA-10) deviate, investigate upstream geometry.</p>",
+  "tags": ["diagnostics","ultrasonic","AGA 10","DP","repeatability"],
+  "standards": ["AGA 9","AGA 10","API MPMS Ch. 5.8/5.9","ISO 5167"],
+  "lastReviewed": "2025-10-07"
+},
+{
+  "id": "z-config-proving-uncertainty",
+  "question": "How should proving and uncertainty treat a Z-configuration installation?",
+  "answer": "<p>When Z-configuration cannot be removed, <b>prove</b> the meter under representative flow conditions and confirm <b>repeatability ≤±0.02%</b> per API MPMS 4.8. If a conditioner is added, re-prove to establish a new baseline meter factor. In the uncertainty budget, include components for <i>installation effects</i> and <i>repeatability</i>; justify mitigation (conditioner, straight-run lengths, verified diagnostics). Keep auditable records (EFM audit trail, drawings) showing the final lineup and control of the disturbance source.</p>",
+  "tags": ["proving","uncertainty","meter factor","audit","installation effects"],
+  "standards": ["API MPMS Ch. 4.8","API MPMS Ch. 21.2","AGA 9","ISO 5168"],
+  "lastReviewed": "2025-10-07"
 }
+
 
   
   
