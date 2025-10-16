@@ -696,7 +696,11 @@ set('position', x.position);
   }
   window.doDelete = doDelete;
 
-  $('#q').oninput = render; $('#fRole').onchange = render; $('#fStatus').onchange = render;
+// filters
+const qEl = $('#q');        if (qEl)      qEl.oninput   = render;
+const tierEl = $('#fTier'); if (tierEl)   tierEl.onchange = render;
+const statEl = $('#fStatus'); if (statEl) statEl.onchange = render;
+
   $('#btnRefresh').onclick = load;
 
   // --- Export all rows currently in `data` to CSV (Excel-friendly) ---
