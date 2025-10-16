@@ -184,12 +184,16 @@ tbody tr td:last-child{ padding-right:16px; }
 <main>
   <div class="bar">
     <input id="q" placeholder="Search name/email/department…" />
-<select id="fRole">
-  <option value="">All</option>
-  <option value="viewer">Executive</option>
-  <option value="manager">Non-Executive</option>
-  <option value="admin">Management</option>
+<select id="fTier">
+  <option value="">All tiers</option>
+  <option>Senior Manager</option>
+  <option>Manager</option>
+  <option>Senior Executive</option>
+  <option>Executive</option>
+  <option>Non-Executive (T)</option>
+  <option>Non-Executive (NT)</option>
 </select>
+
 
     <select id="fStatus">
       <option value="">All status</option>
@@ -209,14 +213,16 @@ tbody tr td:last-child{ padding-right:16px; }
     <table id="tbl">
 <!-- Column widths -->
 <colgroup>
-  <col style="width:26%">  <!-- Name (wider) -->
-  <col style="width:14%">  <!-- Staff No (same) -->
-  <col style="width:28%">  <!-- Email (wider) -->
-  <col style="width:16%">  <!-- Dept (same) -->
-  <col style="width:14%">  <!-- Role (same) -->
-  <col style="width:12%">  <!-- Status (same) -->
-  <col style="width:420px"> <!-- Actions (fixed) -->
+  <col style="width:26%">  <!-- Name -->
+  <col style="width:14%">  <!-- Staff No -->
+  <col style="width:26%">  <!-- Email -->
+  <col style="width:14%">  <!-- Dept -->
+  <col style="width:14%">  <!-- Tier -->
+  <col style="width:16%">  <!-- Position -->
+  <col style="width:12%">  <!-- Status -->
+  <col style="width:420px"> <!-- Actions -->
 </colgroup>
+
 
 <thead>
   <tr>
@@ -224,11 +230,13 @@ tbody tr td:last-child{ padding-right:16px; }
     <th>Staff No</th>
     <th>Email</th>
     <th>Dept</th>
-    <th>Role</th>
+    <th>Tier</th>
+    <th>Position</th>
     <th>Status</th>
-    <th class="actions">Actions</th> <!-- right-aligned via CSS below -->
+    <th class="actions">Actions</th>
   </tr>
 </thead>
+
 
 
 
@@ -250,31 +258,48 @@ tbody tr td:last-child{ padding-right:16px; }
     <input type="hidden" name="_id" id="hid_id" value="">
 
   <!-- Basic -->
-  <div class="grid2">
-    <label>Name<br><input name="name" required></label>
-<label>Email<br><input name="email" type="email" required placeholder="user@asian-loop.com"></label>
+<div class="grid2">
+  <label>Name<br><input name="name" required></label>
+  <label>Work Email<br><input name="email" type="email" required placeholder="user@asian-loop.com"></label>
+</div>
 
-  </div>
+<div class="grid2">
+  <label>Personal Email<br><input name="personalEmail" type="email" placeholder="yourname@gmail.com"></label>
+  <label>Department<br><input name="dept"></label>
+</div>
+
+<div class="grid2">
+  <label>Tier<br>
+    <select name="tier" required>
+      <option>Senior Manager</option>
+      <option>Manager</option>
+      <option>Senior Executive</option>
+      <option>Executive</option>
+      <option>Non-Executive (T)</option>
+      <option>Non-Executive (NT)</option>
+    </select>
+  </label>
+  <label>Position<br><input name="position" placeholder="e.g., Principal Measurement"></label>
+</div>
+
 
   <div class="grid2">
     <label>Department<br><input name="dept"></label>
-<label>Role<br>
-  <select name="role" required>
-    <option value="viewer">Executive</option>
-    <option value="manager">Non-Executive</option>
-    <option value="admin">Management</option>
-  </select>
-</label>
+
 
   </div>
 
   <div class="grid2">
-    <label>Status<br>
-      <select name="status" required>
-        <option>Active</option>
-        <option>Suspended</option>
-      </select>
-    </label>
+<label>Status<br>
+  <select name="status" required>
+    <option>Active</option>
+    <option>Suspended</option>
+    <option>Resigned</option>
+    <option>Retired</option>
+    <option>Under Probation</option>
+  </select>
+</label>
+
     <label>MFA Enabled?<br>
       <select name="mfaEnabled">
         <option value="false">No</option>
@@ -378,21 +403,39 @@ const roleLabel = (v)=>{
   return 'Executive'; // viewer
 };
 
+// Map old role values to new Tier display if no 'tier' stored yet
+function tierDisplay(x){
+  if (x && x.tier) return x.tier;
+  // legacy role fallback:
+  if (x && x.role === 'admin')   return 'Senior Manager';
+  if (x && x.role === 'manager') return 'Manager';
+  return 'Executive'; // viewer or missing
+}
+function statusClass(s){
+  if (s === 'Active') return 'active';
+  if (s === 'Suspended') return 'suspended';
+  return ''; // other statuses unstyled (Resigned, Retired, Under Probation)
+}
 
   
 function render(){
   const q = ($('#q')?.value || '').trim().toLowerCase();
-  const r = $('#fRole')?.value || '';
+const t = $('#fTier')?.value || '';
   const s = $('#fStatus')?.value || '';
 
-  const filtered = (data||[]).filter(x=>{
-    const okQ = !q || (String(x.name||'').toLowerCase().includes(q) ||
-                       String(x.email||'').toLowerCase().includes(q) ||
-                       String(x.dept||'').toLowerCase().includes(q));
-    const okR = !r || x.role===r;
-    const okS = !s || x.status===s;
-    return okQ && okR && okS;
-  });
+const filtered = (data||[]).filter(x=>{
+  const okQ = !q || (
+    String(x.name||'').toLowerCase().includes(q) ||
+    String(x.email||'').toLowerCase().includes(q) ||
+    String(x.dept||'').toLowerCase().includes(q) ||
+    String(x.position||'').toLowerCase().includes(q)
+  );
+  const tierVal = tierDisplay(x);
+  const okT = !t || tierVal === t;
+  const okS = !s || x.status === s;
+  return okQ && okT && okS;
+});
+
 
   if(!filtered.length){
     rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No staff</td></tr>`;
@@ -404,18 +447,20 @@ function render(){
     const staffNo = x.staffNo || x.staff_number || x.staff_no || '';
     return `
       <tr>
-        <td>${escapeHtml(x.name||'')}</td>
-        <td>${escapeHtml(staffNo)}</td>
-        <td>${escapeHtml(x.email||'')}</td>
-        <td>${escapeHtml(x.dept||'')}</td>
-        <td>${escapeHtml(roleLabel ? roleLabel(x.role) : (x.role||''))}</td>
-        <td><span class="status ${stCls}">${escapeHtml(x.status||'')}</span></td>
+       <td>${escapeHtml(x.name||'')}</td>
+<td>${escapeHtml(staffNo)}</td>
+<td>${escapeHtml(x.email||'')}</td>
+<td>${escapeHtml(x.dept||'')}</td>
+<td>${escapeHtml(tierDisplay(x))}</td>
+<td>${escapeHtml(x.position || '')}</td>
+<td><span class="status ${statusClass(x.status)}">${escapeHtml(x.status||'')}</span></td>
 <td class="actions">
   <button class="btn" onclick='openDetails("${x._id}")'>Details</button>
   <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
   <button class="btn" onclick='toggleStatus("${x._id}", "${x.status||"Active"}")'>${x.status==='Active'?'Disable':'Enable'}</button>
   <button class="btn" onclick='doDelete("${x._id}")'>Delete</button>
 </td>
+
 
       </tr>`;
   }).join('');
@@ -586,11 +631,15 @@ render();
     set('name', x.name);
     set('email', x.email);
     set('dept', x.dept);
-    set('role', x.role || 'viewer');
+
     set('status', x.status || 'Active');
     set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
     set('notes', x.notes);
     set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
+    set('personalEmail', x.personalEmail);
+set('tier', tierDisplay(x));
+set('position', x.position);
+
 
 // --- prefill structured address fields from single address string if present ---
 (function(){
@@ -654,12 +703,13 @@ render();
 function exportAllCSV(){
   // headers
 const headers = [
-  'Name','Staff No','Email','Dept','Role','Status',
+  'Name','Staff No','Work Email','Personal Email','Dept','Tier','Position','Status',
   'Hire Date','Car Reg','Car Make/Model','Address',
   'IC / NRIC / ID','Passport No',
   'Next of Kin Name','Next of Kin Relation','Next of Kin Phone','Emergency Notes',
   'Family'
 ];
+
 
   const esc = v => {
     const s = (v==null ? '' : String(v));
@@ -687,25 +737,28 @@ const ymd = v => {
       }).join('; ')
     : '';
 
-  return [
-    d.name || '',
-    staffNo,
-    d.email || '',
-    d.dept || '',
-    d.role || '',
-    d.status || '',
-    d.hireDate || '',
-    d.carReg || '',
-    d.carDesc || '',
-    d.address || '',
-    d.idNo || '',
-    d.passportNo || '',
-    d.nokName || '',
-    d.nokRelation || '',
-    d.nokPhone || '',
-    d.emergencyNotes || '',
-    famStr            // <-- use famStr (not famJSON)
-  ].map(esc).join(',');
+return [
+  d.name || '',
+  staffNo,
+  d.email || '',
+  d.personalEmail || '',
+  d.dept || '',
+  tierDisplay(d) || '',
+  d.position || '',
+  d.status || '',
+  ymd(d.hireDate) || '',
+  d.carReg || '',
+  d.carDesc || '',
+  d.address || '',
+  d.idNo || '',
+  d.passportNo || '',
+  d.nokName || '',
+  d.nokRelation || '',
+  d.nokPhone || '',
+  d.emergencyNotes || '',
+  famStr
+].map(esc).join(',');
+
 });
 
 
@@ -817,10 +870,12 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
       <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
       <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
     </div>
-    <div class="grid2">
-      <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-      <div><strong>Role</strong><br>${escapeHtml(roleLabel(x.role))}</div>
-    </div>
+<div class="grid2">
+  <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
+  <div><strong>Tier</strong><br>${escapeHtml(tierDisplay(x))}</div>
+</div>
+<div><strong>Position</strong><br>${escapeHtml(x.position||'')}</div>
+
     <div class="grid2">
       <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
       <div><strong>MFA Enabled</strong><br>${yesno(!!x.mfaEnabled)}</div>
