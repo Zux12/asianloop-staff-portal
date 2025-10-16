@@ -432,13 +432,16 @@ app.get('/api/staff', async (_req, res) => {
     const items = await staffColl(db)
       .find({ archivedAt: { $exists: false } })
 .project({
-  name:1, email:1, dept:1, role:1, status:1, lastLoginAt:1, mfaEnabled:1, notes:1,
+  name:1, email:1, personalEmail:1,
+  dept:1, tier:1, role:1, position:1,
+  status:1, lastLoginAt:1, mfaEnabled:1, notes:1,
   staffNo:1, address:1, idNo:1, passportNo:1, hireDate:1,
   carReg:1, carDesc:1,
   nokName:1, nokRelation:1, nokPhone:1, emergencyNotes:1,
   family:1,
   createdAt:1, updatedAt:1
 })
+
 
       .sort({ name: 1 })
       .toArray();
@@ -452,44 +455,42 @@ app.get('/api/staff', async (_req, res) => {
 // POST /api/staff  (create)
 app.post('/api/staff', async (req, res) => {
   try{
-    const { name, email, dept='', role='viewer', status='Active', mfaEnabled=false, notes='' } = req.body || {};
-    if(!name || !email) return res.status(400).send('Name and email required');
+   const { name, email, personalEmail='', dept='', tier='Executive', position='', status='Active', mfaEnabled=false, notes='' } = req.body || {};
 
-    // domain guard (use your ALLOWED_DOMAIN if present)
-    const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
-    if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
+const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
+if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
 
-    const staffNoVal = (req.body && (req.body.staffNo || req.body.staff_number || req.body.staff_no)) || '';
+const doc = {
+  name: String(name).trim(),
+  email: String(email).trim().toLowerCase(),
+  personalEmail: String(personalEmail||'').trim().toLowerCase(),
+  dept: String(dept||'').trim(),
+  tier: String(tier||'Executive').trim(),            // NEW
+  position: String(position||'').trim(),             // NEW
+  status: String(status||'Active').trim(),
+  mfaEnabled: !!mfaEnabled,
+  notes: String(notes||'').trim(),
 
-    const doc = {
-      // basics
-      name: String((req.body && req.body.name) || '').trim(),
-      email: String((req.body && req.body.email) || '').trim().toLowerCase(),
-      dept: String((req.body && req.body.dept) || '').trim(),
-      role: String((req.body && req.body.role) || 'viewer').trim(),
-      status: String((req.body && req.body.status) || 'Active').trim(),
-      mfaEnabled: !!(req.body && req.body.mfaEnabled),
-      notes: String((req.body && req.body.notes) || '').trim(),
+  staffNo: String((req.body?.staffNo)||'').trim(),
+  address: String((req.body?.address)||'').trim(),
+  idNo: String((req.body?.idNo)||'').trim(),
+  passportNo: String((req.body?.passportNo)||'').trim(),
+  hireDate: req.body?.hireDate ? new Date(req.body.hireDate) : null,
 
-      // employment + vehicle + identity + address + NOK
-      staffNo: String(staffNoVal || '').trim(),
-      hireDate: String((req.body && req.body.hireDate) || '').trim(),
-      carReg:   String((req.body && req.body.carReg)   || '').trim(),
-      carDesc:  String((req.body && req.body.carDesc)  || '').trim(),
-      address:  String((req.body && req.body.address)  || '').trim(),
-      idNo:          String((req.body && req.body.idNo)          || '').trim(),
-      passportNo:    String((req.body && req.body.passportNo)    || '').trim(),
-      nokName:       String((req.body && req.body.nokName)       || '').trim(),
-      nokRelation:   String((req.body && req.body.nokRelation)   || '').trim(),
-      nokPhone:      String((req.body && req.body.nokPhone)      || '').trim(),
-      emergencyNotes:String((req.body && req.body.emergencyNotes)|| '').trim(),
+  carReg: String((req.body?.carReg)||'').trim(),
+  carDesc: String((req.body?.carDesc)||'').trim(),
 
-      // family -> normalized array of {name,dob,relation,phone,notes}
-      family: cleanFamily(req.body && req.body.family),
+  nokName: String((req.body?.nokName)||'').trim(),
+  nokRelation: String((req.body?.nokRelation)||'').trim(),
+  nokPhone: String((req.body?.nokPhone)||'').trim(),
+  emergencyNotes: String((req.body?.emergencyNotes)||'').trim(),
 
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  family: cleanFamily(req.body.family),
+
+  createdAt: new Date(),
+  updatedAt: new Date()
+};
+
 
     const db = await staffDb();
     const r = await staffColl(db).insertOne(doc);
@@ -532,6 +533,11 @@ app.put('/api/staff/:id', async (req, res) => {
     if (b.emergencyNotes !== undefined) $set.emergencyNotes = String(b.emergencyNotes || '').trim();
 
     if (b.family !== undefined) $set.family = cleanFamily(b.family);
+
+    if (req.body && 'tier' in req.body)      $set.tier = String(req.body.tier||'').trim();
+if (req.body && 'position' in req.body)  $set.position = String(req.body.position||'').trim();
+if (req.body && 'personalEmail' in req.body) $set.personalEmail = String(req.body.personalEmail||'').trim().toLowerCase();
+
 
     const db = await staffDb();
     const r = await staffColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
