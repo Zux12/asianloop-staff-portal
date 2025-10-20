@@ -710,34 +710,49 @@ app.delete('/api/assets/:id', async (req, res) => {
 
 // Upload/replace photo
 app.post('/api/assets/:id/photo', uploadAssetPhoto.single('file'), async (req, res) => {
-  try{
-    const db = await licDb(); // reuse your DB helper
-    const _id = new ObjectId(req.params.id);
+  let db, _id;
+  try {
+    db = await licDb(); // use your existing DB helper
+    try {
+      _id = new ObjectId(String(req.params.id));
+    } catch {
+      return res.status(400).send('Invalid asset id');
+    }
+
     const asset = await assetsColl(db).findOne({ _id, isDeleted: { $ne: true } });
     if (!asset) return res.status(404).send('Asset not found');
     if (!req.file) return res.status(400).send('No file');
 
-    // If existing photo, delete it first
+    // Remove old photo quietly (if exists)
     if (asset.photoFileId) {
-      try { await assetPhotosBucket(db).delete(new ObjectId(asset.photoFileId)); } catch(_){}
+      try { await assetPhotosBucket(db).delete(new ObjectId(String(asset.photoFileId))); } catch(_){}
     }
 
-    // Store to GridFS
+    // Store to GridFS, wait for completion
+    const bucket = assetPhotosBucket(db);
     const filename = `asset_${String(_id)}_${Date.now()}`;
-    const uploadStream = assetPhotosBucket(db).openUploadStream(filename, {
-      contentType: req.file.mimetype
+    const stream = bucket.openUploadStream(filename, { contentType: req.file.mimetype });
+
+    // write and wait for finish
+    stream.end(req.file.buffer, async (err) => {
+      if (err) {
+        console.error('[ASSET PHOTO upload end error]', err);
+        return res.status(500).send('Upload failed');
+      }
+      try {
+        await assetsColl(db).updateOne({ _id }, { $set: { photoFileId: stream.id, updatedAt: new Date() } });
+        return res.json({ ok: true, fileId: String(stream.id) });
+      } catch (e) {
+        console.error('[ASSET PHOTO post-update error]', e);
+        return res.status(500).send('Upload metadata failed');
+      }
     });
-    uploadStream.end(req.file.buffer);
-    uploadStream.on('error', err => { console.error('[ASSET PHOTO upload error]', err); });
-    uploadStream.on('finish', async (file) => {
-      await assetsColl(db).updateOne({ _id }, { $set: { photoFileId: file._id, updatedAt: new Date() } });
-      res.json({ ok:true, fileId: String(file._id) });
-    });
-  }catch(e){
-    console.error('[ASSET PHOTO upload]', e);
-    res.status(500).send('Upload failed');
+  } catch (e) {
+    console.error('[ASSET PHOTO upload fatal]', e);
+    return res.status(500).send('Upload failed');
   }
 });
+
 
 // Get photo
 app.get('/api/assetphoto/:fileId', async (req, res) => {
