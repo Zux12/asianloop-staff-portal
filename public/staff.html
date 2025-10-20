@@ -255,32 +255,33 @@ tbody tr td:last-child{ padding-right:16px; }
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
-    <input type="hidden" name="_id" id="hid_id" value="">
+  <!-- Row 1 -->
+  <div class="grid2">
+    <label>Name<br><input name="name" required></label>
+    <label>Work Email<br><input name="email" type="email" required placeholder="user@asian-loop.com"></label>
+  </div>
 
-  <!-- Basic -->
-<div class="grid2">
-  <label>Name<br><input name="name" required></label>
-  <label>Work Email<br><input name="email" type="email" required placeholder="user@asian-loop.com"></label>
-</div>
+  <!-- Row 2 -->
+  <div class="grid2">
+    <label>Personal Email<br><input name="personalEmail" type="email" placeholder="yourname@gmail.com"></label>
+    <label>Position<br><input name="position" placeholder="e.g., Principal Measurement"></label>
+  </div>
 
-<div class="grid2">
-  <label>Personal Email<br><input name="personalEmail" type="email" placeholder="yourname@gmail.com"></label>
-  <label>Department<br><input name="dept"></label>
-</div>
+  <!-- Row 3 (the ONLY Department field + Tier) -->
+  <div class="grid2">
+    <label>Department<br><input name="dept"></label>
+    <label>Tier<br>
+      <select name="tier" required>
+        <option>Senior Manager</option>
+        <option>Manager</option>
+        <option>Senior Executive</option>
+        <option>Executive</option>
+        <option>Non-Executive (T)</option>
+        <option>Non-Executive (NT)</option>
+      </select>
+    </label>
+  </div>
 
-<div class="grid2">
-  <label>Tier<br>
-    <select name="tier" required>
-      <option>Senior Manager</option>
-      <option>Manager</option>
-      <option>Senior Executive</option>
-      <option>Executive</option>
-      <option>Non-Executive (T)</option>
-      <option>Non-Executive (NT)</option>
-    </select>
-  </label>
-  <label>Position<br><input name="position" placeholder="e.g., Principal Measurement"></label>
-</div>
 
 
   <div class="grid2">
