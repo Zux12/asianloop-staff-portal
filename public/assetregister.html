@@ -404,12 +404,7 @@ function openDetails(id){
       <div><strong>Serial No.</strong><br>${escapeHtml(x.serialNo||'')}</div>
       <div><strong>Cost (MYR)</strong><br>${(x.cost??'')}</div>
 
-      if (x.photoFileId){
-  b.innerHTML += `
-    <div><strong>Photo</strong><br>
-      <img src="/api/assetphoto/${x.photoFileId}" alt="Asset photo" style="max-width:360px;max-height:240px;border:1px solid var(--border);border-radius:8px;object-fit:cover">
-    </div>`;
-}
+     
 
     </div>
     <div class="grid3">
@@ -419,6 +414,15 @@ function openDetails(id){
     </div>
     <div><strong>Notes</strong><br>${escapeHtml(x.notes||'')}</div>
   `;
+
+   if (x.photoFileId){
+  b.innerHTML += `
+    <div><strong>Photo</strong><br>
+      <img src="/api/assetphoto/${x.photoFileId}" alt="Asset photo" style="max-width:360px;max-height:240px;border:1px solid var(--border);border-radius:8px;object-fit:cover">
+    </div>`;
+}
+
+  
   $('#dlgDetails').showModal();
 }
 $('#btnDetClose').onclick = ()=> $('#dlgDetails').close();
