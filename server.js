@@ -12,6 +12,7 @@ const session = require('express-session'); console.log('[BOOT] session loaded')
 const rateLimit = require('express-rate-limit'); console.log('[BOOT] rate-limit loaded');
 const Busboy = require('busboy');           console.log('[BOOT] busboy loaded');
 const { MongoClient, ObjectId, GridFSBucket } = require('mongodb'); console.log('[BOOT] mongodb loaded');
+const multer = require('multer');
 
 // DB helper + router (must exist on disk)
 const { connect } = require('./server/db'); console.log('[BOOT] db helper loaded');
@@ -196,6 +197,10 @@ async function licDb() {
 }
 function licColl(db) { return db.collection('licenses'); }
 function assetsColl(db){ return db.collection('assets'); }
+function assetPhotosBucket(db){
+  return new GridFSBucket(db, { bucketName: 'asset_photos' });
+}
+
 function announcementsColl(db){ return db.collection('announcements'); }
 
 
@@ -585,6 +590,15 @@ app.delete('/api/staff/:id', async (req, res) => {
 });
 /* -------------------------------------------------------------------- */
 
+const uploadAssetPhoto = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (req, file, cb) => {
+    const ok = /image\/(jpeg|png|webp)/i.test(file.mimetype);
+    cb(ok ? null : new Error('Only JPG/PNG/WEBP images allowed'), ok);
+  }
+});
+
 
 // === Assets API ===
 
@@ -689,6 +703,78 @@ app.delete('/api/assets/:id', async (req, res) => {
   }catch(e){
     console.error('[ASSETS] delete', e);
     res.status(500).json({ ok:false, error:'Delete failed' });
+  }
+});
+
+// === Asset Photo API ===
+
+// Upload/replace photo
+app.post('/api/assets/:id/photo', uploadAssetPhoto.single('file'), async (req, res) => {
+  try{
+    const db = await licDb(); // reuse your DB helper
+    const _id = new ObjectId(req.params.id);
+    const asset = await assetsColl(db).findOne({ _id, isDeleted: { $ne: true } });
+    if (!asset) return res.status(404).send('Asset not found');
+    if (!req.file) return res.status(400).send('No file');
+
+    // If existing photo, delete it first
+    if (asset.photoFileId) {
+      try { await assetPhotosBucket(db).delete(new ObjectId(asset.photoFileId)); } catch(_){}
+    }
+
+    // Store to GridFS
+    const filename = `asset_${String(_id)}_${Date.now()}`;
+    const uploadStream = assetPhotosBucket(db).openUploadStream(filename, {
+      contentType: req.file.mimetype
+    });
+    uploadStream.end(req.file.buffer);
+    uploadStream.on('error', err => { console.error('[ASSET PHOTO upload error]', err); });
+    uploadStream.on('finish', async (file) => {
+      await assetsColl(db).updateOne({ _id }, { $set: { photoFileId: file._id, updatedAt: new Date() } });
+      res.json({ ok:true, fileId: String(file._id) });
+    });
+  }catch(e){
+    console.error('[ASSET PHOTO upload]', e);
+    res.status(500).send('Upload failed');
+  }
+});
+
+// Get photo
+app.get('/api/assetphoto/:fileId', async (req, res) => {
+  try{
+    const db = await licDb();
+    const fid = new ObjectId(req.params.fileId);
+    const bucket = assetPhotosBucket(db);
+
+    // set content-type from file metadata if present
+    const files = await bucket.find({ _id: fid }).toArray();
+    if (!files || !files.length) return res.status(404).send('Not found');
+    const meta = files[0];
+
+    res.set('Cache-Control', 'public, max-age=86400');
+    if (meta && meta.contentType) res.type(meta.contentType);
+
+    bucket.openDownloadStream(fid).pipe(res);
+  }catch(e){
+    res.status(404).send('Not found');
+  }
+});
+
+// Remove photo (optional endpoint)
+app.delete('/api/assets/:id/photo', async (req, res) => {
+  try{
+    const db = await licDb();
+    const _id = new ObjectId(req.params.id);
+    const asset = await assetsColl(db).findOne({ _id, isDeleted: { $ne:true } });
+    if (!asset) return res.status(404).send('Asset not found');
+    if (asset.photoFileId){
+      try { await assetPhotosBucket(db).delete(new ObjectId(asset.photoFileId)); } catch(_){}
+    }
+    await assetsColl(db).updateOne({ _id }, { $unset: { photoFileId: "" }, $set: { updatedAt: new Date() } });
+    res.json({ ok:true });
+  }catch(e){
+    console.error('[ASSET PHOTO delete]', e);
+    res.status(500).json({ ok:false });
   }
 });
 
