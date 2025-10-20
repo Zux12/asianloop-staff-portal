@@ -310,42 +310,77 @@ btnRemovePhoto.style.display = 'none';
 $('#btnCancel').onclick = ()=> dlg.close();
 
 $('#btnSave').onclick = async ()=>{
+  // 1) Gather form data
   const obj = Object.fromEntries(new FormData(frm).entries());
   obj.cost = (obj.cost===''||obj.cost==null) ? 0 : +obj.cost;
+
   const idField = String((document.getElementById('hid_id')?.value || '')).trim();
-  const method = idField ? 'PUT' : 'POST';
-  const url = idField ? `/api/assets/${encodeURIComponent(idField)}` : '/api/assets';
+  const method  = idField ? 'PUT' : 'POST';
+  const url     = idField ? `/api/assets/${encodeURIComponent(idField)}` : '/api/assets';
   if (idField) obj._id = idField; else delete obj._id;
 
-  // 1) If user marked removal (existing photo) and no replacement chosen
-if (pendingRemovePhoto && (photoInput.files.length === 0) && currentPhotoFileId){
-  await fetch(`/api/assets/${encodeURIComponent(idField || obj._id || newId)}/photo`, { method:'DELETE' }).catch(()=>{});
-  currentPhotoFileId = null;
-}
-
-// 2) If a new file was chosen, upload it
-if (photoInput.files && photoInput.files[0]){
-  const fd = new FormData();
-  fd.append('file', photoInput.files[0]);
-  const upRes = await fetch(`/api/assets/${encodeURIComponent(idField || obj._id || newId)}/photo`, {
-    method:'POST', body: fd
+  // 2) Save metadata first (create or update)
+  const r = await fetch(url, {
+    method,
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(obj)
   });
-  if(!upRes.ok){
-    const t = await upRes.text().catch(()=>upRes.statusText||'');
-    alert('Photo upload failed: ' + t);
-  }
-}
 
-
-  const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) });
   if (!r.ok){
     const t = await r.text().catch(()=>r.statusText||'');
     alert('Save failed: ' + (t || `${r.status} ${r.statusText}`));
     return;
   }
+
+  // 3) Determine the asset ID to use for photo ops
+  const respText = await r.text();
+  let respJson = {};
+  try { respJson = JSON.parse(respText); } catch(_){}
+  const assetId =
+    (idField && idField.trim()) ||
+    (respJson && (respJson._id || respJson.id)) ||
+    (obj && (obj._id || obj.id)) || '';
+
+  if (!assetId){
+    console.error('[assets] no assetId after save', { idField, respJson, obj });
+    alert('Saved, but could not determine the asset ID for photo upload.');
+    await load();
+    dlg.close();
+    return;
+  }
+
+  // 4) Photo removal (if requested) and no replacement chosen
+  if (pendingRemovePhoto && (photoInput.files.length === 0) && currentPhotoFileId){
+    await fetch(`/api/assets/${encodeURIComponent(assetId)}/photo`, { method:'DELETE' }).catch(()=>{});
+    currentPhotoFileId = null;
+  }
+
+  // 5) Photo upload (if a new file is chosen)
+  if (photoInput.files && photoInput.files[0]){
+    const fd = new FormData();
+    fd.append('file', photoInput.files[0]);
+    const upRes = await fetch(`/api/assets/${encodeURIComponent(assetId)}/photo`, {
+      method:'POST',
+      body: fd
+    });
+    if (!upRes.ok){
+      const t = await upRes.text().catch(()=>upRes.statusText||'');
+      alert('Photo upload failed: ' + t);
+      // continue to refresh UI anyway
+    }
+  }
+
+  // 6) Refresh UI and close dialog
   await load();
   dlg.close();
+
+  // 7) Cleanup UI flags
+  pendingRemovePhoto = false;
+  photoInput.value = '';
+  photoPrev.src = '';
+  btnRemovePhoto.style.display = 'none';
 };
+
 
 function openEdit(id){
   const x = (data||[]).find(y => String(y && y._id) === String(id));
