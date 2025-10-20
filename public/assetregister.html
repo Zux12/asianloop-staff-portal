@@ -173,6 +173,23 @@
     <div class="grid1">
       <label>Notes<br><textarea name="notes" rows="3" placeholder="Calibration schedule, accessories, etc."></textarea></label>
     </div>
+
+<div class="grid2">
+  <label>Asset Photo
+    <input id="photoFile" type="file" accept="image/*">
+    <small class="muted">JPG/PNG/WEBP, max 5 MB</small>
+  </label>
+  <label>Preview
+    <div style="display:flex;gap:10px;align-items:center">
+      <img id="photoPrev" alt="Preview" style="max-width:160px;max-height:100px;border:1px solid var(--border);border-radius:8px;object-fit:cover">
+      <button class="btn" id="btnRemovePhoto" type="button" style="display:none">Remove</button>
+    </div>
+  </label>
+</div>
+
+
+
+    
   </form>
   <div class="dlg-f">
     <button class="btn" id="btnCancel">Cancel</button>
@@ -192,6 +209,12 @@
 <script>
 const $ = (q, el=document) => el.querySelector(q);
 const rowsEl = $('#rows'); let data = [];
+  const photoInput = $('#photoFile');
+const photoPrev  = $('#photoPrev');
+const btnRemovePhoto = $('#btnRemovePhoto');
+let currentPhotoFileId = null; // from server for this asset
+let pendingRemovePhoto = false; // user clicked Remove in Edit
+
 
 function fmtDate(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -273,6 +296,12 @@ const dlg = $('#dlg'); const frm = $('#frm');
 
 $('#btnNew').onclick = ()=>{
   frm.reset();
+  currentPhotoFileId = null;
+pendingRemovePhoto = false;
+photoInput.value = '';
+photoPrev.src = '';
+btnRemovePhoto.style.display = 'none';
+
   (document.getElementById('hid_id')||{}).value = '';
   if (frm.status) frm.status.value = 'Active';
   $('#dlgTitle').textContent = 'Add Asset';
@@ -287,6 +316,26 @@ $('#btnSave').onclick = async ()=>{
   const method = idField ? 'PUT' : 'POST';
   const url = idField ? `/api/assets/${encodeURIComponent(idField)}` : '/api/assets';
   if (idField) obj._id = idField; else delete obj._id;
+
+  // 1) If user marked removal (existing photo) and no replacement chosen
+if (pendingRemovePhoto && (photoInput.files.length === 0) && currentPhotoFileId){
+  await fetch(`/api/assets/${encodeURIComponent(idField || obj._id || newId)}/photo`, { method:'DELETE' }).catch(()=>{});
+  currentPhotoFileId = null;
+}
+
+// 2) If a new file was chosen, upload it
+if (photoInput.files && photoInput.files[0]){
+  const fd = new FormData();
+  fd.append('file', photoInput.files[0]);
+  const upRes = await fetch(`/api/assets/${encodeURIComponent(idField || obj._id || newId)}/photo`, {
+    method:'POST', body: fd
+  });
+  if(!upRes.ok){
+    const t = await upRes.text().catch(()=>upRes.statusText||'');
+    alert('Photo upload failed: ' + t);
+  }
+}
+
 
   const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) });
   if (!r.ok){
@@ -318,6 +367,19 @@ function openEdit(id){
   set('ownerEmail', x.ownerEmail);
   set('notes', x.notes);
 
+
+  currentPhotoFileId = x.photoFileId || null;
+pendingRemovePhoto = false;
+if (currentPhotoFileId){
+  photoPrev.src = `/api/assetphoto/${currentPhotoFileId}`;
+  btnRemovePhoto.style.display = 'inline-block';
+} else {
+  photoPrev.src = '';
+  btnRemovePhoto.style.display = 'none';
+}
+photoInput.value = ''; // clear any previous selection
+
+
   $('#dlgTitle').textContent = 'Edit Asset';
   dlg.showModal();
 }
@@ -341,6 +403,14 @@ function openDetails(id){
       <div><strong>Vendor</strong><br>${escapeHtml(x.vendor||'')}</div>
       <div><strong>Serial No.</strong><br>${escapeHtml(x.serialNo||'')}</div>
       <div><strong>Cost (MYR)</strong><br>${(x.cost??'')}</div>
+
+      if (x.photoFileId){
+  b.innerHTML += `
+    <div><strong>Photo</strong><br>
+      <img src="/api/assetphoto/${x.photoFileId}" alt="Asset photo" style="max-width:360px;max-height:240px;border:1px solid var(--border);border-radius:8px;object-fit:cover">
+    </div>`;
+}
+
     </div>
     <div class="grid3">
       <div><strong>Purchase Date</strong><br>${fmtDate(x.purchaseDate)}</div>
@@ -363,6 +433,34 @@ window.doDelete = doDelete;
 
 $('#q').oninput = render; $('#fStatus').onchange = render; $('#fCategory').onchange = render;
 $('#btnRefresh').onclick = load;
+
+  if (photoInput) {
+  photoInput.addEventListener('change', ()=>{
+    const f = photoInput.files && photoInput.files[0];
+    if (!f){ photoPrev.src=''; return; }
+    const ok = /image\/(jpeg|png|webp)/i.test(f.type) && f.size <= 5*1024*1024;
+    if (!ok){ alert('Only JPG/PNG/WEBP up to 5 MB'); photoInput.value=''; return; }
+    const url = URL.createObjectURL(f);
+    photoPrev.src = url;
+    pendingRemovePhoto = false;
+    btnRemovePhoto.style.display = 'inline-block';
+  });
+}
+if (btnRemovePhoto){
+  btnRemovePhoto.onclick = ()=>{
+    // If existing photo from server, mark for removal; if just chosen, just clear input
+    if (currentPhotoFileId && !photoInput.files.length){
+      pendingRemovePhoto = true;
+      photoPrev.src = '';
+      btnRemovePhoto.style.display = 'none';
+    } else {
+      photoInput.value = '';
+      photoPrev.src = '';
+      btnRemovePhoto.style.display = 'none';
+    }
+  };
+}
+
 
 load();
 </script>
