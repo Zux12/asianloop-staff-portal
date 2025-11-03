@@ -637,19 +637,37 @@ render();
     set('personalEmail', x.personalEmail);
 set('tier', tierDisplay(x));
 set('position', x.position);
+// --- NEW: prefill remaining fields ---
+set('carReg', x.carReg);
+set('carDesc', x.carDesc);
+set('hireDate', x.hireDate ? fmtDate(x.hireDate) : '');
+
+set('idNo', x.idNo);
+set('passportNo', x.passportNo);
+
+set('nokName', x.nokName);
+if (frm.nokRelation) frm.nokRelation.value = (x.nokRelation || ''); // select
+set('nokPhone', x.nokPhone);
+set('emergencyNotes', x.emergencyNotes);
 
 
-// --- prefill structured address fields from single address string if present ---
+// --- prefill structured address fields; prefer structured keys, fallback to single string ---
 (function(){
-  const addr = (typeof x.address === 'string' ? x.address : '').split(',').map(s=>s.trim()).filter(Boolean);
-  // Heuristic: [addr1, addr2, city, state, postcode, country] from left to right
+  // If structured fields exist on the record, use them first:
+  if (x.address1 || x.address2 || x.city || x.state || x.postcode || x.country) {
+    if (frm.address1) frm.address1.value = x.address1 || '';
+    if (frm.address2) frm.address2.value = x.address2 || '';
+    if (frm.city)     frm.city.value     = x.city     || '';
+    if (frm.state)    frm.state.value    = x.state    || '';
+    if (frm.postcode) frm.postcode.value = x.postcode || '';
+    if (frm.country)  frm.country.value  = x.country  || '';
+    return;
+  }
+  // Fallback: try to split a single 'address' string into parts
+  const addr = (typeof x.address === 'string' ? x.address : '')
+    .split(',').map(s=>s.trim()).filter(Boolean);
   const [a1='', a2='', c='', st='', pc='', co=''] = [
-    addr[0]||'',
-    addr[1]||'',
-    addr[2]||'',
-    addr[3]||'',
-    addr[4]||'',
-    addr[5]||''
+    addr[0]||'', addr[1]||'', addr[2]||'', addr[3]||'', addr[4]||'', addr[5]||''
   ];
   if (frm.address1) frm.address1.value = a1;
   if (frm.address2) frm.address2.value = a2;
@@ -658,6 +676,7 @@ set('position', x.position);
   if (frm.postcode) frm.postcode.value = pc;
   if (frm.country)  frm.country.value  = co;
 })();
+
 
     
     // rebuild Family for this record
