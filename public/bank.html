@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bank Details — Asianloop Admin</title>
+<style>
+  :root{--bg:#fff;--ink:#0f172a;--muted:#64748b;--card:#fafafa;--border:#e5e7eb;--accent:#2563eb;--bad:#dc2626}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink)}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+  header a{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+  main{max-width:1100px;margin:0 auto;padding:18px 20px 40px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  input,select{border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:14px}
+  .btn{font-size:14px;padding:9px 12px;border:1px solid var(--border);background:#fff;border-radius:10px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .table{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{position:sticky;top:0;background:#f8fafc;border-bottom:1px solid var(--border);text-align:left;padding:10px}
+  tbody td{border-bottom:1px solid var(--border);padding:10px;vertical-align:top}
+  tbody tr:hover{background:#fcfcfc}
+  .muted{color:var(--muted)}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px}
+  dialog{border:none;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:0;max-width:680px;width:96%}
+  .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600}
+  .dlg-b{padding:16px;display:grid;gap:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .dlg-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<header>
+  <a href="/public/admin.html">← Admin</a>
+  <span class="pill">Bank Details</span>
+</header>
+
+<main>
+  <div class="bar">
+    <input id="q" placeholder="Search staff, bank…" />
+    <select id="fDefault">
+      <option value="">All</option>
+      <option value="1">Default only</option>
+      <option value="0">Non-default</option>
+    </select>
+    <select id="fStatus">
+      <option value="">Active</option>
+      <option value="archived">Archived</option>
+    </select>
+    <div style="flex:1"></div>
+    <button class="btn primary" id="btnNew">Add Bank</button>
+  </div>
+
+  <div class="table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:24%">Staff</th>
+          <th style="width:16%">Bank</th>
+          <th style="width:20%">Account</th>
+          <th style="width:14%">Branch</th>
+          <th style="width:12%">SWIFT/BIC</th>
+          <th style="width:10%">Default</th>
+          <th style="width:200px"></th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="7" class="muted" style="padding:14px">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted" style="margin-top:10px">Account numbers are stored encrypted; only the last 4 digits are shown here.</p>
+</main>
+
+<dialog id="dlg">
+  <div class="dlg-h" id="dlgTitle">Add Bank</div>
+  <form id="frm" class="dlg-b">
+    <div class="grid2">
+      <label>Staff (email or name)<br>
+        <input id="staffSearch" placeholder="Type to search…"><input type="hidden" name="userId" id="userId">
+        <div id="staffHint" class="muted">Start typing to select a staff</div>
+      </label>
+      <label>Default for payroll?<br>
+        <select name="isDefault">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid2">
+      <label>Bank Name<br>
+        <select name="bankName" id="bankNameSel">
+          <option>Maybank</option><option>CIMB</option><option>RHB</option><option>Public Bank</option>
+          <option>Bank Islam</option><option>AmBank</option><option>HSBC</option><option>UOB</option><option>OCBC</option>
+          <option value="__other">Other (type)</option>
+        </select>
+      </label>
+      <label>Other Bank (if selected)<br><input name="bankNameOther" id="bankNameOther" placeholder=""></label>
+    </div>
+    <div class="grid2">
+      <label>Account Holder Name<br><input name="accountName" required></label>
+      <label>Account Number (digits only)<br><input name="accountNo" inputmode="numeric" pattern="[0-9 ]{8,24}" placeholder="•••• •••• ••••" required></label>
+    </div>
+    <div class="grid2">
+      <label>Branch/City<br><input name="branch"></label>
+      <label>SWIFT/BIC<br><input name="swift" placeholder="8 or 11 chars"></label>
+    </div>
+    <div class="grid2">
+      <label>IBAN (optional)<br><input name="iban" placeholder=""></label>
+      <label>Effective Date<br><input type="date" name="effectiveAt"></label>
+    </div>
+    <label>Notes<br><input name="notes" placeholder=""></label>
+    <input type="hidden" name="_id" id="hidId">
+  </form>
+  <div class="dlg-f">
+    <button class="btn" id="btnCancel">Cancel</button>
+    <button class="btn primary" id="btnSave">Save</button>
+  </div>
+</dialog>
+
+<script>
+  const $ = (q,el=document)=>el.querySelector(q);
+  const rowsEl = $('#rows');
+  const params = new URLSearchParams(location.search);
+  const userFilter = params.get('user') || '';
+  let data = [], users = [];
+
+  function maskLast4(last4){ return last4 ? `•••• ${last4}` : '—'; }
+  function esc(s){ return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]); }
+  function fmt(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
+
+  async function load(){
+    const qs = new URLSearchParams();
+    if($('#fDefault').value) qs.set('default',$('#fDefault').value);
+    if($('#fStatus').value)  qs.set('status',$('#fStatus').value);
+    if(userFilter) qs.set('user', userFilter);
+    const r = await fetch('/api/bank?'+qs.toString());
+    data = await r.json();
+    render();
+  }
+
+  function render(){
+    const q = $('#q').value.trim().toLowerCase();
+    const filtered = data.filter(x=>{
+      const u = x.user || {};
+      const okQ = !q || (
+        (u.name||'').toLowerCase().includes(q) ||
+        (u.email||'').toLowerCase().includes(q) ||
+        (x.bankName||'').toLowerCase().includes(q)
+      );
+      return okQ;
+    });
+    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No records</td></tr>`; return; }
+    rowsEl.innerHTML = filtered.map(x=>{
+      const u = x.user || {};
+      return `<tr>
+        <td>${esc(u.name||u.email||'')}<div class="muted">${esc(u.dept||'')}</div></td>
+        <td>${esc(x.bankName||'')}</td>
+        <td>${maskLast4(x.accountNo_last4)}</td>
+        <td>${esc(x.branch||'')}</td>
+        <td>${esc(x.swift||'')}</td>
+        <td>${x.isDefault ? 'Yes' : 'No'}</td>
+        <td>
+          <button class="btn" onclick='reveal("${x._id}")'>Reveal</button>
+          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
+          <button class="btn" onclick='setDefault("${x._id}")'>Set default</button>
+          <button class="btn" onclick='archive("${x._id}")'>Archive</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Staff picker (very simple: reuse /api/staff and filter client-side)
+  async function loadUsers(){
+    const r = await fetch('/api/staff');
+    users = await r.json();
+  }
+  function wireStaffPicker(){
+    const inp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
+    inp.addEventListener('input', ()=>{
+      const v = inp.value.trim().toLowerCase();
+      const hit = users.find(u => (u.email||'').toLowerCase().includes(v) || (u.name||'').toLowerCase().includes(v));
+      if(hit){ hid.value = hit._id; hint.textContent = `${hit.name||hit.email} selected`; }
+      else { hid.value=''; hint.textContent = 'Start typing to select a staff'; }
+    });
+  }
+
+  // Dialog
+  const dlg = $('#dlg'), frm = $('#frm');
+  $('#btnNew').onclick = ()=>{ frm.reset(); $('#hidId').value=''; $('#dlgTitle').textContent='Add Bank'; dlg.showModal(); };
+  $('#btnCancel').onclick = ()=> dlg.close();
+
+  // bank “other” toggle
+  $('#bankNameSel').addEventListener('change', ()=>{
+    const isOther = $('#bankNameSel').value === '__other';
+    $('#bankNameOther').disabled = !isOther;
+    if(!isOther) $('#bankNameOther').value='';
+  });
+  $('#bankNameOther').disabled = true;
+
+  $('#btnSave').onclick = async ()=>{
+    const obj = Object.fromEntries(new FormData(frm).entries());
+    if(obj.bankName === '__other') obj.bankName = obj.bankNameOther || '';
+    delete obj.bankNameOther;
+    obj.isDefault = (obj.isDefault === 'true');
+    const method = obj._id ? 'PUT' : 'POST';
+    const url = obj._id ? `/api/bank/${obj._id}` : '/api/bank';
+    const r = await fetch(url,{ method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) });
+    if(!r.ok){ const t = await r.text(); alert('Save failed: '+t); return; }
+    dlg.close(); await load();
+  };
+
+  async function openEdit(id){
+    const x = data.find(y=>y._id===id); if(!x) return;
+    frm.reset();
+    $('#hidId').value = x._id;
+    $('#userId').value = x.userId;
+    $('#staffSearch').value = x.user?.email || x.user?.name || '';
+    $('#bankNameSel').value = x.bankName && ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'].includes(x.bankName) ? x.bankName : '__other';
+    $('#bankNameOther').disabled = $('#bankNameSel').value!=='__other';
+    $('#bankNameOther').value = $('#bankNameSel').value==='__other' ? (x.bankName||'') : '';
+    frm.accountName.value = x.accountName || '';
+    frm.accountNo.value = ''; // never prefill full number
+    frm.branch.value = x.branch || '';
+    frm.swift.value = x.swift || '';
+    frm.iban.value = x.iban || '';
+    frm.effectiveAt.value = x.effectiveAt ? fmt(x.effectiveAt) : '';
+    frm.notes.value = x.notes || '';
+    frm.isDefault.value = x.isDefault ? 'true' : 'false';
+    $('#dlgTitle').textContent='Edit Bank';
+    dlg.showModal();
+  }
+
+  async function reveal(id){
+    const ok = confirm('Reveal full account number? This action will be logged.');
+    if(!ok) return;
+    const r = await fetch(`/api/bank/${id}/reveal`, { method:'POST' });
+    if(!r.ok){ const t=await r.text(); alert('Reveal failed: '+t); return; }
+    const j = await r.json();
+    alert('Full account number: ' + j.accountNo);
+  }
+
+  async function setDefault(id){
+    const r = await fetch(`/api/bank/${id}/default`, { method:'PATCH' });
+    if(!r.ok){ alert('Failed'); return; }
+    await load();
+  }
+  async function archive(id){
+    if(!confirm('Archive this bank record?')) return;
+    const r = await fetch(`/api/bank/${id}`, { method:'DELETE' });
+    if(!r.ok){ alert('Failed'); return; }
+    await load();
+  }
+
+  $('#q').oninput = render;
+  $('#fDefault').onchange = load;
+  $('#fStatus').onchange = load;
+
+  (async function init(){
+    await loadUsers();
+    wireStaffPicker();
+    await load();
+  })();
+</script>
+</body>
+</html>
