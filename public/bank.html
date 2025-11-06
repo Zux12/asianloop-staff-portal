@@ -138,12 +138,7 @@ function esc(s){
 
 async function load(){
   try{
-    const qs = new URLSearchParams();
-    if($('#fDefault').value) qs.set('default',$('#fDefault').value);
-    if($('#fStatus').value)  qs.set('status',$('#fStatus').value);
-    if(userFilter) qs.set('user', userFilter);
-
-    const r = await fetch('/api/bank?' + qs.toString());
+    const r = await fetch('/api/bank/roster');
     if (!r.ok) {
       const t = await r.text();
       if (r.status === 401) {
@@ -153,10 +148,9 @@ async function load(){
       } else {
         rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Failed to load (${r.status}). ${t || ''}</td></tr>`;
       }
-      return; // stop here; don't try to JSON parse an error page
+      return;
     }
-
-    data = await r.json();
+    data = await r.json();   // data is an array of staff objects with optional bank
     render();
   } catch (e) {
     console.error(e);
@@ -165,42 +159,53 @@ async function load(){
 }
 
 
-  function render(){
-    const q = $('#q').value.trim().toLowerCase();
-    const filtered = data.filter(x=>{
-      const u = x.user || {};
-      const okQ = !q || (
-        (u.name||'').toLowerCase().includes(q) ||
-        (u.email||'').toLowerCase().includes(q) ||
-        (x.bankName||'').toLowerCase().includes(q)
-      );
-      return okQ;
-    });
-    if(!filtered.length){ rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No records</td></tr>`; return; }
-    rowsEl.innerHTML = filtered.map(x=>{
-      const u = x.user || {};
-      return `<tr>
-<td>
-  ${esc(u.name||u.email||'')}
-  <div class="muted">
-    ${esc(u.dept||'')}${u.staffNo ? ' • ' + esc(u.staffNo) : ''}
-  </div>
-</td>
 
-        <td>${esc(x.bankName||'')}</td>
-        <td>${maskLast4(x.accountNo_last4)}</td>
-        <td>${esc(x.branch||'')}</td>
-        <td>${esc(x.swift||'')}</td>
-        <td>${x.isDefault ? 'Yes' : 'No'}</td>
-        <td>
-          <button class="btn" onclick='reveal("${x._id}")'>Reveal</button>
-          <button class="btn" onclick='openEdit("${x._id}")'>Edit</button>
-          <button class="btn" onclick='setDefault("${x._id}")'>Set default</button>
-          <button class="btn" onclick='archive("${x._id}")'>Archive</button>
-        </td>
-      </tr>`;
-    }).join('');
+  function render(){
+  const q = $('#q').value.trim().toLowerCase();
+  const defFilter = $('#fDefault').value;   // '' | '1' | '0'
+  const statFilter = $('#fStatus').value;   // '' | 'archived' (roster only returns active users)
+
+  let rows = data.filter(s => {
+    const okQ = !q || (
+      (s.name||'').toLowerCase().includes(q) ||
+      (s.email||'').toLowerCase().includes(q) ||
+      (s.dept||'').toLowerCase().includes(q) ||
+      (s.bank?.bankName||'').toLowerCase().includes(q)
+    );
+    const okDefault = defFilter === '' ||
+      (defFilter === '1' && s.bank?.isDefault) ||
+      (defFilter === '0' && !s.bank?.isDefault);
+    // statFilter doesn't apply (we're showing only active staff)
+    return okQ && okDefault;
+  });
+
+  if(!rows.length){
+    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">No records</td></tr>`;
+    return;
   }
+
+  rowsEl.innerHTML = rows.map(s=>{
+    const b = s.bank || null;
+    return `<tr>
+      <td>
+        ${esc(s.name || s.email || '')}
+        <div class="muted">${esc(s.dept||'')}${s.staffNo ? ' • ' + esc(s.staffNo) : ''}</div>
+      </td>
+      <td>${esc(b?.bankName || '')}</td>
+      <td>${b?.accountNo_last4 ? '•••• ' + esc(b.accountNo_last4) : '—'}</td>
+      <td>${esc(b?.branch || '')}</td>
+      <td>${esc(b?.swift || '')}</td>
+      <td>${b?.isDefault ? 'Yes' : 'No'}</td>
+      <td>
+        ${b
+          ? `<button class="btn" onclick='revealById("${b._id}")'>Reveal</button>
+             <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>`
+          : `<button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 
   // Staff picker (very simple: reuse /api/staff and filter client-side)
   async function loadUsers(){
@@ -272,6 +277,42 @@ $('#btnNew').onclick = ()=>{
     dlg.close(); await load();
   };
 
+
+
+function setStaffInDialog(id, label, staffNo){
+  const staffInp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
+  staffInp.value = label;
+  hid.value = id;
+  hint.textContent = `${label}${staffNo ? ' ('+staffNo+')' : ''} selected`;
+}
+
+function openAddFor(userId, label, staffNo){
+  frm.reset();
+  $('#hidId').value = '';
+  $('#dlgTitle').textContent = 'Add Bank';
+  setStaffInDialog(userId, label, staffNo);
+  // optional: lock the staff field
+  // $('#staffSearch').disabled = true;
+  dlg.showModal();
+}
+
+function openEditFor(userId){
+  // find roster entry for this user and open edit for its bank
+  const s = data.find(x=>x._id === userId);
+  if (!s || !s.bank) { openAddFor(userId, s?.email || s?.name || '', s?.staffNo || ''); return; }
+  const bId = s.bank._id;
+  // reuse existing openEdit with record id:
+  openEdit(bId);
+}
+
+function revealById(bankId){
+  reveal(bankId);
+}
+
+
+
+
+  
   async function openEdit(id){
     const x = data.find(y=>y._id===id); if(!x) return;
     frm.reset();
