@@ -1153,6 +1153,66 @@ function cleanFamily(v){
 
 
 
+// GET /api/bank/roster  — list ALL active staff with 0..1 bank summary (default or latest)
+app.get('/api/bank/roster', requireAdmin, async (req, res) => {
+  try {
+    const db = await bankDb();
+    const items = await usersColl(db).aggregate([
+      { $match: { archivedAt: { $exists: false } } },
+      {
+        $lookup: {
+          from: 'bank_accounts',
+          let: { uid: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $and: [
+              { $eq: ['$userId', '$$uid'] },
+              { $not: ['$archivedAt'] }   // active only
+            ]}}},
+            { $sort: { isDefault: -1, updatedAt: -1 } }, // default first, else latest
+            { $limit: 1 }
+          ],
+          as: 'bank'
+        }
+      },
+      { $addFields: { bank: { $first: '$bank' } } },
+      { $project: {
+          _id: 1, name:1, email:1, dept:1, tier: { $ifNull: ['$tier', '$role'] }, staffNo:1,
+          bank: {
+            _id: '$bank._id',
+            bankName: '$bank.bankName',
+            accountNo_last4: '$bank.accountNo_last4',
+            branch: '$bank.branch',
+            swift: '$bank.swift',
+            isDefault: '$bank.isDefault',
+            updatedAt: '$bank.updatedAt'
+          }
+      } }
+    ]).toArray();
+
+    res.json(items.map(x => ({
+      _id: String(x._id),
+      name: x.name,
+      email: x.email,
+      dept: x.dept,
+      tier: x.tier,
+      staffNo: x.staffNo,
+      bank: x.bank ? {
+        _id: String(x.bank._id),
+        bankName: x.bank.bankName,
+        accountNo_last4: x.bank.accountNo_last4,
+        branch: x.bank.branch,
+        swift: x.bank.swift,
+        isDefault: !!x.bank.isDefault,
+        updatedAt: x.bank.updatedAt
+      } : null
+    })));
+  } catch (e) {
+    console.error('[BANK] roster error', e);
+    res.status(500).send('Error');
+  }
+});
+
+
 
 
 // (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
