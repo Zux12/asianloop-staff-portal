@@ -126,7 +126,12 @@
   let data = [], users = [];
 
   function maskLast4(last4){ return last4 ? `•••• ${last4}` : '—'; }
-  function esc(s){ return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]); }
+function esc(s){
+  return String(s || '').replace(/[&<>"']/g, m => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
+  ));
+}
+
   function fmt(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
 
   async function load(){
