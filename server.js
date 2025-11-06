@@ -17,6 +17,7 @@ const multer = require('multer');
 // DB helper + router (must exist on disk)
 const { connect } = require('./server/db'); console.log('[BOOT] db helper loaded');
 const commonFiles = require('./server/routes/commonFiles'); console.log('[BOOT] commonFiles router loaded');
+const crypto = require('crypto');
 
 // ----- app + parsers -----
 const app = express();
@@ -153,6 +154,213 @@ async function sendLicenseReminderEmail(lic, { test=false, toOverride=null } = {
   // Helpful server log to see who actually received it
   console.log('[MAIL] accepted:', info.accepted, 'rejected:', info.rejected);
 }
+
+
+
+
+/* ======================= Bank Accounts API (encrypted) ======================= */
+// Requires: const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
+//           const crypto = require('crypto');  <-- add at the top of file if not present
+
+
+let __mongoClientBank = null;
+async function bankDb(){
+  if(!__mongoClientBank){
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if(!uri) throw new Error('MONGO_URI not set');
+    __mongoClientBank = new MongoClient(uri);
+    await __mongoClientBank.connect();
+    console.log('[BANK] Mongo connected');
+  }
+  return __mongoClientBank.db();
+}
+function bankColl(db){ return db.collection('bank_accounts'); }
+function usersColl(db){ return db.collection('users'); }
+
+// --- auth guard (keep simple: admin only; tweak as you prefer)
+function requireAdmin(req, res, next){
+  const u = req.session?.user || {};
+  if (u.role === 'admin' || u.tier === 'Senior Manager') return next();
+  return res.status(403).send('Forbidden');
+}
+
+// --- encryption helpers (AES-256-GCM)
+function getKey(){
+  const raw = process.env.BANK_ENC_KEY;
+  if(!raw) throw new Error('BANK_ENC_KEY not set');
+  const key = Buffer.from(raw, raw.startsWith('base64:') ? 'base64' : 'utf8');
+  if (key.length !== 32) throw new Error('BANK_ENC_KEY must be 32 bytes');
+  return key;
+}
+function encAccount(no){
+  const key = getKey();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const out = Buffer.concat([cipher.update(no, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, out, tag]).toString('base64');
+}
+function decAccount(b64){
+  const buf = Buffer.from(b64, 'base64');
+  const iv = buf.subarray(0,12);
+  const tag = buf.subarray(buf.length-16);
+  const text = buf.subarray(12, buf.length-16);
+  const key = getKey();
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(tag);
+  const out = Buffer.concat([decipher.update(text), decipher.final()]);
+  return out.toString('utf8');
+}
+function cleanDigits(s){ return String(s||'').replace(/\D+/g,''); }
+
+// GET /api/bank  (list; optional ?default=1|0 & ?status=archived & ?user=<id>)
+app.get('/api/bank', requireAdmin, async (req,res)=>{
+  try{
+    const db = await bankDb();
+    const q = { };
+    if (req.query.status === 'archived') q.archivedAt = { $exists: true };
+    else q.archivedAt = { $exists: false };
+    if (req.query.default === '1') q.isDefault = true;
+    if (req.query.default === '0') q.isDefault = { $ne: true };
+    if (req.query.user && ObjectId.isValid(req.query.user)) q.userId = new ObjectId(req.query.user);
+
+    // join basic user info for display:
+    const items = await bankColl(db).aggregate([
+      { $match: q },
+      { $sort: { updatedAt: -1 } },
+      { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
+      { $addFields: { user: { $first: "$user" } } },
+      { $project: { accountNo_enc: 0 } }
+    ]).toArray();
+
+    res.json(items.map(x=>({ ...x, _id: String(x._id), userId: String(x.userId), user: x.user ? {
+      _id: String(x.user._id), name:x.user.name, email:x.user.email, dept:x.user.dept, tier:(x.user.tier||x.user.role)
+    } : null })));
+  }catch(e){
+    console.error('[BANK] list error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// POST /api/bank  (create)
+app.post('/api/bank', requireAdmin, async (req,res)=>{
+  try{
+    const { userId, bankName, accountName, accountNo, branch='', swift='', iban='', isDefault=false, notes='', effectiveAt='' } = req.body || {};
+    if(!ObjectId.isValid(userId)) return res.status(400).send('Bad userId');
+    if(!bankName || !accountName || !accountNo) return res.status(400).send('Missing required fields');
+
+    const digits = cleanDigits(accountNo);
+    if (digits.length < 8 || digits.length > 24) return res.status(400).send('Invalid account number length');
+
+    const db = await bankDb();
+    if (isDefault) await bankColl(db).updateMany({ userId: new ObjectId(userId), archivedAt: { $exists: false } }, { $set: { isDefault: false } });
+
+    const doc = {
+      userId: new ObjectId(userId),
+      bankName: String(bankName).trim(),
+      accountName: String(accountName).trim(),
+      accountNo_enc: encAccount(digits),
+      accountNo_last4: digits.slice(-4),
+      branch: String(branch||'').trim(),
+      swift: String(swift||'').trim(),
+      iban: String(iban||'').trim(),
+      isDefault: !!isDefault,
+      notes: String(notes||'').trim(),
+      effectiveAt: effectiveAt ? new Date(effectiveAt) : null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      archivedAt: null
+    };
+    const r = await bankColl(db).insertOne(doc);
+    res.json({ ok:true, _id: String(r.insertedId) });
+  }catch(e){
+    console.error('[BANK] create error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// PUT /api/bank/:id  (update; never returns full number)
+app.put('/api/bank/:id', requireAdmin, async (req,res)=>{
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const $set = { updatedAt: new Date() };
+    ['bankName','accountName','branch','swift','iban','notes'].forEach(k=>{
+      if (req.body && k in req.body) $set[k] = String(req.body[k]||'').trim();
+    });
+    if (req.body && 'effectiveAt' in req.body) $set.effectiveAt = req.body.effectiveAt ? new Date(req.body.effectiveAt) : null;
+    if (req.body && 'isDefault' in req.body) $set.isDefault = !!(req.body.isDefault===true || req.body.isDefault==='true' || req.body.isDefault==='on');
+
+    if (req.body && 'accountNo' in req.body && req.body.accountNo){
+      const digits = cleanDigits(req.body.accountNo);
+      if (digits.length < 8 || digits.length > 24) return res.status(400).send('Invalid account number length');
+      $set.accountNo_enc = encAccount(digits);
+      $set.accountNo_last4 = digits.slice(-4);
+    }
+
+    const db = await bankDb();
+    if ($set.isDefault === true){
+      const doc = await bankColl(db).findOne({ _id: new ObjectId(id) });
+      if (doc) await bankColl(db).updateMany({ userId: doc.userId, archivedAt: { $exists: false } }, { $set: { isDefault: false } });
+    }
+    const r = await bankColl(db).updateOne({ _id: new ObjectId(id) }, { $set });
+    res.json({ ok:true, modified:r.modifiedCount });
+  }catch(e){
+    console.error('[BANK] update error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// PATCH /api/bank/:id/default
+app.patch('/api/bank/:id', requireAdmin, async (req,res,next)=>next()); // no-op to avoid conflicts
+app.patch('/api/bank/:id/default', requireAdmin, async (req,res)=>{
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await bankDb();
+    const doc = await bankColl(db).findOne({ _id: new ObjectId(id) });
+    if (!doc) return res.status(404).send('Not found');
+    await bankColl(db).updateMany({ userId: doc.userId, archivedAt: { $exists: false } }, { $set: { isDefault: false } });
+    await bankColl(db).updateOne({ _id: new ObjectId(id) }, { $set: { isDefault: true, updatedAt: new Date() } });
+    res.json({ ok:true });
+  }catch(e){
+    console.error('[BANK] default error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// DELETE /api/bank/:id  (soft delete)
+app.delete('/api/bank/:id', requireAdmin, async (req,res)=>{
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await bankDb();
+    const r = await bankColl(db).updateOne({ _id: new ObjectId(id) }, { $set: { archivedAt: new Date(), updatedAt: new Date() } });
+    res.json({ ok:true, archived:r.modifiedCount });
+  }catch(e){
+    console.error('[BANK] delete error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// POST /api/bank/:id/reveal  (returns full account; admin only)
+app.post('/api/bank/:id/reveal', requireAdmin, async (req,res)=>{
+  try{
+    const id = req.params.id;
+    if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await bankDb();
+    const doc = await bankColl(db).findOne({ _id: new ObjectId(id), archivedAt: { $exists: false } });
+    if(!doc) return res.status(404).send('Not found');
+    const full = decAccount(doc.accountNo_enc);
+    console.log('[BANK] reveal', { id, userId:String(doc.userId), last4: doc.accountNo_last4 }); // audit-friendly (no full number)
+    res.json({ ok:true, accountNo: full });
+  }catch(e){
+    console.error('[BANK] reveal error', e);
+    res.status(500).send('Error');
+  }
+});
+/* =========================================================================== */
+
 
 
 
