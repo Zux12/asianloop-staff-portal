@@ -195,9 +195,10 @@ async function load(){
       <td>${esc(b?.branch || '')}</td>
       <td>${esc(b?.swift || '')}</td>
       <td>${b?.isDefault ? 'Yes' : 'No'}</td>
-      <td>
+     <td>
   <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
 </td>
+
 
 
 
@@ -267,27 +268,25 @@ function setStaffInDialog(id, label, staffNo){
 
 function openAddFor(userId, label, staffNo){
   frm.reset();
-  $('#hidId').value = '';
+  $('#hidId').value = '';                 // => POST on Save
   $('#dlgTitle').textContent = 'Add Bank';
   setStaffInDialog(userId, label, staffNo);
-  // optional: lock the staff field
-  // $('#staffSearch').disabled = true;
   dlg.showModal();
 }
 
 function openEditFor(userId){
-  // look up the staff from the roster
+  // Find roster entry for this staff
   const s = data.find(x => x._id === userId);
   if (!s) return;
 
-  if (!s.bank) {
-    // No bank yet: reuse row-level Add flow
+  // If bank exists -> edit that bank id; else -> add for this staff
+  if (s.bank && s.bank._id) {
+    openEdit(s.bank._id);                 // GET /api/bank/:id, then open dialog
+  } else {
     openAddFor(userId, s.email || s.name || '', s.staffNo || '');
-    return;
   }
-  // Has a bank: open the editor for that bank id
-  openEdit(s.bank._id);
 }
+
 
 
 function revealById(bankId){
@@ -425,7 +424,7 @@ async function openEdit(id){
   await load();
 })();
 
-window.openEditByBank = openEditByBank;
+
 window.openEditFor = openEditFor;
 window.openAddFor  = openAddFor;
 
