@@ -202,6 +202,7 @@ async function load(){
 
 
 
+
     </tr>`;
   }).join('');
 }
@@ -275,17 +276,17 @@ function openAddFor(userId, label, staffNo){
 }
 
 function openEditFor(userId){
-  // Find roster entry for this staff
   const s = data.find(x => x._id === userId);
   if (!s) return;
 
-  // If bank exists -> edit that bank id; else -> add for this staff
+  // If there is a bank id, edit it; otherwise open Add for this staff
   if (s.bank && s.bank._id) {
-    openEdit(s.bank._id);                 // GET /api/bank/:id, then open dialog
+    openEdit(s.bank._id);
   } else {
     openAddFor(userId, s.email || s.name || '', s.staffNo || '');
   }
 }
+
 
 
 
@@ -423,6 +424,7 @@ async function openEdit(id){
    
   await load();
 })();
+
 
 
 window.openEditFor = openEditFor;
