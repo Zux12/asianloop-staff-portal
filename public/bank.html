@@ -196,11 +196,19 @@ async function load(){
       <td>${esc(b?.swift || '')}</td>
       <td>${b?.isDefault ? 'Yes' : 'No'}</td>
       <td>
-        ${b
-          ? `<button class="btn" onclick='revealById("${b._id}")'>Reveal</button>
-             <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>`
-          : `<button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>`}
-      </td>
+  ${b
+    ? `
+      <button class="btn" onclick='revealById("${b._id}")'>Reveal</button>
+      <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
+      <button class="btn" onclick='setDefault("${b._id}")'>Set default</button>
+      <button class="btn" onclick='archive("${b._id}")'>Archive</button>
+    `
+    : `
+      <button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>
+    `
+  }
+</td>
+
     </tr>`;
   }).join('');
 }
