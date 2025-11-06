@@ -134,15 +134,34 @@ function esc(s){
 
   function fmt(d){ if(!d) return ''; const x=new Date(d); return isNaN(x)?'':x.toISOString().slice(0,10); }
 
-  async function load(){
+async function load(){
+  try{
     const qs = new URLSearchParams();
     if($('#fDefault').value) qs.set('default',$('#fDefault').value);
     if($('#fStatus').value)  qs.set('status',$('#fStatus').value);
     if(userFilter) qs.set('user', userFilter);
-    const r = await fetch('/api/bank?'+qs.toString());
+
+    const r = await fetch('/api/bank?' + qs.toString());
+    if (!r.ok) {
+      const t = await r.text();
+      if (r.status === 401) {
+        rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Login required to view Bank Details.</td></tr>`;
+      } else if (r.status === 403) {
+        rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">You don't have permission to view Bank Details. (${r.status})</td></tr>`;
+      } else {
+        rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Failed to load (${r.status}). ${t || ''}</td></tr>`;
+      }
+      return; // stop here; don't try to JSON parse an error page
+    }
+
     data = await r.json();
     render();
+  } catch (e) {
+    console.error(e);
+    rowsEl.innerHTML = `<tr><td colspan="7" class="muted" style="padding:14px">Error: ${e.message}</td></tr>`;
   }
+}
+
 
   function render(){
     const q = $('#q').value.trim().toLowerCase();
