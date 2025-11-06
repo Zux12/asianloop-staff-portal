@@ -197,17 +197,11 @@ async function load(){
       <td>${b?.isDefault ? 'Yes' : 'No'}</td>
       <td>
   ${b
-    ? `
-      <button class="btn" onclick='revealById("${b._id}")'>Reveal</button>
-      <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
-      <button class="btn" onclick='setDefault("${b._id}")'>Set default</button>
-      <button class="btn" onclick='archive("${b._id}")'>Archive</button>
-    `
-    : `
-      <button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>
-    `
+    ? `<button class="btn" onclick='openEditByBank("${b._id}")'>Edit</button>`
+    : `<button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>`
   }
 </td>
+
 
     </tr>`;
   }).join('');
@@ -302,11 +296,16 @@ function revealById(bankId){
   reveal(bankId);
 }
 
+function openEditByBank(bankId){
+  // uses the fetch-by-id editor
+  openEdit(bankId);
+}
 
 
 
   
  // fetch the bank record by id and open the dialog
+// fetch the bank record by id and open the dialog
 async function openEdit(id){
   try{
     const r = await fetch(`/api/bank/${id}`);
@@ -317,14 +316,13 @@ async function openEdit(id){
     $('#hidId').value = x._id;
     $('#userId').value = x.userId;
 
-    // find the roster staff so we can show name/email/staffNo in the hint
+    // find the roster staff to show label + staff no
     const s = data.find(u => u._id === x.userId);
     const label = s ? (s.email || s.name || '') : '';
     const staffNo = s?.staffNo || '';
     $('#staffSearch').value = label;
     $('#staffHint').textContent = `${label}${staffNo ? ' ('+staffNo+')' : ''} selected`;
 
-    // bank fields
     const commonBanks = ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'];
     $('#bankNameSel').value = x.bankName && commonBanks.includes(x.bankName) ? x.bankName : '__other';
     $('#bankNameOther').disabled = $('#bankNameSel').value !== '__other';
@@ -345,6 +343,7 @@ async function openEdit(id){
     alert('Error: ' + e.message);
   }
 }
+
 
   async function reveal(id){
     const ok = confirm('Reveal full account number? This action will be logged.');
@@ -390,9 +389,13 @@ async function openEdit(id){
     }
   }
 
+
+   
   await load();
 })();
 
+window.openEditByBank = openEditByBank;
+window.openAddFor = openAddFor;
 
   
 </script>
