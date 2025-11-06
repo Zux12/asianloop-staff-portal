@@ -276,13 +276,19 @@ function openAddFor(userId, label, staffNo){
 }
 
 function openEditFor(userId){
-  // find roster entry for this user and open edit for its bank
-  const s = data.find(x=>x._id === userId);
-  if (!s || !s.bank) { openAddFor(userId, s?.email || s?.name || '', s?.staffNo || ''); return; }
-  const bId = s.bank._id;
-  // reuse existing openEdit with record id:
-  openEdit(bId);
+  // look up the staff from the roster
+  const s = data.find(x => x._id === userId);
+  if (!s) return;
+
+  if (!s.bank) {
+    // No bank yet: reuse row-level Add flow
+    openAddFor(userId, s.email || s.name || '', s.staffNo || '');
+    return;
+  }
+  // Has a bank: open the editor for that bank id
+  openEdit(s.bank._id);
 }
+
 
 function revealById(bankId){
   reveal(bankId);
@@ -292,17 +298,30 @@ function revealById(bankId){
 
 
   
-  async function openEdit(id){
-    const x = data.find(y=>y._id===id); if(!x) return;
+ // fetch the bank record by id and open the dialog
+async function openEdit(id){
+  try{
+    const r = await fetch(`/api/bank/${id}`);
+    if (!r.ok) { const t = await r.text(); alert('Load failed: ' + t); return; }
+    const x = await r.json();
+
     frm.reset();
     $('#hidId').value = x._id;
     $('#userId').value = x.userId;
-    $('#staffSearch').value = x.user?.email || x.user?.name || '';
-    $('#staffHint').textContent = `${x.user?.name || x.user?.email || ''} ${x.user?.staffNo ? '('+x.user.staffNo+')' : ''} selected`;
 
-    $('#bankNameSel').value = x.bankName && ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'].includes(x.bankName) ? x.bankName : '__other';
-    $('#bankNameOther').disabled = $('#bankNameSel').value!=='__other';
-    $('#bankNameOther').value = $('#bankNameSel').value==='__other' ? (x.bankName||'') : '';
+    // find the roster staff so we can show name/email/staffNo in the hint
+    const s = data.find(u => u._id === x.userId);
+    const label = s ? (s.email || s.name || '') : '';
+    const staffNo = s?.staffNo || '';
+    $('#staffSearch').value = label;
+    $('#staffHint').textContent = `${label}${staffNo ? ' ('+staffNo+')' : ''} selected`;
+
+    // bank fields
+    const commonBanks = ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'];
+    $('#bankNameSel').value = x.bankName && commonBanks.includes(x.bankName) ? x.bankName : '__other';
+    $('#bankNameOther').disabled = $('#bankNameSel').value !== '__other';
+    $('#bankNameOther').value = $('#bankNameSel').value === '__other' ? (x.bankName || '') : '';
+
     frm.accountName.value = x.accountName || '';
     frm.accountNo.value = ''; // never prefill full number
     frm.branch.value = x.branch || '';
@@ -311,9 +330,13 @@ function revealById(bankId){
     frm.effectiveAt.value = x.effectiveAt ? fmt(x.effectiveAt) : '';
     frm.notes.value = x.notes || '';
     frm.isDefault.value = x.isDefault ? 'true' : 'false';
-    $('#dlgTitle').textContent='Edit Bank';
+
+    $('#dlgTitle').textContent = 'Edit Bank';
     dlg.showModal();
+  } catch (e) {
+    alert('Error: ' + e.message);
   }
+}
 
   async function reveal(id){
     const ok = confirm('Reveal full account number? This action will be logged.');
