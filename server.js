@@ -1213,6 +1213,23 @@ app.get('/api/bank/roster', requireAdmin, async (req, res) => {
 });
 
 
+// GET /api/bank/:id  (fetch one bank record for edit; no full account number returned)
+app.get('/api/bank/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).send('Bad id');
+    const db = await bankDb();
+    const doc = await bankColl(db).findOne(
+      { _id: new ObjectId(id), archivedAt: { $exists: false } },
+      { projection: { accountNo_enc: 0 } } // never return the encrypted blob
+    );
+    if (!doc) return res.status(404).send('Not found');
+    res.json({ ...doc, _id: String(doc._id), userId: String(doc.userId) });
+  } catch (e) {
+    console.error('[BANK] get one error', e);
+    res.status(500).send('Error');
+  }
+});
 
 
 // (C) Your existing /api/commonFiles mount — unchanged, keep right here below:
