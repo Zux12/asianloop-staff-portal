@@ -196,11 +196,9 @@ async function load(){
       <td>${esc(b?.swift || '')}</td>
       <td>${b?.isDefault ? 'Yes' : 'No'}</td>
       <td>
-  ${b
-    ? `<button class="btn" onclick='openEditByBank("${b._id}")'>Edit</button>`
-    : `<button class="btn primary" onclick='openAddFor("${s._id}","${esc(s.email||s.name||'')}","${esc(s.staffNo||'')}")'>Add</button>`
-  }
+  <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
 </td>
+
 
 
     </tr>`;
@@ -296,10 +294,43 @@ function revealById(bankId){
   reveal(bankId);
 }
 
-function openEditByBank(bankId){
-  // uses the fetch-by-id editor
-  openEdit(bankId);
+async function openEdit(bankId){
+  try{
+    const r = await fetch(`/api/bank/${bankId}`);
+    if (!r.ok) { const t = await r.text(); alert('Load failed: ' + t); return; }
+    const x = await r.json();
+
+    frm.reset();
+    $('#hidId').value = x._id;           // <-- has bank id => PUT on Save
+    $('#userId').value = x.userId;
+
+    const s = data.find(u => u._id === x.userId);
+    const label = s ? (s.email || s.name || '') : '';
+    const staffNo = s?.staffNo || '';
+    $('#staffSearch').value = label;
+    $('#staffHint').textContent = `${label}${staffNo ? ' ('+staffNo+')' : ''} selected`;
+
+    const commonBanks = ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'];
+    $('#bankNameSel').value = x.bankName && commonBanks.includes(x.bankName) ? x.bankName : '__other';
+    $('#bankNameOther').disabled = $('#bankNameSel').value !== '__other';
+    $('#bankNameOther').value = $('#bankNameSel').value === '__other' ? (x.bankName || '') : '';
+
+    frm.accountName.value = x.accountName || '';
+    frm.accountNo.value   = '';          // never prefill full number
+    frm.branch.value      = x.branch || '';
+    frm.swift.value       = x.swift || '';
+    frm.iban.value        = x.iban  || '';
+    frm.effectiveAt.value = x.effectiveAt ? fmt(x.effectiveAt) : '';
+    frm.notes.value       = x.notes || '';
+    frm.isDefault.value   = x.isDefault ? 'true' : 'false';
+
+    $('#dlgTitle').textContent = 'Edit Bank';
+    dlg.showModal();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
 }
+
 
 
 
@@ -395,7 +426,8 @@ async function openEdit(id){
 })();
 
 window.openEditByBank = openEditByBank;
-window.openAddFor = openAddFor;
+window.openEditFor = openEditFor;
+window.openAddFor  = openAddFor;
 
   
 </script>
