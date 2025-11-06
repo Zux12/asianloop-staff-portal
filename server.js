@@ -178,11 +178,38 @@ function bankColl(db){ return db.collection('bank_accounts'); }
 function usersColl(db){ return db.collection('users'); }
 
 // --- auth guard (keep simple: admin only; tweak as you prefer)
+// Admin/Payroll guard with tier/role/email allowlist
 function requireAdmin(req, res, next){
-  const u = req.session?.user || {};
-  if (u.role === 'admin' || u.tier === 'Senior Manager') return next();
+  const u = req.session?.user || null;
+  if (!u) return res.status(401).send('Login required');
+
+  const role = String(u.role || '').toLowerCase();
+  const tier = String(u.tier || '').toLowerCase();
+  const email = String(u.email || '').toLowerCase();
+
+  // Allow common senior roles/titles you use
+  const allowedTiers = [
+    'senior manager',
+    'manager',
+    'senior executive',   // include if you want managers+ to test
+    'executive'           // include if you want broader access; remove for stricter
+  ];
+
+  // Optional: comma/semicolon-separated allowlist of emails
+  const allowListEnv = String(process.env.PAYROLL_ALLOW_EMAILS || '').toLowerCase();
+  const allowEmails = allowListEnv.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+
+  const ok =
+    role === 'admin' ||
+    allowedTiers.includes(tier) ||
+    allowEmails.includes(email);
+
+  if (ok) return next();
+
+  console.warn('[BANK] 403 for user', { email, role, tier });
   return res.status(403).send('Forbidden');
 }
+
 
 // --- encryption helpers (AES-256-GCM)
 function getKey(){
