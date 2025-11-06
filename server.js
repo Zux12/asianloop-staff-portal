@@ -1190,22 +1190,23 @@ app.get('/api/bank/roster', requireAdmin, async (req, res) => {
     ]).toArray();
 
     res.json(items.map(x => ({
-      _id: String(x._id),
-      name: x.name,
-      email: x.email,
-      dept: x.dept,
-      tier: x.tier,
-      staffNo: x.staffNo,
-      bank: x.bank ? {
-        _id: String(x.bank._id),
-        bankName: x.bank.bankName,
-        accountNo_last4: x.bank.accountNo_last4,
-        branch: x.bank.branch,
-        swift: x.bank.swift,
-        isDefault: !!x.bank.isDefault,
-        updatedAt: x.bank.updatedAt
-      } : null
-    })));
+  _id: String(x._id),
+  name: x.name,
+  email: x.email,
+  dept: x.dept,
+  tier: x.tier,
+  staffNo: x.staffNo,
+  bank: (x.bank && x.bank._id) ? {                   // ← guard by _id
+    _id: String(x.bank._id),
+    bankName: x.bank.bankName,
+    accountNo_last4: x.bank.accountNo_last4,
+    branch: x.bank.branch,
+    swift: x.bank.swift,
+    isDefault: !!x.bank.isDefault,
+    updatedAt: x.bank.updatedAt
+  } : null
+})));
+
   } catch (e) {
     console.error('[BANK] roster error', e);
     res.status(500).send('Error');
