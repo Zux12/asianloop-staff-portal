@@ -214,11 +214,22 @@ function requireAdmin(req, res, next){
 // --- encryption helpers (AES-256-GCM)
 function getKey(){
   const raw = process.env.BANK_ENC_KEY;
-  if(!raw) throw new Error('BANK_ENC_KEY not set');
-  const key = Buffer.from(raw, raw.startsWith('base64:') ? 'base64' : 'utf8');
-  if (key.length !== 32) throw new Error('BANK_ENC_KEY must be 32 bytes');
-  return key;
+  if (!raw) throw new Error('BANK_ENC_KEY not set');
+
+  // Prefer base64 if it decodes cleanly to 32 bytes
+  try {
+    const b64 = raw.startsWith('base64:') ? raw.slice(7) : raw;
+    const tryB64 = Buffer.from(b64, 'base64');
+    if (tryB64.length === 32) return tryB64;
+  } catch (_) { /* ignore */ }
+
+  // Fallback to utf8 literal (32-byte key)
+  const utf = Buffer.from(raw, 'utf8');
+  if (utf.length === 32) return utf;
+
+  throw new Error('BANK_ENC_KEY must be 32 bytes (base64 or 32-char utf8)');
 }
+
 function encAccount(no){
   const key = getKey();
   const iv = crypto.randomBytes(12);
@@ -313,7 +324,8 @@ app.post('/api/bank', requireAdmin, async (req,res)=>{
     res.json({ ok:true, _id: String(r.insertedId) });
   }catch(e){
     console.error('[BANK] create error', e);
-    res.status(500).send('Error');
+res.status(500).send(e.message || 'Error');
+
   }
 });
 
@@ -345,7 +357,8 @@ app.put('/api/bank/:id', requireAdmin, async (req,res)=>{
     res.json({ ok:true, modified:r.modifiedCount });
   }catch(e){
     console.error('[BANK] update error', e);
-    res.status(500).send('Error');
+res.status(500).send(e.message || 'Error');
+
   }
 });
 
