@@ -317,8 +317,7 @@ app.post('/api/bank', requireAdmin, async (req,res)=>{
       notes: String(notes||'').trim(),
       effectiveAt: effectiveAt ? new Date(effectiveAt) : null,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      archivedAt: null
+      updatedAt: new Date()
     };
     const r = await bankColl(db).insertOne(doc);
     res.json({ ok:true, _id: String(r.insertedId) });
@@ -400,7 +399,7 @@ app.post('/api/bank/:id/reveal', requireAdmin, async (req,res)=>{
     const id = req.params.id;
     if(!ObjectId.isValid(id)) return res.status(400).send('Bad id');
     const db = await bankDb();
-    const doc = await bankColl(db).findOne({ _id: new ObjectId(id), archivedAt: { $exists: false } });
+const doc = await bankColl(db).findOne({ _id: new ObjectId(id), $or: [ { archivedAt: { $exists: false } }, { archivedAt: null } ] });
     if(!doc) return res.status(404).send('Not found');
     const full = decAccount(doc.accountNo_enc);
     console.log('[BANK] reveal', { id, userId:String(doc.userId), last4: doc.accountNo_last4 }); // audit-friendly (no full number)
@@ -1233,10 +1232,11 @@ app.get('/api/bank/:id', requireAdmin, async (req, res) => {
     const id = req.params.id;
     if (!ObjectId.isValid(id)) return res.status(400).send('Bad id');
     const db = await bankDb();
-    const doc = await bankColl(db).findOne(
-      { _id: new ObjectId(id), archivedAt: { $exists: false } },
-      { projection: { accountNo_enc: 0 } } // never return the encrypted blob
-    );
+  const doc = await bankColl(db).findOne(
+  { _id: new ObjectId(id), $or: [ { archivedAt: { $exists: false } }, { archivedAt: null } ] },
+  { projection: { accountNo_enc: 0 } }
+);
+
     if (!doc) return res.status(404).send('Not found');
     res.json({ ...doc, _id: String(doc._id), userId: String(doc.userId) });
   } catch (e) {
