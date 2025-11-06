@@ -124,6 +124,8 @@
   const params = new URLSearchParams(location.search);
   const userFilter = params.get('user') || '';
   let data = [], users = [];
+  let preselectUser = null; // will hold the preselected staff when ?user=<id> is present
+
 
   function maskLast4(last4){ return last4 ? `•••• ${last4}` : '—'; }
 function esc(s){
@@ -178,7 +180,13 @@ async function load(){
     rowsEl.innerHTML = filtered.map(x=>{
       const u = x.user || {};
       return `<tr>
-        <td>${esc(u.name||u.email||'')}<div class="muted">${esc(u.dept||'')}</div></td>
+<td>
+  ${esc(u.name||u.email||'')}
+  <div class="muted">
+    ${esc(u.dept||'')}${u.staffNo ? ' • ' + esc(u.staffNo) : ''}
+  </div>
+</td>
+
         <td>${esc(x.bankName||'')}</td>
         <td>${maskLast4(x.accountNo_last4)}</td>
         <td>${esc(x.branch||'')}</td>
@@ -199,19 +207,49 @@ async function load(){
     const r = await fetch('/api/staff');
     users = await r.json();
   }
-  function wireStaffPicker(){
-    const inp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
-    inp.addEventListener('input', ()=>{
-      const v = inp.value.trim().toLowerCase();
-      const hit = users.find(u => (u.email||'').toLowerCase().includes(v) || (u.name||'').toLowerCase().includes(v));
-      if(hit){ hid.value = hit._id; hint.textContent = `${hit.name||hit.email} selected`; }
-      else { hid.value=''; hint.textContent = 'Start typing to select a staff'; }
-    });
-  }
+function wireStaffPicker(){
+  const inp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
+  inp.addEventListener('input', ()=>{
+    const v = inp.value.trim().toLowerCase();
+    const hit = users.find(u =>
+      (u.email||'').toLowerCase().includes(v) ||
+      (u.name||'').toLowerCase().includes(v)
+    );
+    if(hit){
+      hid.value = hit._id;
+      hint.textContent = `${hit.name || hit.email} ${hit.staffNo ? '('+hit.staffNo+')' : ''} selected`;
+    }else{
+      hid.value = '';
+      hint.textContent = 'Start typing to select a staff';
+    }
+  });
+}
+
 
   // Dialog
   const dlg = $('#dlg'), frm = $('#frm');
-  $('#btnNew').onclick = ()=>{ frm.reset(); $('#hidId').value=''; $('#dlgTitle').textContent='Add Bank'; dlg.showModal(); };
+$('#btnNew').onclick = ()=>{
+  frm.reset();
+  $('#hidId').value = '';
+  $('#dlgTitle').textContent = 'Add Bank';
+
+  // If we have a preselected staff, set it into the form and show staffNo in hint
+  if (preselectUser) {
+    const staffInp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
+    staffInp.value = preselectUser.email || preselectUser.name || '';
+    hid.value = preselectUser._id;
+    hint.textContent = `${preselectUser.name || preselectUser.email} ${preselectUser.staffNo ? '('+preselectUser.staffNo+')' : ''} selected`;
+    // Optional: lock the field if you want to prevent changing the staff:
+    // staffInp.disabled = true;
+  } else {
+    // ensure input is enabled when not preselecting
+    $('#staffSearch').disabled = false;
+    $('#staffHint').textContent = 'Start typing to select a staff';
+  }
+
+  dlg.showModal();
+};
+
   $('#btnCancel').onclick = ()=> dlg.close();
 
   // bank “other” toggle
@@ -240,6 +278,8 @@ async function load(){
     $('#hidId').value = x._id;
     $('#userId').value = x.userId;
     $('#staffSearch').value = x.user?.email || x.user?.name || '';
+    $('#staffHint').textContent = `${x.user?.name || x.user?.email || ''} ${x.user?.staffNo ? '('+x.user.staffNo+')' : ''} selected`;
+
     $('#bankNameSel').value = x.bankName && ['Maybank','CIMB','RHB','Public Bank','Bank Islam','AmBank','HSBC','UOB','OCBC'].includes(x.bankName) ? x.bankName : '__other';
     $('#bankNameOther').disabled = $('#bankNameSel').value!=='__other';
     $('#bankNameOther').value = $('#bankNameSel').value==='__other' ? (x.bankName||'') : '';
@@ -280,11 +320,30 @@ async function load(){
   $('#fDefault').onchange = load;
   $('#fStatus').onchange = load;
 
-  (async function init(){
-    await loadUsers();
-    wireStaffPicker();
-    await load();
-  })();
+ (async function init(){
+  await loadUsers();
+  wireStaffPicker();
+
+  // If opened with ?user=<id>, preselect that staff and lock the selector
+  if (userFilter) {
+    const u = users.find(x => x._id === userFilter);
+    if (u) {
+      preselectUser = u;
+      // Also show selected in the Add dialog widgets upfront
+      const staffInp = $('#staffSearch'), hid = $('#userId'), hint = $('#staffHint');
+      staffInp.value = u.email || u.name || '';
+      hid.value = u._id;
+      hint.textContent = `${u.name || u.email} ${u.staffNo ? '('+u.staffNo+')' : ''} selected`;
+      // Optionally lock typing (uncomment if you want to force this user):
+      // staffInp.disabled = true;
+    }
+  }
+
+  await load();
+})();
+
+
+  
 </script>
 </body>
 </html>
