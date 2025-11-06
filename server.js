@@ -260,9 +260,20 @@ app.get('/api/bank', requireAdmin, async (req,res)=>{
       { $project: { accountNo_enc: 0 } }
     ]).toArray();
 
-    res.json(items.map(x=>({ ...x, _id: String(x._id), userId: String(x.userId), user: x.user ? {
-      _id: String(x.user._id), name:x.user.name, email:x.user.email, dept:x.user.dept, tier:(x.user.tier||x.user.role)
-    } : null })));
+res.json(items.map(x=>({
+  ...x,
+  _id: String(x._id),
+  userId: String(x.userId),
+  user: x.user ? {
+    _id: String(x.user._id),
+    name: x.user.name,
+    email: x.user.email,
+    dept: x.user.dept,
+    tier: (x.user.tier || x.user.role),
+    staffNo: x.user.staffNo  // ← include Staff No for UI
+  } : null
+})));
+
   }catch(e){
     console.error('[BANK] list error', e);
     res.status(500).send('Error');
