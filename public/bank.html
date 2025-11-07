@@ -196,8 +196,17 @@ async function load(){
       <td>${esc(b?.swift || '')}</td>
       <td>${b?.isDefault ? 'Yes' : 'No'}</td>
      <td>
-  <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
+  ${b && b._id
+    ? `
+      <button class="btn" onclick='revealById("${b._id}")'>Reveal</button>
+      <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
+    `
+    : `
+      <button class="btn" onclick='openEditFor("${s._id}")'>Edit</button>
+    `
+  }
 </td>
+
 
 
 
@@ -290,9 +299,21 @@ function openEditFor(userId){
 
 
 
-function revealById(bankId){
-  reveal(bankId);
+async function revealById(bankId){
+  if (!bankId) { alert('No bank record yet.'); return; }
+  const ok = confirm('Reveal full account number? This action will be logged.');
+  if (!ok) return;
+  try{
+    const r = await fetch(`/api/bank/${bankId}/reveal`, { method:'POST' });
+    const t = await r.text();
+    if (!r.ok) { alert('Reveal failed: ' + t); return; }
+    const j = JSON.parse(t);
+    alert('Full account number: ' + j.accountNo);
+  } catch(e){
+    alert('Reveal failed: ' + e.message);
+  }
 }
+
 
 async function openEdit(bankId){
   try{
@@ -429,6 +450,8 @@ async function openEdit(id){
 
 window.openEditFor = openEditFor;
 window.openAddFor  = openAddFor;
+window.revealById  = revealById;
+
 
   
 </script>
