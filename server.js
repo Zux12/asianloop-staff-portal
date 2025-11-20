@@ -897,13 +897,20 @@ app.get('/contact/:id', async (req, res) => {
 
     if (!staff) return res.status(404).send('Staff not found');
 
+    // ---- Staff-specific fields ----
     const fullName      = (staff.name || '').trim();
-    const workEmail     = (staff.email || '').trim();
-    const personalEmail = (staff.personalEmail || '').trim();
-    const phone         = (staff.phone || '').trim();   // optional; only used if present
+    const workEmail     = (staff.email || '').trim().toLowerCase();
+    const personalEmail = (staff.personalEmail || '').trim().toLowerCase();
+    const phone         = (staff.phone || '').trim();
     const position      = (staff.position || '').trim();
     const dept          = (staff.dept || '').trim();
-    const address       = (staff.address || '').trim(); // combined string from your staff form
+
+    // ---- Company-wide static fields ----
+    const COMPANY_NAME    = 'Asianloop Sdn Bhd';
+    const COMPANY_ADDRESS = 'Unit A2-1, Block A, Radius Business Park, Jalan Radius 1/1A, 63000 Cyberjaya, Selangor, Malaysia';
+    const COMPANY_WEBSITE = 'https://asian-loop.com';
+    const COMPANY_INFO    = 'info@asian-loop.com';
+    const COMPANY_LINKEDIN = 'https://www.linkedin.com/company/asianloop-sdn-bhd/';
 
     const safe = (s) => String(s || '').replace(/\r?\n/g, ' ');
 
@@ -915,10 +922,15 @@ app.get('/contact/:id', async (req, res) => {
       phone         ? `TEL;TYPE=CELL,VOICE:${safe(phone)}` : '',
       workEmail     ? `EMAIL;TYPE=INTERNET,WORK:${safe(workEmail)}` : '',
       personalEmail ? `EMAIL;TYPE=INTERNET,HOME:${safe(personalEmail)}` : '',
+      `EMAIL;TYPE=INTERNET,OTHER:${safe(COMPANY_INFO)}`,
       position      ? `TITLE:${safe(position)}` : '',
-      'ORG:Asianloop Sdn Bhd',
+      `ORG:${safe(COMPANY_NAME)}`,
       dept          ? `NOTE:Department: ${safe(dept)}` : '',
-      address       ? `ADR;TYPE=WORK:;;${safe(address)};;;;` : '',
+      // Common company address for everyone
+      `ADR;TYPE=WORK:;;${safe(COMPANY_ADDRESS)};;;;`,
+      // Website + LinkedIn
+      `URL:${safe(COMPANY_WEBSITE)}`,
+      `X-SOCIALPROFILE;TYPE=linkedin:${safe(COMPANY_LINKEDIN)}`,
       'END:VCARD'
     ].filter(Boolean);
 
@@ -936,6 +948,7 @@ app.get('/contact/:id', async (req, res) => {
     res.status(500).send('Failed to generate contact');
   }
 });
+
 
 
 
