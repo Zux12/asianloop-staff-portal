@@ -255,6 +255,16 @@ tbody tr td:last-child{ padding-right:16px; }
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
+  <!-- Row 0: Prefix / Suffix -->
+  <div class="grid2">
+    <label>Prefix / Titles (before name)<br>
+      <input name="prefix" placeholder="e.g., Datuk, Dr., Ir., Ts., Haji">
+    </label>
+    <label>Suffix / Post-nominals<br>
+      <input name="suffix" placeholder="e.g., CEng, PMP, PhD">
+    </label>
+  </div>
+
   <!-- Row 1 -->
   <div class="grid2">
     <label>Name<br><input name="name" required></label>
@@ -267,13 +277,11 @@ tbody tr td:last-child{ padding-right:16px; }
     <label>Position<br><input name="position" placeholder="e.g., Principal Measurement"></label>
   </div>
 
-
-      <!-- Row 2b -->
+  <!-- Row 2b: Phone -->
   <div class="grid2">
     <label>Phone<br><input name="phone" placeholder="+60-..."></label>
     <div></div>
   </div>
-
 
   <!-- Row 3 (the ONLY Department field + Tier) -->
   <div class="grid2">
@@ -289,6 +297,7 @@ tbody tr td:last-child{ padding-right:16px; }
       </select>
     </label>
   </div>
+
 
 
 
@@ -382,11 +391,30 @@ tbody tr td:last-child{ padding-right:16px; }
   <div class="hint" style="margin-top:6px">Fields: Name, Date of Birth, Relationship, Phone, Notes</div>
 </div>
 
+<div class="sec-title">Qualifications & Memberships</div>
+<div class="block">
+  <label>Professional & Technical Certifications<br>
+    <textarea name="certProfessional" rows="3" placeholder="e.g.&#10;CEng (Chartered Engineer, UK)&#10;Six Sigma Black Belt (SSBB)&#10;CISSP&#10;CISA"></textarea>
+  </label>
+  <label>Project & Management Certifications<br>
+    <textarea name="certProject" rows="3" placeholder="e.g.&#10;PMP (Project Management Professional)&#10;PRINCE2 Practitioner"></textarea>
+  </label>
+  <label>Financial & Business Certifications<br>
+    <textarea name="certFinancial" rows="3" placeholder="e.g.&#10;CFA&#10;FRM&#10;ACCA&#10;CPA"></textarea>
+  </label>
+  <label>Industry Memberships / Bodies<br>
+    <textarea name="memberships" rows="3" placeholder="e.g.&#10;ISA (International Society of Automation)&#10;IEC (International Electrotechnical Commission)&#10;API MPMS&#10;IEEE&#10;IET"></textarea>
+  </label>
+  <label>Academic Qualifications<br>
+    <textarea name="academicQualifications" rows="3" placeholder="e.g.&#10;PhD (Instrumentation Engineering)&#10;MSc (Control Systems)&#10;BSc (Electrical & Electronics)"></textarea>
+  </label>
+</div>
 
-  <label>Notes (optional)<br><input name="notes" placeholder=""></label>
+<label>Notes (optional)<br><input name="notes" placeholder=""></label>
 <input type="hidden" id="hid_id" name="_id" />
 
 </form>
+
 
   <div class="dlg-f">
     <button class="btn" id="btnCancel">Cancel</button>
@@ -637,6 +665,18 @@ render();
     set('name', x.name);
     set('email', x.email);
     set('dept', x.dept);
+        // New: titles & phone
+    set('prefix', x.prefix);
+    set('suffix', x.suffix);
+    set('phone', x.phone);
+
+    // New: qualifications & memberships
+    set('certProfessional', x.certProfessional);
+    set('certProject', x.certProject);
+    set('certFinancial', x.certFinancial);
+    set('memberships', x.memberships);
+    set('academicQualifications', x.academicQualifications);
+
 
     set('status', x.status || 'Active');
     set('mfaEnabled', x.mfaEnabled ? 'true' : 'false');
@@ -895,19 +935,36 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
   const fld = (k)=> (x && x[k] !== undefined && x[k] !== null) ? String(x[k]) : '';
   const yesno = (b)=> b ? 'Yes' : 'No';
 
+  const displayName = (() => {
+    const parts = [
+      (x.prefix || '').trim(),
+      (x.name || '').trim(),
+      (x.suffix || '').trim()
+    ].filter(Boolean);
+    return parts.join(' ');
+  })();
+
+  const multi = (txt) => {
+    const s = (txt || '').trim();
+    if (!s) return '<span class="muted">None</span>';
+    return escapeHtml(s).replace(/\n/g,'<br>');
+  };
+
   let html = `
     <div class="grid2">
-      <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
+      <div><strong>Name</strong><br>${escapeHtml(displayName || fld('name'))}</div>
       <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
     </div>
-    <div class="grid2">
-      <div><strong>Phone</strong><br>${escapeHtml(fld('phone'))}</div>
-      <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-    </div>
-    <div class="grid2">
-      <div><strong>Tier</strong><br>${escapeHtml(tierDisplay(x))}</div>
-      <div><strong>Position</strong><br>${escapeHtml(x.position||'')}</div>
-    </div>
+<div class="grid2">
+  <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
+  <div><strong>Tier</strong><br>${escapeHtml(tierDisplay(x))}</div>
+</div>
+<div class="grid2">
+  <div><strong>Prefix / Titles</strong><br>${escapeHtml(fld('prefix'))}</div>
+  <div><strong>Suffix / Post-nominals</strong><br>${escapeHtml(fld('suffix'))}</div>
+</div>
+<div><strong>Position</strong><br>${escapeHtml(x.position||'')}</div>
+
 
 
     <div class="grid2">
@@ -973,9 +1030,15 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
       </table>`
     : '<span class="muted">No family members listed</span>';
 
-  html += `<div><strong>Family Members</strong><br>${famHtml}</div>`;
+   html += `<div><strong>Family Members</strong><br>${famHtml}</div>`;
 
+  // New: Qualifications & memberships
   html += `
+    <div><strong>Professional Certifications</strong><br>${multi(fld('certProfessional'))}</div>
+    <div><strong>Project &amp; Management Certifications</strong><br>${multi(fld('certProject'))}</div>
+    <div><strong>Financial &amp; Business Certifications</strong><br>${multi(fld('certFinancial'))}</div>
+    <div><strong>Industry Memberships</strong><br>${multi(fld('memberships'))}</div>
+    <div><strong>Academic Qualifications</strong><br>${multi(fld('academicQualifications'))}</div>
     <div class="grid2">
       <div><strong>Last login</strong><br>${fmtDate(fld('lastLoginAt'))}</div>
       <div><strong>Created</strong><br>${fmtDate(fld('createdAt'))}</div>
@@ -985,6 +1048,7 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
 
   body.innerHTML = html;
 }
+
 
   window.renderDetails = renderDetails;
 
