@@ -696,15 +696,19 @@ app.get('/api/staff', async (_req, res) => {
       .find({ archivedAt: { $exists: false } })
 .project({
   name:1, email:1, personalEmail:1,
-    phone:1,
+  phone:1,
+  prefix:1, suffix:1,
   dept:1, tier:1, role:1, position:1,
   status:1, lastLoginAt:1, mfaEnabled:1, notes:1,
   staffNo:1, address:1, idNo:1, passportNo:1, hireDate:1,
   carReg:1, carDesc:1,
   nokName:1, nokRelation:1, nokPhone:1, emergencyNotes:1,
   family:1,
+  certProfessional:1, certProject:1, certFinancial:1,
+  memberships:1, academicQualifications:1,
   createdAt:1, updatedAt:1
 })
+
 
 
       .sort({ name: 1 })
@@ -724,37 +728,47 @@ app.post('/api/staff', async (req, res) => {
 const allowed = (process.env.ALLOWED_DOMAIN || '@asian-loop.com').toLowerCase();
 if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`Email must end with ${allowed}`);
 
-const doc = {
-  name: String(name).trim(),
-  email: String(email).trim().toLowerCase(),
-  phone: String((req.body?.phone) || '').trim(),
-  personalEmail: String(personalEmail||'').trim().toLowerCase(),
-  dept: String(dept||'').trim(),
-  tier: String(tier||'Executive').trim(),            // NEW
-  position: String(position||'').trim(),             // NEW
-  status: String(status||'Active').trim(),
-  mfaEnabled: !!mfaEnabled,
-  notes: String(notes||'').trim(),
+    const doc = {
+      name: String(name).trim(),
+      email: String(email).trim().toLowerCase(),
+      phone: String((req.body?.phone) || '').trim(),
 
-  staffNo: String((req.body?.staffNo)||'').trim(),
-  address: String((req.body?.address)||'').trim(),
-  idNo: String((req.body?.idNo)||'').trim(),
-  passportNo: String((req.body?.passportNo)||'').trim(),
-  hireDate: req.body?.hireDate ? new Date(req.body.hireDate) : null,
+      personalEmail: String(personalEmail||'').trim().toLowerCase(),
+      prefix: String((req.body?.prefix) || '').trim(),
+      suffix: String((req.body?.suffix) || '').trim(),
 
-  carReg: String((req.body?.carReg)||'').trim(),
-  carDesc: String((req.body?.carDesc)||'').trim(),
+      dept: String(dept||'').trim(),
+      tier: String(tier||'Executive').trim(),
+      position: String(position||'').trim(),
+      status: String(status||'Active').trim(),
+      mfaEnabled: !!mfaEnabled,
+      notes: String(notes||'').trim(),
 
-  nokName: String((req.body?.nokName)||'').trim(),
-  nokRelation: String((req.body?.nokRelation)||'').trim(),
-  nokPhone: String((req.body?.nokPhone)||'').trim(),
-  emergencyNotes: String((req.body?.emergencyNotes)||'').trim(),
+      staffNo: String((req.body?.staffNo)||'').trim(),
+      address: String((req.body?.address)||'').trim(),
+      idNo: String((req.body?.idNo)||'').trim(),
+      passportNo: String((req.body?.passportNo)||'').trim(),
+      hireDate: req.body?.hireDate ? new Date(req.body.hireDate) : null,
 
-  family: cleanFamily(req.body.family),
+      carReg: String((req.body?.carReg)||'').trim(),
+      carDesc: String((req.body?.carDesc)||'').trim(),
 
-  createdAt: new Date(),
-  updatedAt: new Date()
-};
+      nokName: String((req.body?.nokName)||'').trim(),
+      nokRelation: String((req.body?.nokRelation)||'').trim(),
+      nokPhone: String((req.body?.nokPhone)||'').trim(),
+      emergencyNotes: String((req.body?.emergencyNotes)||'').trim(),
+
+      // NEW: qualifications & memberships
+      certProfessional: String((req.body?.certProfessional) || '').trim(),
+      certProject: String((req.body?.certProject) || '').trim(),
+      certFinancial: String((req.body?.certFinancial) || '').trim(),
+      memberships: String((req.body?.memberships) || '').trim(),
+      academicQualifications: String((req.body?.academicQualifications) || '').trim(),
+
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
 
 
     const db = await staffDb();
@@ -778,12 +792,23 @@ app.put('/api/staff/:id', async (req, res) => {
     if (b.name        !== undefined) $set.name        = String(b.name).trim();
     if (b.email       !== undefined) $set.email       = String(b.email).trim().toLowerCase();
     if (b.phone       !== undefined) $set.phone       = String(b.phone).trim();
+    if (b.prefix      !== undefined) $set.prefix      = String(b.prefix).trim();
+    if (b.suffix      !== undefined) $set.suffix      = String(b.suffix).trim();
+
     if (b.dept        !== undefined) $set.dept        = String(b.dept).trim();
     if (b.role        !== undefined) $set.role        = String(b.role).trim();
     if (b.status      !== undefined) $set.status      = String(b.status).trim();
     if (b.mfaEnabled  !== undefined) $set.mfaEnabled  = !!(b.mfaEnabled === true || b.mfaEnabled === 'true' || b.mfaEnabled === 'on' || b.mfaEnabled === 1 || b.mfaEnabled === '1');
     if (b.notes       !== undefined) $set.notes       = String(b.notes).trim();
 
+
+        if (b.certProfessional       !== undefined) $set.certProfessional       = String(b.certProfessional).trim();
+    if (b.certProject            !== undefined) $set.certProject            = String(b.certProject).trim();
+    if (b.certFinancial          !== undefined) $set.certFinancial          = String(b.certFinancial).trim();
+    if (b.memberships            !== undefined) $set.memberships            = String(b.memberships).trim();
+    if (b.academicQualifications !== undefined) $set.academicQualifications = String(b.academicQualifications).trim();
+
+    
     // employment + vehicle + identity + address + NOK
     var staffVal = (b.staffNo != null ? b.staffNo : (b.staff_number != null ? b.staff_number : b.staff_no));
     if (staffVal   !== undefined) $set.staffNo     = String(staffVal || '').trim();
@@ -898,44 +923,110 @@ app.get('/contact/:id', async (req, res) => {
     if (!staff) return res.status(404).send('Staff not found');
 
     // ---- Staff-specific fields ----
-    const fullName      = (staff.name || '').trim();
-    const workEmail     = (staff.email || '').trim().toLowerCase();
-    const personalEmail = (staff.personalEmail || '').trim().toLowerCase();
-    const phone         = (staff.phone || '').trim();
-    const position      = (staff.position || '').trim();
-    const dept          = (staff.dept || '').trim();
+    const baseName       = (staff.name || '').trim();
+    const prefix         = (staff.prefix || '').trim();
+    const suffix         = (staff.suffix || '').trim();
+
+    const workEmail      = (staff.email || '').trim().toLowerCase();
+    const personalEmail  = (staff.personalEmail || '').trim().toLowerCase();
+    const phone          = (staff.phone || '').trim();
+    const position       = (staff.position || '').trim();
+    const dept           = (staff.dept || '').trim();
+
+    const certProfessional       = (staff.certProfessional || '').trim();
+    const certProject            = (staff.certProject || '').trim();
+    const certFinancial          = (staff.certFinancial || '').trim();
+    const memberships            = (staff.memberships || '').trim();
+    const academicQualifications = (staff.academicQualifications || '').trim();
 
     // ---- Company-wide static fields ----
-    const COMPANY_NAME    = 'Asianloop Sdn Bhd';
-    const COMPANY_ADDRESS = 'Unit A2-1, Block A, Radius Business Park, Jalan Radius 1/1A, 63000 Cyberjaya, Selangor, Malaysia';
-    const COMPANY_WEBSITE = 'https://asian-loop.com';
-    const COMPANY_INFO    = 'info@asian-loop.com';
+    const COMPANY_NAME     = 'Asianloop Sdn Bhd';
+    const COMPANY_ADDRESS  = 'Unit A2-1, Block A, Radius Business Park, Jalan Radius 1/1A, 63000 Cyberjaya, Selangor, Malaysia';
+    const COMPANY_WEBSITE  = 'https://asian-loop.com';
+    const COMPANY_INFO     = 'info@asian-loop.com';
     const COMPANY_LINKEDIN = 'https://www.linkedin.com/company/asianloop-sdn-bhd/';
 
     const safe = (s) => String(s || '').replace(/\r?\n/g, ' ');
 
+    const buildDisplayName = () => {
+      const parts = [prefix, baseName, suffix].filter(Boolean);
+      return parts.join(' ').replace(/\s+/g, ' ').trim();
+    };
+
+    const splitLines = (text) =>
+      String(text || '')
+        .split(/\r?\n/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+    const noteSections = [];
+
+    if (dept) {
+      noteSections.push(`Department:\n• ${dept}`);
+    }
+
+    const proLines = splitLines(certProfessional);
+    if (proLines.length) {
+      noteSections.push(
+        'Professional Certifications:\n' +
+        proLines.map((l) => `• ${l}`).join('\n')
+      );
+    }
+
+    const projLines = splitLines(certProject);
+    if (projLines.length) {
+      noteSections.push(
+        'Project & Management Certifications:\n' +
+        projLines.map((l) => `• ${l}`).join('\n')
+      );
+    }
+
+    const finLines = splitLines(certFinancial);
+    if (finLines.length) {
+      noteSections.push(
+        'Financial & Business Certifications:\n' +
+        finLines.map((l) => `• ${l}`).join('\n')
+      );
+    }
+
+    const memLines = splitLines(memberships);
+    if (memLines.length) {
+      noteSections.push(
+        'Industry Memberships:\n' +
+        memLines.map((l) => `• ${l}`).join('\n')
+      );
+    }
+
+    const acadLines = splitLines(academicQualifications);
+    if (acadLines.length) {
+      noteSections.push(
+        'Academic Qualifications:\n' +
+        acadLines.map((l) => `• ${l}`).join('\n')
+      );
+    }
+
+    const noteText = noteSections.join('\n\n');
+
     const lines = [
       'BEGIN:VCARD',
       'VERSION:3.0',
-      `FN:${safe(fullName)}`,
-      `N:${safe(fullName)};;;;`,
+      `FN:${safe(buildDisplayName() || baseName)}`,
+      `N:${safe(buildDisplayName() || baseName)};;;;`,
       phone         ? `TEL;TYPE=CELL,VOICE:${safe(phone)}` : '',
       workEmail     ? `EMAIL;TYPE=INTERNET,WORK:${safe(workEmail)}` : '',
       personalEmail ? `EMAIL;TYPE=INTERNET,HOME:${safe(personalEmail)}` : '',
       `EMAIL;TYPE=INTERNET,OTHER:${safe(COMPANY_INFO)}`,
       position      ? `TITLE:${safe(position)}` : '',
       `ORG:${safe(COMPANY_NAME)}`,
-      dept          ? `NOTE:Department: ${safe(dept)}` : '',
-      // Common company address for everyone
       `ADR;TYPE=WORK:;;${safe(COMPANY_ADDRESS)};;;;`,
-      // Website + LinkedIn
       `URL:${safe(COMPANY_WEBSITE)}`,
       `X-SOCIALPROFILE;TYPE=linkedin:${safe(COMPANY_LINKEDIN)}`,
+      noteText ? `NOTE:${noteText.replace(/\r/g, '').replace(/\n/g, '\\n')}` : '',
       'END:VCARD'
     ].filter(Boolean);
 
     const vcardText = lines.join('\r\n');
-    const fileName  = (fullName || 'contact').replace(/\s+/g, '_');
+    const fileName  = (buildDisplayName() || baseName || 'contact').replace(/\s+/g, '_');
 
     res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
     res.setHeader(
@@ -948,6 +1039,7 @@ app.get('/contact/:id', async (req, res) => {
     res.status(500).send('Failed to generate contact');
   }
 });
+
 
 
 
