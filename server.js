@@ -948,10 +948,17 @@ app.get('/contact/:id', async (req, res) => {
 
     const safe = (s) => String(s || '').replace(/\r?\n/g, ' ');
 
+     // Convert prefix from "Datuk, Dr., Ir." → ["Datuk","Dr.","Ir."] → "Datuk Dr. Ir."
+    const prefixRaw = prefix;
+    const prettyPrefix = prefixRaw
+      ? prefixRaw.split(',').map(s => s.trim()).filter(Boolean).join(' ')
+      : '';
+
     const buildDisplayName = () => {
-      const parts = [prefix, baseName, suffix].filter(Boolean);
+      const parts = [prettyPrefix, baseName, suffix].filter(Boolean);
       return parts.join(' ').replace(/\s+/g, ' ').trim();
     };
+
 
     const splitLines = (text) =>
       String(text || '')
