@@ -1259,14 +1259,23 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
   const fld = (k)=> (x && x[k] !== undefined && x[k] !== null) ? String(x[k]) : '';
   const yesno = (b)=> b ? 'Yes' : 'No';
 
-  const displayName = (() => {
+    const displayName = (() => {
+    // prefix stored like "Datuk, Dr., Ir., Haji"
+    const rawPrefix = (x.prefix || '').trim();
+    const prefixParts = rawPrefix
+      ? rawPrefix.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const prettyPrefix = prefixParts.join(' '); // Datuk Dr. Ir. Haji
+
     const parts = [
-      (x.prefix || '').trim(),
+      prettyPrefix,
       (x.name || '').trim(),
-      (x.suffix || '').trim()
+      (x.suffix || '').trim()  // suffix kept exactly as typed (commas allowed)
     ].filter(Boolean);
-    return parts.join(' ');
+
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
   })();
+
 
   const multi = (txt) => {
     const s = (txt || '').trim();
