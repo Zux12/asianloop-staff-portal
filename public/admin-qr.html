@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Staff QR Contact Generator — Asianloop Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#fff; --ink:#0f172a; --muted:#64748b; --card:#fafafa; --border:#e5e7eb;
+      --accent:#2563eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+    header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);
+      padding:14px 20px;display:flex;align-items:center;gap:12px}
+    header h1{font-size:18px;margin:0}
+    header a.back{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+    main{max-width:800px;margin:0 auto;padding:18px 20px 40px}
+    p{color:var(--muted);font-size:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+    .form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    select{flex:1;min-width:220px;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:14px}
+    button{padding:9px 14px;border-radius:999px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:14px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .qr-wrap{margin-top:14px;display:none;flex-direction:column;align-items:center;gap:8px}
+    #qrcode{padding:12px;background:#fff;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+    .hint{font-size:12px;color:var(--muted)}
+  </style>
+
+  <!-- QR code library (frontend only) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <header>
+    <a class="back" href="/public/admin.html">← Admin</a>
+    <h1>Staff QR Contact Generator</h1>
+  </header>
+
+  <main>
+    <div class="card">
+      <p>
+        Select a staff record to generate a QR code. When scanned with a smartphone,
+        it will open a vCard (.vcf) download with the <strong>latest</strong> contact
+        details from the server (name, email, etc.).
+      </p>
+
+      <div class="form-row">
+        <select id="staffSelect">
+          <option value="">Loading staff list…</option>
+        </select>
+        <button id="btnGenerate" disabled>Generate QR</button>
+      </div>
+
+      <div class="qr-wrap" id="qrWrap">
+        <div id="qrcode"></div>
+        <div class="hint">
+          <div id="staffLabel"></div>
+          Scan this QR with your phone camera to save the contact.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const staffSelect = document.getElementById('staffSelect');
+    const btnGenerate = document.getElementById('btnGenerate');
+    const qrWrap = document.getElementById('qrWrap');
+    const qrDiv = document.getElementById('qrcode');
+    const staffLabel = document.getElementById('staffLabel');
+
+    let qrInstance = null;
+
+    async function loadStaffList() {
+      try {
+        const res = await fetch('/api/staff-basic', { headers:{ 'Accept':'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const list = await res.json();
+
+        if (!Array.isArray(list) || !list.length) {
+          staffSelect.innerHTML = '<option value="">No staff found</option>';
+          btnGenerate.disabled = true;
+          return;
+        }
+
+        staffSelect.innerHTML =
+          '<option value="">— Select staff —</option>' +
+          list.map(s => {
+            const position = s.position ? ' — ' + s.position : '';
+            const dept = s.dept ? ' (' + s.dept + ')' : '';
+            return `<option value="${s._id}">${s.name}${position}${dept}</option>`;
+          }).join('');
+
+        btnGenerate.disabled = false;
+      } catch (err) {
+        console.error('loadStaffList error', err);
+        staffSelect.innerHTML = '<option value="">Error loading staff</option>';
+        btnGenerate.disabled = true;
+      }
+    }
+
+    function generateQr() {
+      const id = staffSelect.value;
+      if (!id) return;
+
+      const label = staffSelect.options[staffSelect.selectedIndex].textContent || '';
+      const base = window.location.origin;
+      const url = base + '/contact/' + encodeURIComponent(id);
+
+      qrDiv.innerHTML = '';
+      qrInstance = new QRCode(qrDiv, {
+        text: url,
+        width: 220,
+        height: 220
+      });
+
+      staffLabel.textContent = label;
+      qrWrap.style.display = 'flex';
+    }
+
+    btnGenerate.addEventListener('click', generateQr);
+
+    staffSelect.addEventListener('change', () => {
+      if (staffSelect.value) {
+        generateQr();
+      } else {
+        qrWrap.style.display = 'none';
+        qrDiv.innerHTML = '';
+      }
+    });
+
+    loadStaffList();
+  </script>
+</body>
+</html>
