@@ -267,6 +267,14 @@ tbody tr td:last-child{ padding-right:16px; }
     <label>Position<br><input name="position" placeholder="e.g., Principal Measurement"></label>
   </div>
 
+
+      <!-- Row 2b -->
+  <div class="grid2">
+    <label>Phone<br><input name="phone" placeholder="+60-..."></label>
+    <div></div>
+  </div>
+
+
   <!-- Row 3 (the ONLY Department field + Tier) -->
   <div class="grid2">
     <label>Department<br><input name="dept"></label>
@@ -635,6 +643,7 @@ render();
     set('notes', x.notes);
     set('staffNo', x.staffNo || x.staff_number || x.staff_no || '');
     set('personalEmail', x.personalEmail);
+        set('phone', x.phone);
 set('tier', tierDisplay(x));
 set('position', x.position);
 // --- NEW: prefill remaining fields ---
@@ -891,11 +900,15 @@ window.delFam = (i)=>{ fam.splice(i,1); renderFamily(); };
       <div><strong>Name</strong><br>${escapeHtml(fld('name'))}</div>
       <div><strong>Email</strong><br>${escapeHtml(fld('email'))}</div>
     </div>
-<div class="grid2">
-  <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
-  <div><strong>Tier</strong><br>${escapeHtml(tierDisplay(x))}</div>
-</div>
-<div><strong>Position</strong><br>${escapeHtml(x.position||'')}</div>
+    <div class="grid2">
+      <div><strong>Phone</strong><br>${escapeHtml(fld('phone'))}</div>
+      <div><strong>Department</strong><br>${escapeHtml(fld('dept'))}</div>
+    </div>
+    <div class="grid2">
+      <div><strong>Tier</strong><br>${escapeHtml(tierDisplay(x))}</div>
+      <div><strong>Position</strong><br>${escapeHtml(x.position||'')}</div>
+    </div>
+
 
     <div class="grid2">
       <div><strong>Status</strong><br>${escapeHtml(fld('status'))}</div>
