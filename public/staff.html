@@ -286,15 +286,78 @@ tbody tr td:last-child{ padding-right:16px; }
 <dialog id="dlg">
   <div class="dlg-h" id="dlgTitle">Add Staff</div>
   <form id="frm" class="dlg-b">
-  <!-- Row 0: Prefix / Suffix -->
+
+    
+  <!-- Row 0: Prefix / Titles (before name) -->
   <div class="grid2">
-    <label>Prefix / Titles (before name)<br>
+    <label>
+      Prefix / Titles (before name)<br>
+      <div class="chip-group" data-target="prefix-titles">
+        <label class="chip-check"><input type="checkbox" value="Tun"> Tun</label>
+        <label class="chip-check"><input type="checkbox" value="Tan Sri"> Tan Sri</label>
+        <label class="chip-check"><input type="checkbox" value="Datuk Seri"> Datuk Seri</label>
+        <label class="chip-check"><input type="checkbox" value="Datuk"> Datuk</label>
+        <label class="chip-check"><input type="checkbox" value="Dato’ Seri"> Dato’ Seri</label>
+        <label class="chip-check"><input type="checkbox" value="Dato’"> Dato’</label>
+        <label class="chip-check"><input type="checkbox" value="Datin"> Datin</label>
+        <label class="chip-check"><input type="checkbox" value="Datin Seri"> Datin Seri</label>
+        <label class="chip-check"><input type="checkbox" value="Puan Sri"> Puan Sri</label>
+        <label class="chip-check"><input type="checkbox" value="Toh Puan"> Toh Puan</label>
+
+        <label class="chip-check"><input type="checkbox" value="Prof."> Prof.</label>
+        <label class="chip-check"><input type="checkbox" value="Assoc. Prof."> Assoc. Prof.</label>
+        <label class="chip-check"><input type="checkbox" value="Dr."> Dr.</label>
+
+        <label class="chip-check"><input type="checkbox" value="Ir."> Ir.</label>
+        <label class="chip-check"><input type="checkbox" value="Ts."> Ts.</label>
+        <label class="chip-check"><input type="checkbox" value="Ar."> Ar.</label>
+        <label class="chip-check"><input type="checkbox" value="Engr."> Engr.</label>
+
+        <label class="chip-check"><input type="checkbox" value="Haji"> Haji</label>
+        <label class="chip-check"><input type="checkbox" value="Hajjah"> Hajjah</label>
+      </div>
       <input name="prefix" placeholder="e.g., Datuk, Dr., Ir., Ts., Haji">
     </label>
-    <label>Suffix / Post-nominals<br>
+
+    <label>
+      Suffix / Post-nominals<br>
+      <div class="chip-group" data-target="suffix-titles">
+        <label class="chip-check"><input type="checkbox" value="CEng"> CEng</label>
+        <label class="chip-check"><input type="checkbox" value="FIET"> FIET</label>
+        <label class="chip-check"><input type="checkbox" value="MIET"> MIET</label>
+        <label class="chip-check"><input type="checkbox" value="PE"> PE</label>
+        <label class="chip-check"><input type="checkbox" value="P.Eng"> P.Eng</label>
+        <label class="chip-check"><input type="checkbox" value="ASEAN Eng"> ASEAN Eng</label>
+        <label class="chip-check"><input type="checkbox" value="ACPE"> ACPE</label>
+        <label class="chip-check"><input type="checkbox" value="P.Tech"> P.Tech</label>
+
+        <label class="chip-check"><input type="checkbox" value="PMP"> PMP</label>
+        <label class="chip-check"><input type="checkbox" value="PMI-ACP"> PMI-ACP</label>
+        <label class="chip-check"><input type="checkbox" value="PRINCE2 Practitioner"> PRINCE2</label>
+
+        <label class="chip-check"><input type="checkbox" value="Six Sigma Green Belt (SSGB)"> SSGB</label>
+        <label class="chip-check"><input type="checkbox" value="Six Sigma Black Belt (SSBB)"> SSBB</label>
+
+        <label class="chip-check"><input type="checkbox" value="CISSP"> CISSP</label>
+        <label class="chip-check"><input type="checkbox" value="CISM"> CISM</label>
+        <label class="chip-check"><input type="checkbox" value="CEH"> CEH</label>
+        <label class="chip-check"><input type="checkbox" value="CISA"> CISA</label>
+
+        <label class="chip-check"><input type="checkbox" value="CFA"> CFA</label>
+        <label class="chip-check"><input type="checkbox" value="FRM"> FRM</label>
+        <label class="chip-check"><input type="checkbox" value="ACCA"> ACCA</label>
+        <label class="chip-check"><input type="checkbox" value="CPA"> CPA</label>
+
+        <label class="chip-check"><input type="checkbox" value="PhD"> PhD</label>
+        <label class="chip-check"><input type="checkbox" value="MSc"> MSc</label>
+        <label class="chip-check"><input type="checkbox" value="MBA"> MBA</label>
+        <label class="chip-check"><input type="checkbox" value="BEng"> BEng</label>
+        <label class="chip-check"><input type="checkbox" value="BSc"> BSc</label>
+      </div>
       <input name="suffix" placeholder="e.g., CEng, PMP, PhD">
     </label>
   </div>
+
 
   <!-- Row 1 -->
   <div class="grid2">
@@ -693,6 +756,97 @@ data = (arr || []).map(x => {
   initQualBindings();
 
 
+
+  // --- Helpers for Prefix/Suffix title chips <-> text input ---
+  const TITLE_FIELDS = ['prefix', 'suffix'];
+
+  function parseTitleList(str){
+    return String(str || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function buildTitleString(arr){
+    return Array.from(new Set(arr.map(s => s.trim()).filter(Boolean))).join(', ');
+  }
+
+  function syncTitleChipsFromInput(fieldName){
+    const input = frm?.elements[fieldName];
+    if (!input) return;
+    const group = document.querySelector(`.chip-group[data-target="${fieldName}-titles"]`);
+    if (!group) return;
+
+    const current = parseTitleList(input.value);
+    const set = new Set(current.map(v => v.toLowerCase()));
+
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const val = cb.value || '';
+      cb.checked = set.has(val.toLowerCase());
+    });
+  }
+
+  function syncInputFromTitleChips(fieldName){
+    const input = frm?.elements[fieldName];
+    if (!input) return;
+    const group = document.querySelector(`.chip-group[data-target="${fieldName}-titles"]`);
+    if (!group) return;
+
+    const existing = parseTitleList(input.value);
+
+    const chipValues = [];
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      chipValues.push(cb.value || '');
+    });
+    const chipSet = new Set(chipValues.map(v => v.toLowerCase()));
+
+    const manual = existing.filter(v => !chipSet.has(v.toLowerCase()));
+
+    const checked = [];
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (cb.checked) checked.push(cb.value || '');
+    });
+
+    input.value = buildTitleString([...checked, ...manual]);
+  }
+
+  function resetTitleChipGroups(){
+    TITLE_FIELDS.forEach(name => {
+      const group = document.querySelector(`.chip-group[data-target="${name}-titles"]`);
+      if (group){
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+      }
+      const input = frm?.elements[name];
+      if (input && !input.value) {
+        // nothing special; form.reset() already cleared it
+      }
+    });
+  }
+
+  function initTitleBindings(){
+    TITLE_FIELDS.forEach(name => {
+      const group = document.querySelector(`.chip-group[data-target="${name}-titles"]`);
+      const input = frm?.elements[name];
+
+      if (group){
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.addEventListener('change', () => syncInputFromTitleChips(name));
+        });
+      }
+      if (input){
+        input.addEventListener('input', () => syncTitleChipsFromInput(name));
+      }
+    });
+  }
+
+  // Initialise title bindings
+  initTitleBindings();
+
+
+  
+
+  
+
   $('#btnNew').onclick = ()=>{
     frm.reset();
     (document.getElementById('hid_id')||{}).value = '';
@@ -707,6 +861,7 @@ data = (arr || []).map(x => {
     if (typeof renderFamily === 'function') renderFamily();
 
     resetCheckboxGroups();
+    resetTitleChipGroups();
     $('#dlgTitle').textContent = 'Add Staff';
     dlg.showModal();
   };
@@ -842,6 +997,9 @@ render();
     set('academicQualifications', x.academicQualifications);
     // Sync checkbox chips with textarea content
     QUAL_FIELDS.forEach(name => syncCheckboxesFromTextarea(name));
+    // Sync title chips with prefix/suffix inputs
+    syncTitleChipsFromInput('prefix');
+    syncTitleChipsFromInput('suffix');
 
 
     set('status', x.status || 'Active');
