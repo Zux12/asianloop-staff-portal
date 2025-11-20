@@ -696,6 +696,7 @@ app.get('/api/staff', async (_req, res) => {
       .find({ archivedAt: { $exists: false } })
 .project({
   name:1, email:1, personalEmail:1,
+    phone:1,
   dept:1, tier:1, role:1, position:1,
   status:1, lastLoginAt:1, mfaEnabled:1, notes:1,
   staffNo:1, address:1, idNo:1, passportNo:1, hireDate:1,
@@ -726,6 +727,7 @@ if(!String(email).toLowerCase().endsWith(allowed)) return res.status(400).send(`
 const doc = {
   name: String(name).trim(),
   email: String(email).trim().toLowerCase(),
+  phone: String((req.body?.phone) || '').trim(),
   personalEmail: String(personalEmail||'').trim().toLowerCase(),
   dept: String(dept||'').trim(),
   tier: String(tier||'Executive').trim(),            // NEW
@@ -775,6 +777,7 @@ app.put('/api/staff/:id', async (req, res) => {
 
     if (b.name        !== undefined) $set.name        = String(b.name).trim();
     if (b.email       !== undefined) $set.email       = String(b.email).trim().toLowerCase();
+    if (b.phone       !== undefined) $set.phone       = String(b.phone).trim();
     if (b.dept        !== undefined) $set.dept        = String(b.dept).trim();
     if (b.role        !== undefined) $set.role        = String(b.role).trim();
     if (b.status      !== undefined) $set.status      = String(b.status).trim();
