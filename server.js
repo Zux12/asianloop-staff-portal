@@ -848,6 +848,96 @@ app.delete('/api/staff/:id', async (req, res) => {
 });
 /* -------------------------------------------------------------------- */
 
+// --- Staff QR helper list: minimal fields for dropdown ---
+app.get('/api/staff-basic', async (_req, res) => {
+  try {
+    const db = await staffDb();
+    const items = await staffColl(db)
+      .find({ archivedAt: { $exists: false } })
+      .project({
+        name: 1,
+        email: 1,
+        personalEmail: 1,
+        dept: 1,
+        tier: 1,
+        position: 1,
+        status: 1
+      })
+      .sort({ name: 1 })
+      .toArray();
+
+    res.json(items || []);
+  } catch (err) {
+    console.error('[STAFF] /api/staff-basic error', err);
+    res.status(500).json({ error: 'Failed to fetch staff list' });
+  }
+});
+
+
+// --- vCard contact generator for QR: /contact/:id ---
+app.get('/contact/:id', async (req, res) => {
+  try {
+    const db = await staffDb();
+    const coll = staffColl(db);
+
+    const idRaw = String(req.params.id || '').trim();
+    if (!idRaw) return res.status(400).send('Missing id');
+
+    let staff = null;
+
+    // Try ObjectId first; if invalid, fall back to string _id
+    try {
+      staff = await coll.findOne({ _id: new ObjectId(idRaw) });
+    } catch (_) {
+      staff = await coll.findOne({ _id: idRaw });
+    }
+
+    if (!staff) return res.status(404).send('Staff not found');
+
+    const fullName      = (staff.name || '').trim();
+    const workEmail     = (staff.email || '').trim();
+    const personalEmail = (staff.personalEmail || '').trim();
+    const phone         = (staff.phone || '').trim();   // optional; only used if present
+    const position      = (staff.position || '').trim();
+    const dept          = (staff.dept || '').trim();
+    const address       = (staff.address || '').trim(); // combined string from your staff form
+
+    const safe = (s) => String(s || '').replace(/\r?\n/g, ' ');
+
+    const lines = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${safe(fullName)}`,
+      `N:${safe(fullName)};;;;`,
+      phone         ? `TEL;TYPE=CELL,VOICE:${safe(phone)}` : '',
+      workEmail     ? `EMAIL;TYPE=INTERNET,WORK:${safe(workEmail)}` : '',
+      personalEmail ? `EMAIL;TYPE=INTERNET,HOME:${safe(personalEmail)}` : '',
+      position      ? `TITLE:${safe(position)}` : '',
+      'ORG:Asianloop Sdn Bhd',
+      dept          ? `NOTE:Department: ${safe(dept)}` : '',
+      address       ? `ADR;TYPE=WORK:;;${safe(address)};;;;` : '',
+      'END:VCARD'
+    ].filter(Boolean);
+
+    const vcardText = lines.join('\r\n');
+    const fileName  = (fullName || 'contact').replace(/\s+/g, '_');
+
+    res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName}.vcf"`
+    );
+    res.send(vcardText);
+  } catch (err) {
+    console.error('[STAFF] /contact/:id error', err);
+    res.status(500).send('Failed to generate contact');
+  }
+});
+
+
+
+
+
 const uploadAssetPhoto = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
