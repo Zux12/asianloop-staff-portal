@@ -174,6 +174,37 @@ tbody tr td:last-child{ padding-right:16px; }
 .btn.success:hover{ filter:brightness(.95); }
 
 
+
+  .chip-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:6px 0 8px;
+  }
+  .chip-check{
+    font-size:12px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:4px 8px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    background:#fff;
+    cursor:pointer;
+  }
+  .chip-check input{
+    margin:0;
+  }
+  .qual-block{
+    margin-bottom:10px;
+  }
+  .qual-block > div:first-child{
+    font-size:13px;
+    margin-bottom:4px;
+    font-weight:600;
+  }
+  
+
 </style>
 </head>
 <body>
@@ -393,22 +424,83 @@ tbody tr td:last-child{ padding-right:16px; }
 
 <div class="sec-title">Qualifications & Memberships</div>
 <div class="block">
-  <label>Professional & Technical Certifications<br>
+
+  <div class="qual-block">
+    <div>Professional &amp; Technical Certifications</div>
+    <div class="chip-group" data-target="certProfessional">
+      <label class="chip-check"><input type="checkbox" value="CEng (Chartered Engineer, UK)"> CEng</label>
+      <label class="chip-check"><input type="checkbox" value="FIET"> FIET</label>
+      <label class="chip-check"><input type="checkbox" value="MIET"> MIET</label>
+      <label class="chip-check"><input type="checkbox" value="PE"> PE</label>
+      <label class="chip-check"><input type="checkbox" value="P.Eng"> P.Eng</label>
+      <label class="chip-check"><input type="checkbox" value="ASEAN Eng"> ASEAN Eng</label>
+      <label class="chip-check"><input type="checkbox" value="ACPE"> ACPE</label>
+      <label class="chip-check"><input type="checkbox" value="P.Tech"> P.Tech</label>
+
+      <label class="chip-check"><input type="checkbox" value="CISSP"> CISSP</label>
+      <label class="chip-check"><input type="checkbox" value="CISM"> CISM</label>
+      <label class="chip-check"><input type="checkbox" value="CEH"> CEH</label>
+      <label class="chip-check"><input type="checkbox" value="CISA"> CISA</label>
+      <label class="chip-check"><input type="checkbox" value="CompTIA Security+"> Security+</label>
+
+      <label class="chip-check"><input type="checkbox" value="Six Sigma Green Belt (SSGB)"> Six Sigma GB</label>
+      <label class="chip-check"><input type="checkbox" value="Six Sigma Black Belt (SSBB)"> Six Sigma BB</label>
+    </div>
     <textarea name="certProfessional" rows="3" placeholder="e.g.&#10;CEng (Chartered Engineer, UK)&#10;Six Sigma Black Belt (SSBB)&#10;CISSP&#10;CISA"></textarea>
-  </label>
-  <label>Project & Management Certifications<br>
+  </div>
+
+  <div class="qual-block">
+    <div>Project &amp; Management Certifications</div>
+    <div class="chip-group" data-target="certProject">
+      <label class="chip-check"><input type="checkbox" value="PMP (Project Management Professional)"> PMP</label>
+      <label class="chip-check"><input type="checkbox" value="PMI-ACP"> PMI-ACP</label>
+      <label class="chip-check"><input type="checkbox" value="PRINCE2 Practitioner"> PRINCE2</label>
+      <label class="chip-check"><input type="checkbox" value="PgMP"> PgMP</label>
+      <label class="chip-check"><input type="checkbox" value="PfMP"> PfMP</label>
+      <label class="chip-check"><input type="checkbox" value="CSM (Certified ScrumMaster)"> CSM</label>
+      <label class="chip-check"><input type="checkbox" value="PSM I (Professional Scrum Master)"> PSM I</label>
+      <label class="chip-check"><input type="checkbox" value="Lean Six Sigma Green Belt"> Lean Six Sigma GB</label>
+      <label class="chip-check"><input type="checkbox" value="Lean Six Sigma Black Belt"> Lean Six Sigma BB</label>
+    </div>
     <textarea name="certProject" rows="3" placeholder="e.g.&#10;PMP (Project Management Professional)&#10;PRINCE2 Practitioner"></textarea>
-  </label>
-  <label>Financial & Business Certifications<br>
+  </div>
+
+  <div class="qual-block">
+    <div>Financial &amp; Business Certifications</div>
+    <div class="chip-group" data-target="certFinancial">
+      <label class="chip-check"><input type="checkbox" value="CFA (Chartered Financial Analyst)"> CFA</label>
+      <label class="chip-check"><input type="checkbox" value="FRM (Financial Risk Manager)"> FRM</label>
+      <label class="chip-check"><input type="checkbox" value="ACCA"> ACCA</label>
+      <label class="chip-check"><input type="checkbox" value="CIMA"> CIMA</label>
+      <label class="chip-check"><input type="checkbox" value="CPA"> CPA</label>
+      <label class="chip-check"><input type="checkbox" value="CFP"> CFP</label>
+      <label class="chip-check"><input type="checkbox" value="CA"> CA</label>
+    </div>
     <textarea name="certFinancial" rows="3" placeholder="e.g.&#10;CFA&#10;FRM&#10;ACCA&#10;CPA"></textarea>
-  </label>
-  <label>Industry Memberships / Bodies<br>
+  </div>
+
+  <div class="qual-block">
+    <div>Industry Memberships / Bodies</div>
+    <div class="chip-group" data-target="memberships">
+      <label class="chip-check"><input type="checkbox" value="ISA (International Society of Automation)"> ISA</label>
+      <label class="chip-check"><input type="checkbox" value="IEC (International Electrotechnical Commission)"> IEC</label>
+      <label class="chip-check"><input type="checkbox" value="API MPMS (American Petroleum Institute – Measurement Standards)"> API MPMS</label>
+      <label class="chip-check"><input type="checkbox" value="IEEE"> IEEE</label>
+      <label class="chip-check"><input type="checkbox" value="IET"> IET</label>
+      <label class="chip-check"><input type="checkbox" value="MOGSC"> MOGSC</label>
+      <label class="chip-check"><input type="checkbox" value="BEM (Board of Engineers Malaysia)"> BEM</label>
+      <label class="chip-check"><input type="checkbox" value="MBOT (Malaysia Board of Technologists)"> MBOT</label>
+    </div>
     <textarea name="memberships" rows="3" placeholder="e.g.&#10;ISA (International Society of Automation)&#10;IEC (International Electrotechnical Commission)&#10;API MPMS&#10;IEEE&#10;IET"></textarea>
-  </label>
-  <label>Academic Qualifications<br>
+  </div>
+
+  <div class="qual-block">
+    <div>Academic Qualifications</div>
     <textarea name="academicQualifications" rows="3" placeholder="e.g.&#10;PhD (Instrumentation Engineering)&#10;MSc (Control Systems)&#10;BSc (Electrical & Electronics)"></textarea>
-  </label>
+  </div>
+
 </div>
+
 
 <label>Notes (optional)<br><input name="notes" placeholder=""></label>
 <input type="hidden" id="hid_id" name="_id" />
@@ -530,6 +622,77 @@ data = (arr || []).map(x => {
   // dialogs
   const dlg = $('#dlg'); const frm = $('#frm');
 
+
+    // --- Helpers: sync checkbox chips <-> textarea for qualifications ---
+  const QUAL_FIELDS = ['certProfessional', 'certProject', 'certFinancial', 'memberships', 'academicQualifications'];
+
+  function syncCheckboxesFromTextarea(fieldName){
+    const ta = frm?.elements[fieldName];
+    const group = document.querySelector(`.chip-group[data-target="${fieldName}"]`);
+    if (!ta || !group) return;
+
+    const lines = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const set = new Set(lines.map(l => l.toLowerCase()));
+
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const val = cb.value || '';
+      cb.checked = set.has(val.toLowerCase());
+    });
+  }
+
+  function syncTextareaFromCheckboxes(fieldName){
+    const ta = frm?.elements[fieldName];
+    const group = document.querySelector(`.chip-group[data-target="${fieldName}"]`);
+    if (!ta || !group) return;
+
+    const existing = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+    const predefined = [];
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      predefined.push(cb.value || '');
+    });
+    const predefinedLower = new Set(predefined.map(v => v.toLowerCase()));
+
+    // Keep manual (non-predefined) lines
+    const manual = existing.filter(line => !predefinedLower.has(line.toLowerCase()));
+
+    const checked = [];
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (cb.checked) checked.push(cb.value || '');
+    });
+
+    const newLines = [...checked, ...manual];
+    ta.value = newLines.join('\n');
+  }
+
+  function resetCheckboxGroups(){
+    QUAL_FIELDS.forEach(name => {
+      const group = document.querySelector(`.chip-group[data-target="${name}"]`);
+      if (group){
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+      }
+    });
+  }
+
+  // Set up event listeners once
+  function initQualBindings(){
+    QUAL_FIELDS.forEach(name => {
+      const group = document.querySelector(`.chip-group[data-target="${name}"]`);
+      const ta = frm?.elements[name];
+      if (group){
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.addEventListener('change', () => syncTextareaFromCheckboxes(name));
+        });
+      }
+      if (ta){
+        ta.addEventListener('input', () => syncCheckboxesFromTextarea(name));
+      }
+    });
+  }
+  // Initialise checkbox <-> textarea bindings
+  initQualBindings();
+
+
   $('#btnNew').onclick = ()=>{
     frm.reset();
     (document.getElementById('hid_id')||{}).value = '';
@@ -543,6 +706,7 @@ data = (arr || []).map(x => {
     if (famRows) famRows.innerHTML = '';
     if (typeof renderFamily === 'function') renderFamily();
 
+    resetCheckboxGroups();
     $('#dlgTitle').textContent = 'Add Staff';
     dlg.showModal();
   };
@@ -676,6 +840,8 @@ render();
     set('certFinancial', x.certFinancial);
     set('memberships', x.memberships);
     set('academicQualifications', x.academicQualifications);
+    // Sync checkbox chips with textarea content
+    QUAL_FIELDS.forEach(name => syncCheckboxesFromTextarea(name));
 
 
     set('status', x.status || 'Active');
