@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QA/QC Document Control | Asianloop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    :root{
+      --bg:#0f1220;
+      --card:#14182a;
+      --muted:#8a90a7;
+      --text:#e9edf7;
+      --accent:#6d8bff;
+      --ok:#3ccf91;
+      --danger:#ff6b81;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 85% -10%, rgba(109,139,255,.25), transparent 60%),
+        radial-gradient(1000px 500px at -10% 10%, rgba(60,207,145,.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      -webkit-font-smoothing:antialiased;
+      padding-bottom:40px;
+    }
+    a{color:inherit;text-decoration:none}
+    .al-header{
+      position:sticky;top:0;z-index:10;
+      backdrop-filter:saturate(150%) blur(8px);
+      background:rgba(10,12,22,.8);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .al-inner{
+      max-width:1100px;margin:0 auto;padding:14px 18px;
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+    }
+    .al-brand{display:flex;align-items:center;gap:12px;}
+    .al-brand img{
+      height:32px;width:auto;object-fit:contain;display:block;
+      border-radius:6px;box-shadow:var(--shadow);
+    }
+    .al-brand span{font-weight:700;letter-spacing:.2px}
+    .al-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+    .al-main{
+      max-width:1100px;margin:22px auto 0;padding:0 18px 40px;
+      display:grid;gap:20px;
+    }
+    .page-title{font-size:1.6rem;font-weight:800;margin:8px 0 2px}
+    .page-sub{color:var(--muted);margin:0 0 10px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .section-head{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;
+    }
+    .section-head h2{margin:0;font-size:1.1rem;letter-spacing:.2px}
+    .badge{
+      padding:4px 10px;border-radius:999px;font-size:.78rem;color:#04131b;
+      background:linear-gradient(180deg,#8ff8c8,#70e6b3);
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow:0 4px 12px rgba(0,0,0,.15),inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+    .grid-2{display:grid;grid-template-columns:2fr 3fr;gap:16px}
+    @media (max-width:900px){.grid-2{grid-template-columns:1fr}}
+    form .row{display:flex;flex-direction:column;margin-bottom:10px}
+    form label{font-size:.85rem;margin-bottom:4px;color:var(--muted)}
+    form input,form select,form textarea{
+      padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.18);
+      background:rgba(4,8,20,.8);color:var(--text);font-size:.9rem;
+    }
+    form textarea{min-height:60px;resize:vertical}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:7px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+      background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+      color:var(--text);font-size:.9rem;cursor:pointer;gap:6px;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{border-color:rgba(109,139,255,.9);background:linear-gradient(180deg,#8fa2ff,#6d8bff);}
+    .btn-danger{border-color:rgba(255,107,129,.6);background:linear-gradient(180deg,#ff97aa,#ff6b81);}
+    .btn-ghost{background:transparent;border-style:dashed;}
+    .pill{
+      display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;
+      border:1px solid rgba(255,255,255,.2);color:var(--muted);
+    }
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th,td{padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);}
+    th{font-weight:600;font-size:.8rem;color:var(--muted)}
+    tr:nth-child(even){background:rgba(255,255,255,.01);}
+    .status-pill{
+      display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .status-PENDING{background:rgba(255,215,115,.18);color:#ffe18a;}
+    .status-APPROVED{background:rgba(60,207,145,.18);color:#8ff8c8;}
+    .status-REJECTED{background:rgba(255,107,129,.18);color:#ffb3c1;}
+    .tag{font-size:.75rem;color:var(--muted);}
+    .muted{color:var(--muted);font-size:.8rem}
+    .flex{display:flex;align-items:center;gap:8px}
+    .flex-between{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+    .small{font-size:.78rem}
+    footer{max-width:1100px;margin:12px auto 0;padding:0 18px;color:var(--muted);font-size:.85rem}
+    .pill-mode{font-size:.7rem;padding:2px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.2);margin-left:4px;}
+    .pill-mode.corp{background:rgba(109,139,255,.16);}
+    .pill-mode.proj{background:rgba(60,207,145,.16);}
+  </style>
+</head>
+<body>
+  <header class="al-header">
+    <div class="al-inner">
+      <a class="al-brand" href="/msbs" title="Back to Staff Portal">
+        <img src="/public/images/logo.jpg" alt="Asianloop logo">
+        <span>QA/QC Document Control</span>
+      </a>
+      <div class="al-right">
+        <span>Logged in as <strong id="userEmail">—</strong></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="al-main">
+    <section>
+      <h1 class="page-title">Document Control Hub</h1>
+      <p class="page-sub">Corporate &amp; Project document numbering, MDR, and file tracking.</p>
+    </section>
+
+    <!-- Request + Correspondence -->
+    <section class="card">
+      <div class="section-head">
+        <h2>New IDs</h2>
+        <span class="badge">Originator</span>
+      </div>
+      <div class="grid-2">
+        <!-- Left: Controlled Document Request -->
+        <div>
+          <h3 style="margin:0 0 6px;font-size:1rem;">Request Controlled Document Number</h3>
+          <p class="muted small">Select corporate/project, choose department &amp; type, and submit to register in Document Control.</p>
+          <form id="dcRequestForm" class="mt-8">
+            <div class="row">
+              <label for="mode">Mode</label>
+              <select id="mode" name="mode">
+                <option value="corporate">Corporate</option>
+                <option value="project">Project</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="deptCode">Department Code (PPP)</label>
+              <select id="deptCode" name="deptCode">
+                <option value="">-- select --</option>
+                <option value="QAC">QAC – Quality Assurance &amp; Control</option>
+                <option value="HSE">HSE – Health, Safety &amp; Environment</option>
+                <option value="ADM">ADM – Administration</option>
+                <option value="HRM">HRM – Human Resources</option>
+                <option value="PRU">PRU – Procurement</option>
+                <option value="BSM">BSM – Business Sales &amp; Marketing</option>
+                <option value="FIN">FIN – Finance</option>
+                <option value="TEC">TEC – Technology</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="docTypeCode">Document Type (DDD)</label>
+              <select id="docTypeCode" name="docTypeCode">
+                <option value="">-- select --</option>
+                <option value="PRC">PRC – Procedure</option>
+                <option value="WI">WI – Work Instruction</option>
+                <option value="FRM">FRM – Form</option>
+                <option value="MOM">MOM – Minutes of Meeting</option>
+                <option value="NCR">NCR – Non-Conformance Report</option>
+                <option value="QAR">QAR – Quality Alert Report</option>
+                <option value="LTR">LTR – Letter</option>
+                <option value="MEM">MEM – Memo</option>
+              </select>
+            </div>
+            <div class="row" id="projectCodeRow" style="display:none;">
+              <label for="projectCode">Project Code</label>
+              <input id="projectCode" name="projectCode" type="text" placeholder="e.g. FLOWLAB, MARAN">
+            </div>
+            <div class="row">
+              <label for="title">Title / Description</label>
+              <textarea id="title" name="title" placeholder="Short description of the document"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+            <div id="dcRequestMessage" class="mt-8 small muted"></div>
+          </form>
+        </div>
+
+        <!-- Right: Correspondence Generator -->
+        <div>
+          <h3 style="margin:0 0 6px;font-size:1rem;">Correspondence Number</h3>
+          <p class="muted small">Generate numbers like ALSB-SRM-LTR-2025-0001, with running numbers per recipient.</p>
+          <form id="corrForm" class="mt-8">
+            <div class="row">
+              <label for="corrRecipient">Recipient Code</label>
+              <input id="corrRecipient" name="recipient" type="text" placeholder="e.g. SRM, TNB">
+            </div>
+            <div class="row">
+              <label for="corrTypeCode">Type</label>
+              <select id="corrTypeCode" name="typeCode">
+                <option value="LTR">LTR – Letter</option>
+                <option value="MEM">MEM – Memo</option>
+                <option value="FAX">FAX – Fax</option>
+                <option value="MOM">MOM – Minutes of Meeting</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="corrYear">Year</label>
+              <input id="corrYear" name="year" type="number" min="2000" max="2100" />
+            </div>
+            <button type="submit" class="btn btn-ghost">Generate Correspondence No</button>
+            <div id="corrResult" class="mt-8 small"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Requests & Approvals -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Requests &amp; Approvals</h2>
+        <span class="badge">Document Controller View</span>
+      </div>
+      <p class="muted small">All logged-in users can view and approve for now. Each request keeps the originator details and status.</p>
+      <div class="mt-8">
+        <table id="requestsTable">
+          <thead>
+            <tr>
+              <th>Doc No</th>
+              <th>Mode</th>
+              <th>Dept / Type</th>
+              <th>Title</th>
+              <th>Originator</th>
+              <th>Status</th>
+              <th>Requested At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MDR & File Status -->
+    <section class="card">
+      <div class="section-head">
+        <h2>Master Document Register (MDR)</h2>
+        <span class="badge">Issued Documents</span>
+      </div>
+      <p class="muted small">Shows all issued document numbers and whether the controlled file has been uploaded.</p>
+      <div class="mt-8">
+        <table id="docsTable">
+          <thead>
+            <tr>
+              <th>Doc No</th>
+              <th>Mode</th>
+              <th>Dept / Type</th>
+              <th>Title</th>
+              <th>Originator</th>
+              <th>File</th>
+              <th>Issued At</th>
+              <th>Upload / View</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small mt-8">To mark that a number is used, upload the finalized document against the issued Doc No. Once uploaded, the status changes to “File uploaded”.</p>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> Asianloop — QA/QC Document Control.
+  </footer>
+
+  <input type="file" id="hiddenFileInput" style="display:none;" />
+
+  <script src="/public/qaqc/qaqc.js"></script>
+</body>
+</html>
