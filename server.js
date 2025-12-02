@@ -1577,13 +1577,19 @@ function dcCountersColl() {
 
 // Helper: get next sequence number for a given key
 async function dcNextSeq(key) {
-  const r = await dcCountersColl().findOneAndUpdate(
+  const col = dcCountersColl();
+  // Simple, generic pattern that works across Mongo driver versions
+  const existing = await col.findOne({ _id: key });
+  let seq = existing && typeof existing.seq === 'number' ? existing.seq : 0;
+  seq = seq + 1;
+  await col.updateOne(
     { _id: key },
-    { $inc: { seq: 1 } },
-    { upsert: true, returnDocument: 'after' }
+    { $set: { seq } },
+    { upsert: true }
   );
-  return r.value.seq;
+  return seq;
 }
+
 
 // Helper: pad number to 4 digits
 function dcPad4(n) {
@@ -1773,6 +1779,45 @@ app.post('/api/dc/requests/:id/approve', requireAuth, async (req, res) => {
     res.status(500).json({ ok: false, error: 'Internal error' });
   }
 });
+
+// POST /api/dc/requests/:id/reject  (mark request as REJECTED)
+app.post('/api/dc/requests/:id/reject', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, error: 'Bad id' });
+    }
+
+    const reqDoc = await dcRequestsColl().findOne({ _id: new ObjectId(id) });
+    if (!reqDoc) {
+      return res.status(404).json({ ok: false, error: 'Request not found' });
+    }
+
+    // If already approved or rejected, just return current status
+    if (reqDoc.status === 'APPROVED' || reqDoc.status === 'REJECTED') {
+      return res.json({ ok: true, status: reqDoc.status });
+    }
+
+    const now = new Date();
+    await dcRequestsColl().updateOne(
+      { _id: reqDoc._id },
+      {
+        $set: {
+          status: 'REJECTED',
+          updatedAt: now
+        }
+      }
+    );
+
+    res.json({ ok: true, status: 'REJECTED' });
+  } catch (e) {
+    console.error('[DC] reject request error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
 
 // GET /api/dc/docs  (list MDR docs)
 app.get('/api/dc/docs', requireAuth, async (req, res) => {
