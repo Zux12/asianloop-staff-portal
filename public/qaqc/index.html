@@ -6,30 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="/favicon.ico" />
   <style>
-    :root{
-      --bg:#0f1220;
-      --card:#14182a;
-      --muted:#8a90a7;
-      --text:#e9edf7;
-      --accent:#6d8bff;
-      --ok:#3ccf91;
-      --danger:#ff6b81;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --radius:18px;
-    }
+   :root{
+  --bg:#f6f7fb;            /* light background */
+  --card:#ffffff;          /* white cards */
+  --muted:#55607a;         /* secondary text */
+  --text:#1b2430;          /* main text */
+  --accent:#2a6df4;        /* primary accent */
+  --ok:#1fb874;            /* success green */
+  --danger:#ff4b6a;        /* danger/red */
+  --shadow:0 10px 30px rgba(15,18,32,.08);
+  --radius:18px;
+}
+
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0;
-      background:
-        radial-gradient(1200px 600px at 85% -10%, rgba(109,139,255,.25), transparent 60%),
-        radial-gradient(1000px 500px at -10% 10%, rgba(60,207,145,.12), transparent 55%),
-        var(--bg);
-      color:var(--text);
-      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      -webkit-font-smoothing:antialiased;
-      padding-bottom:40px;
-    }
+   body{
+  margin:0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(42,109,244,.12), transparent 60%),
+    radial-gradient(800px 420px at -10% 10%, rgba(31,184,116,.10), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
+}
+
     a{color:inherit;text-decoration:none}
     .al-header{
       position:sticky;top:0;z-index:10;
@@ -75,10 +77,15 @@
     @media (max-width:900px){.grid-2{grid-template-columns:1fr}}
     form .row{display:flex;flex-direction:column;margin-bottom:10px}
     form label{font-size:.85rem;margin-bottom:4px;color:var(--muted)}
-    form input,form select,form textarea{
-      padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.18);
-      background:rgba(4,8,20,.8);color:var(--text);font-size:.9rem;
-    }
+form input,form select,form textarea{
+  padding:7px 9px;
+  border-radius:8px;
+  border:1px solid #cfd7e6;
+  background:#ffffff;
+  color:var(--text);
+  font-size:.9rem;
+}
+
     form textarea{min-height:60px;resize:vertical}
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
