@@ -92,7 +92,8 @@ function setupRequestForm() {
         return;
       }
       msg.textContent = 'Request submitted successfully.';
-      msg.style.color = '#8ff8c8';
+msg.style.color = '#006400';        // dark green
+msg.style.fontWeight = 'bold';
       form.title.value = '';
       if (mode === 'project') form.projectCode.value = '';
       loadRequests();
@@ -148,7 +149,9 @@ function setupCorrForm() {
         return;
       }
       out.textContent = 'Generated: ' + data.corrNo;
-      out.style.color = '#8ff8c8';
+out.style.color = '#006400';         // dark green
+out.style.fontWeight = 'bold';
+out.style.textDecoration = 'underline';
     })
     .catch(function (err) {
       console.error('Corr error', err);
