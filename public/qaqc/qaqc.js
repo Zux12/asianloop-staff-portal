@@ -201,18 +201,32 @@ function loadRequests() {
           '<td class="small"></td>';
 
         var actionCell = tr.lastChild;
+               var actionCell = tr.lastChild;
         if (item.status === 'PENDING') {
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'btn btn-primary';
-          btn.textContent = 'Approve & issue';
-          btn.addEventListener('click', function () {
+          // Approve button
+          var approveBtn = document.createElement('button');
+          approveBtn.type = 'button';
+          approveBtn.className = 'btn btn-primary';
+          approveBtn.textContent = 'Approve & issue';
+          approveBtn.style.marginRight = '4px';
+          approveBtn.addEventListener('click', function () {
             approveRequest(item.id);
           });
-          actionCell.appendChild(btn);
+          actionCell.appendChild(approveBtn);
+
+          // Reject button
+          var rejectBtn = document.createElement('button');
+          rejectBtn.type = 'button';
+          rejectBtn.className = 'btn btn-danger';
+          rejectBtn.textContent = 'Reject';
+          rejectBtn.addEventListener('click', function () {
+            rejectRequest(item.id);
+          });
+          actionCell.appendChild(rejectBtn);
         } else {
           actionCell.innerHTML = '<span class="muted small">—</span>';
         }
+
 
         tbody.appendChild(tr);
       });
@@ -246,6 +260,31 @@ function approveRequest(id) {
       alert('Error approving request.');
     });
 }
+
+function rejectRequest(id) {
+  if (!id) return;
+  if (!confirm('Reject this request?')) return;
+
+  fetch('/api/dc/requests/' + encodeURIComponent(id) + '/reject', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok) {
+        alert(data.error || 'Failed to reject request.');
+        return;
+      }
+      alert('Request rejected.');
+      loadRequests();
+    })
+    .catch(function (err) {
+      console.error('Reject error', err);
+      alert('Error rejecting request.');
+    });
+}
+
+
 
 // === MDR (docs) table & file upload ===
 var currentUploadDocId = null;
