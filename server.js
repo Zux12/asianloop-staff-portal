@@ -1522,6 +1522,12 @@ app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'favicon.ico')));
 
 
+// QA/QC Document Control hub
+app.get('/qaqc', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'qaqc', 'index.html'));
+});
+
+
 
 // -------- Mongo (Atlas) --------
 
@@ -1538,6 +1544,410 @@ await db.collection('msbs_cal_events').createIndex({ staffEmail: 1 });
 
   console.log('Mongo connected • db:', db.databaseName);
 })();
+
+
+
+// -------- QA/QC Document Control (Corporate + Project) --------
+
+// GridFS bucket dedicated for controlled documents
+let dcFilesBucket = null;
+function getDcFilesBucket() {
+  if (!db) return null;
+  if (!dcFilesBucket) {
+    dcFilesBucket = new GridFSBucket(db, { bucketName: 'dc_files' });
+  }
+  return dcFilesBucket;
+}
+
+// Helper: sanitize simple strings
+function dcStr(val) {
+  return String(val || '').trim();
+}
+
+// Helper: collection shortcuts
+function dcRequestsColl() {
+  return db.collection('dc_requests');
+}
+function dcDocsColl() {
+  return db.collection('dc_docs_mdr');
+}
+function dcCountersColl() {
+  return db.collection('dc_counters');
+}
+
+// Helper: get next sequence number for a given key
+async function dcNextSeq(key) {
+  const r = await dcCountersColl().findOneAndUpdate(
+    { _id: key },
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return r.value.seq;
+}
+
+// Helper: pad number to 4 digits
+function dcPad4(n) {
+  n = Number(n || 0);
+  if (!Number.isFinite(n) || n < 1) n = 1;
+  return String(n).padStart(4, '0');
+}
+
+// Build controlled document number: ALSB-PPP-DDD-XXXX
+function buildControlledDocNo({ company = 'ALSB', deptCode, docTypeCode, seq }) {
+  const PPP = dcStr(deptCode || '').toUpperCase();
+  const DDD = dcStr(docTypeCode || '').toUpperCase();
+  const s = dcPad4(seq);
+  return `${company}-${PPP}-${DDD}-${s}`;
+}
+
+// Build correspondence file name style: ALSB-REC-TYP-YYYY-XXXX
+function buildCorrNo({ originator = 'ALSB', recipient, typeCode, year, seq }) {
+  const ORG = dcStr(originator || '').toUpperCase();
+  const REC = dcStr(recipient || '').toUpperCase();
+  const TYP = dcStr(typeCode || '').toUpperCase();
+  const Y = String(year || new Date().getFullYear());
+  const s = dcPad4(seq);
+  return `${ORG}-${REC}-${TYP}-${Y}-${s}`;
+}
+
+// POST /api/dc/requests  (create new document number request)
+app.post('/api/dc/requests', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+
+    const body = req.body || {};
+    const mode = dcStr(body.mode || 'corporate').toLowerCase(); // 'corporate' | 'project'
+    const deptCode = dcStr(body.deptCode);
+    const docTypeCode = dcStr(body.docTypeCode);
+    const title = dcStr(body.title);
+    const projectCode = dcStr(body.projectCode);
+    const user = req.session?.user || {};
+    const originatorEmail = dcStr(user.email || '');
+    const originatorName = dcStr(user.name || user.fullName || '');
+
+    if (!deptCode || !docTypeCode || !title) {
+      return res.status(400).json({ ok: false, error: 'deptCode, docTypeCode, and title are required.' });
+    }
+
+    const now = new Date();
+    const doc = {
+      mode,                  // 'corporate' | 'project'
+      deptCode,              // PPP
+      docTypeCode,           // DDD
+      title,
+      projectCode: mode === 'project' ? projectCode : '',
+      originatorEmail,
+      originatorName,
+      status: 'PENDING',     // PENDING | APPROVED | REJECTED
+      assignedDocNo: null,
+      docId: null,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const r = await dcRequestsColl().insertOne(doc);
+    return res.json({ ok: true, id: String(r.insertedId) });
+  } catch (e) {
+    console.error('[DC] create request error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
+// GET /api/dc/requests  (list requests; optional ?status=... )
+app.get('/api/dc/requests', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+    const q = {};
+    const status = dcStr(req.query.status);
+    if (status) q.status = status.toUpperCase();
+
+    const rows = await dcRequestsColl()
+      .find(q)
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .toArray();
+
+    res.json({
+      ok: true,
+      items: rows.map(r => ({
+        id: String(r._id),
+        mode: r.mode,
+        deptCode: r.deptCode,
+        docTypeCode: r.docTypeCode,
+        title: r.title,
+        projectCode: r.projectCode,
+        originatorEmail: r.originatorEmail,
+        originatorName: r.originatorName,
+        status: r.status,
+        assignedDocNo: r.assignedDocNo,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt
+      }))
+    });
+  } catch (e) {
+    console.error('[DC] list requests error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
+// POST /api/dc/requests/:id/approve  (issue controlled doc number)
+app.post('/api/dc/requests/:id/approve', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, error: 'Bad id' });
+    }
+
+    const reqDoc = await dcRequestsColl().findOne({ _id: new ObjectId(id) });
+    if (!reqDoc) {
+      return res.status(404).json({ ok: false, error: 'Request not found' });
+    }
+    if (reqDoc.status === 'APPROVED') {
+      // Already has a number; just return it
+      const existingDoc = reqDoc.docId
+        ? await dcDocsColl().findOne({ _id: new ObjectId(reqDoc.docId) })
+        : null;
+      return res.json({
+        ok: true,
+        docNo: reqDoc.assignedDocNo,
+        doc: existingDoc ? { id: String(existingDoc._id), docNo: existingDoc.docNo } : null
+      });
+    }
+
+    const mode = reqDoc.mode || 'corporate';
+    const deptCode = dcStr(reqDoc.deptCode);
+    const docTypeCode = dcStr(reqDoc.docTypeCode);
+
+    // Build counter key: company + mode + dept + type
+    const key = `DOC:${mode.toUpperCase()}:ALSB:${deptCode}:${docTypeCode}`;
+    const seq = await dcNextSeq(key);
+    const docNo = buildControlledDocNo({ company: 'ALSB', deptCode, docTypeCode, seq });
+
+    const now = new Date();
+    const user = req.session?.user || {};
+    const approverEmail = dcStr(user.email || '');
+
+    // Create MDR doc
+    const mdrDoc = {
+      docNo,
+      mode,
+      deptCode,
+      docTypeCode,
+      title: reqDoc.title,
+      projectCode: mode === 'project' ? dcStr(reqDoc.projectCode) : '',
+      originatorEmail: reqDoc.originatorEmail,
+      originatorName: reqDoc.originatorName,
+      approverEmail,
+      revision: '0',        // start revision
+      status: 'ISSUED',     // ISSUED | SUPERSEDED | CANCELLED etc
+      hasFile: false,
+      fileId: null,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const rMdr = await dcDocsColl().insertOne(mdrDoc);
+
+    // Update request
+    await dcRequestsColl().updateOne(
+      { _id: reqDoc._id },
+      {
+        $set: {
+          status: 'APPROVED',
+          assignedDocNo: docNo,
+          docId: rMdr.insertedId,
+          updatedAt: now
+        }
+      }
+    );
+
+    res.json({
+      ok: true,
+      docNo,
+      doc: { id: String(rMdr.insertedId), docNo }
+    });
+  } catch (e) {
+    console.error('[DC] approve request error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
+// GET /api/dc/docs  (list MDR docs)
+app.get('/api/dc/docs', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+    const mode = dcStr(req.query.mode);
+    const q = {};
+    if (mode) q.mode = mode.toLowerCase();
+
+    const rows = await dcDocsColl()
+      .find(q)
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .toArray();
+
+    res.json({
+      ok: true,
+      items: rows.map(r => ({
+        id: String(r._id),
+        docNo: r.docNo,
+        mode: r.mode,
+        deptCode: r.deptCode,
+        docTypeCode: r.docTypeCode,
+        title: r.title,
+        projectCode: r.projectCode,
+        originatorEmail: r.originatorEmail,
+        originatorName: r.originatorName,
+        approverEmail: r.approverEmail,
+        hasFile: !!r.hasFile,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt
+      }))
+    });
+  } catch (e) {
+    console.error('[DC] list docs error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
+// POST /api/dc/docs/:id/upload  (upload controlled document file to GridFS)
+app.post('/api/dc/docs/:id/upload', requireAuth, (req, res) => {
+  if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+  const bucket = getDcFilesBucket();
+  if (!bucket) return res.status(503).json({ ok: false, error: 'File store not ready' });
+
+  const id = req.params.id;
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ ok: false, error: 'Bad id' });
+  }
+
+  const bb = Busboy({ headers: req.headers });
+  let pending = 0;
+  let finished = false;
+  let responded = false;
+  let uploadedFileId = null;
+  let uploadedFilename = null;
+
+  const reply = (ok, payload) => {
+    if (responded) return;
+    responded = true;
+    return ok ? res.json(payload || { ok: true })
+              : res.status(500).json(payload || { ok: false, error: 'Upload failed' });
+  };
+  const maybeReply = () => {
+    if (finished && pending === 0 && !responded) {
+      if (uploadedFileId) {
+        reply(true, { ok: true, fileId: uploadedFileId, filename: uploadedFilename });
+      } else {
+        reply(false, { ok: false, error: 'No file uploaded' });
+      }
+    }
+  };
+
+  bb.on('file', (_name, file, info) => {
+    const { filename, mimeType } = info || {};
+    if (!filename) return;
+    pending++;
+
+    const up = bucket.openUploadStream(filename, {
+      contentType: mimeType || undefined,
+      metadata: {
+        docId: id,
+        ownerEmail: req.session?.user?.email || ''
+      }
+    });
+
+    file.pipe(up)
+      .on('error', err => reply(false, { ok: false, error: err.message }))
+      .on('finish', async () => {
+        uploadedFileId = String(up.id);
+        uploadedFilename = up.filename;
+        pending--;
+
+        try {
+          await dcDocsColl().updateOne(
+            { _id: new ObjectId(id) },
+            {
+              $set: {
+                hasFile: true,
+                fileId: up.id,
+                updatedAt: new Date()
+              }
+            }
+          );
+        } catch (e) {
+          console.error('[DC] mark doc hasFile error', e);
+        }
+
+        maybeReply();
+      });
+  });
+
+  bb.on('finish', () => {
+    finished = true;
+    maybeReply();
+  });
+
+  req.pipe(bb);
+});
+
+// GET /api/dc/docs/:id/file  (download controlled document)
+app.get('/api/dc/docs/:id/file', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).send('DB not ready');
+    const bucket = getDcFilesBucket();
+    if (!bucket) return res.status(503).send('File store not ready');
+
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send('Bad id');
+    }
+
+    const doc = await dcDocsColl().findOne({ _id: new ObjectId(id) });
+    if (!doc || !doc.fileId) {
+      return res.status(404).send('File not found');
+    }
+
+    res.setHeader('Content-Disposition', `inline; filename="${doc.docNo || 'document'}.pdf"`);
+    const dl = bucket.openDownloadStream(doc.fileId);
+    dl.on('error', err => {
+      console.error('[DC] download error', err);
+      res.status(500).end('Error');
+    });
+    dl.pipe(res);
+  } catch (e) {
+    console.error('[DC] file download error', e);
+    res.status(500).send('Error');
+  }
+});
+
+// POST /api/dc/corr/generate  (generate correspondence number ALSB-REC-TYP-YEAR-####)
+app.post('/api/dc/corr/generate', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok: false, error: 'DB not ready' });
+    const body = req.body || {};
+    const originator = dcStr(body.originator || 'ALSB');
+    const recipient = dcStr(body.recipient);
+    const typeCode = dcStr(body.typeCode || 'LTR');
+    const year = Number(body.year || new Date().getFullYear());
+
+    if (!recipient) {
+      return res.status(400).json({ ok: false, error: 'recipient is required' });
+    }
+
+    const key = `CORR:${originator}:${recipient}:${typeCode}:${year}`;
+    const seq = await dcNextSeq(key);
+    const corrNo = buildCorrNo({ originator, recipient, typeCode, year, seq });
+
+    res.json({ ok: true, corrNo });
+  } catch (e) {
+    console.error('[DC] corr generate error', e);
+    res.status(500).json({ ok: false, error: 'Internal error' });
+  }
+});
+
 
 
 // -------- MBS: API (read-only) --------
