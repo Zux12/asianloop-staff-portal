@@ -27,9 +27,13 @@ body{
 }
 
 .logo{
-  height:70px;
+  display:block;
+  max-width:180px;
+  max-height:70px;
   width:auto;
-  margin-bottom:12px;
+  height:auto;
+  margin:0 auto 12px auto;
+  object-fit:contain;
 }
 
 h1{
