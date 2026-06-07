@@ -337,4 +337,128 @@ $('clockOutBtn').addEventListener('click', async () => {
   }
 });
 
+
+let recordsVisible = false;
+
+function initHistorySelectors(){
+  const monthEl = $('historyMonth');
+  const yearEl = $('historyYear');
+
+  const months = [
+    ['01','January'], ['02','February'], ['03','March'],
+    ['04','April'], ['05','May'], ['06','June'],
+    ['07','July'], ['08','August'], ['09','September'],
+    ['10','October'], ['11','November'], ['12','December']
+  ];
+
+  monthEl.innerHTML = months.map(m =>
+    `<option value="${m[0]}">${m[1]}</option>`
+  ).join('');
+
+  const currentYear = new Date().getFullYear();
+  let years = '';
+  for(let y = currentYear; y >= currentYear - 3; y--){
+    years += `<option value="${y}">${y}</option>`;
+  }
+  yearEl.innerHTML = years;
+
+  monthEl.value = String(new Date().getMonth() + 1).padStart(2, '0');
+  yearEl.value = String(currentYear);
+
+  monthEl.addEventListener('change', loadHistory);
+  yearEl.addEventListener('change', loadHistory);
+
+  $('toggleRecordsBtn').addEventListener('click', () => {
+    recordsVisible = !recordsVisible;
+    $('historyRecords').classList.toggle('hidden', !recordsVisible);
+    $('toggleRecordsBtn').textContent = recordsVisible
+      ? 'Hide Attendance Records'
+      : 'Show Attendance Records';
+  });
+}
+
+function fmtDate(dateKey){
+  const [y,m,d] = dateKey.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function fmtTime(dt){
+  if(!dt) return '-';
+  return new Date(dt).toLocaleTimeString([], {
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+}
+
+function getRecordLabel(r){
+  if(r.outsideReason === 'On Leave') return 'On Leave';
+  if(r.status === 'OUTSIDE_GEOFENCE') return 'Outside Office';
+  if(r.status === 'LATE') return 'Late';
+  return 'On Time';
+}
+
+function getRecordDistance(r){
+  const m = r?.clockInLocation?.distanceM;
+  if(m === undefined || m === null) return '-';
+  return getDistanceText(m);
+}
+
+async function loadHistory(){
+  try{
+    const month = $('historyMonth').value;
+    const year = $('historyYear').value;
+
+    const r = await fetch(`/api/attendance/history?month=${month}&year=${year}`, {
+      cache:'no-store'
+    });
+
+    const j = await r.json();
+
+    if(!r.ok || !j.ok){
+      $('historySummary').textContent = 'Unable to load history.';
+      return;
+    }
+
+    const s = j.summary || {};
+
+    $('historySummary').innerHTML = `
+      <strong>Monthly Clock-In Summary</strong><br><br>
+      Total Clock-In Days: ${s.totalClockInDays || 0}<br><br>
+      Office Attendance: ${s.officeAttendance || 0}<br>
+      • On Time: ${s.onTime || 0}<br>
+      • Late: ${s.late || 0}<br><br>
+      Outside Office Attendance: ${s.outsideOffice || 0}<br><br>
+      On Leave: ${s.onLeave || 0}
+    `;
+
+    const records = j.records || [];
+
+    if(!records.length){
+      $('historyRecords').innerHTML = '<div class="record-card">No records for this month.</div>';
+      return;
+    }
+
+    $('historyRecords').innerHTML = records.map(r => {
+      const reason = r.outsideReason ? `<br>Reason: ${r.outsideReason}` : '';
+      const note = r.outsideNote ? `<br>Note: ${r.outsideNote}` : '';
+
+      return `
+        <div class="record-card">
+          <strong>${fmtDate(r.dateKey)}</strong>
+          <div class="record-meta">
+            Clock In: ${fmtTime(r.clockInAt)}<br>
+            Status: ${getRecordLabel(r)}<br>
+            Distance: ${getRecordDistance(r)}
+            ${reason}
+            ${note}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  }catch(e){
+    $('historySummary').textContent = 'Unable to load history.';
+  }
+}
+
 checkSession();
