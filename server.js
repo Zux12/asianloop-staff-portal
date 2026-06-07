@@ -2242,6 +2242,244 @@ app.post('/attendance-auth', async (req, res) => {
 });
 
 
+
+// ======================================================
+// ATTENDANCE API
+// ======================================================
+
+function requireAttendance(req, res, next) {
+  if (req.session?.attendanceUser?.email) return next();
+  return res.status(401).json({ ok:false, error:'Attendance login required' });
+}
+
+function attendanceColl() {
+  return db.collection('attendanceRecords');
+}
+
+function dateKeyMY(d = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: process.env.ATT_TIMEZONE || 'Asia/Kuala_Lumpur',
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit'
+  }).format(d);
+}
+
+function timeHM_MY(d = new Date()) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: process.env.ATT_TIMEZONE || 'Asia/Kuala_Lumpur',
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12:false
+  }).format(d);
+}
+
+function isWeekendMY(d = new Date()) {
+  const day = new Intl.DateTimeFormat('en-US', {
+    timeZone: process.env.ATT_TIMEZONE || 'Asia/Kuala_Lumpur',
+    weekday:'short'
+  }).format(d);
+
+  return day === 'Sat' || day === 'Sun';
+}
+
+function haversineM(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) ** 2;
+
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function attendanceStatusFromTime(now = new Date()) {
+  const hm = timeHM_MY(now);
+  const lateAfter = process.env.ATT_LATE_AFTER || '10:15';
+
+  if (hm > lateAfter) return 'LATE';
+  return 'ON_TIME';
+}
+
+app.get('/api/attendance/today', requireAttendance, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
+
+    const email = req.session.attendanceUser.email;
+    const key = dateKeyMY();
+
+    const record = await attendanceColl().findOne({
+      email,
+      dateKey: key
+    });
+
+    res.json({
+      ok:true,
+      dateKey:key,
+      record
+    });
+
+  } catch (e) {
+    console.error('[ATT TODAY]', e);
+    res.status(500).json({ ok:false, error:'Unable to load attendance' });
+  }
+});
+
+app.post('/api/attendance/clock-in', requireAttendance, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
+
+    const email = req.session.attendanceUser.email;
+    const now = new Date();
+    const key = dateKeyMY(now);
+
+    const lat = Number(req.body.lat);
+    const lng = Number(req.body.lng);
+    const accuracy = Number(req.body.accuracy || 0);
+    const reason = String(req.body.reason || '').trim();
+    const note = String(req.body.note || '').trim();
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ ok:false, error:'Invalid GPS location' });
+    }
+
+    const officeLat = Number(process.env.ATT_OFFICE_LAT || 2.93527);
+    const officeLng = Number(process.env.ATT_OFFICE_LNG || 101.65530);
+    const radiusM = Number(process.env.ATT_OFFICE_RADIUS_M || 100);
+
+    const distanceM = haversineM(lat, lng, officeLat, officeLng);
+    const insideOffice = distanceM <= radiusM;
+
+    if (!insideOffice && !reason) {
+      return res.status(409).json({
+        ok:false,
+        needReason:true,
+        distanceM,
+        error:`You are ${distanceM}m away from office. Please select a reason.`
+      });
+    }
+
+    const existing = await attendanceColl().findOne({
+      email,
+      dateKey:key
+    });
+
+    if (existing?.clockInAt) {
+      return res.status(409).json({
+        ok:false,
+        error:'You have already clocked in today.'
+      });
+    }
+
+    const doc = {
+      email,
+      dateKey:key,
+
+      clockInAt: now,
+      clockOutAt: null,
+
+      clockInLocation: {
+        lat,
+        lng,
+        accuracy,
+        distanceM,
+        insideOffice
+      },
+
+      status: insideOffice ? attendanceStatusFromTime(now) : 'OUTSIDE_GEOFENCE',
+      outsideReason: insideOffice ? '' : reason,
+      outsideNote: insideOffice ? '' : note,
+
+      isWeekend: isWeekendMY(now),
+
+      userAgent: String(req.body.userAgent || '').slice(0, 500),
+
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await attendanceColl().insertOne(doc);
+
+    res.json({
+      ok:true,
+      record:doc
+    });
+
+  } catch (e) {
+    console.error('[ATT CLOCK IN]', e);
+    res.status(500).json({ ok:false, error:'Clock-in failed' });
+  }
+});
+
+app.post('/api/attendance/clock-out', requireAttendance, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
+
+    const email = req.session.attendanceUser.email;
+    const now = new Date();
+    const key = dateKeyMY(now);
+
+    const lat = Number(req.body.lat);
+    const lng = Number(req.body.lng);
+    const accuracy = Number(req.body.accuracy || 0);
+
+    const officeLat = Number(process.env.ATT_OFFICE_LAT || 2.93527);
+    const officeLng = Number(process.env.ATT_OFFICE_LNG || 101.65530);
+
+    const distanceM =
+      Number.isFinite(lat) && Number.isFinite(lng)
+        ? haversineM(lat, lng, officeLat, officeLng)
+        : null;
+
+    const record = await attendanceColl().findOne({
+      email,
+      dateKey:key
+    });
+
+    if (!record?.clockInAt) {
+      return res.status(409).json({
+        ok:false,
+        error:'You have not clocked in today.'
+      });
+    }
+
+    if (record.clockOutAt) {
+      return res.status(409).json({
+        ok:false,
+        error:'You have already clocked out today.'
+      });
+    }
+
+    await attendanceColl().updateOne(
+      { _id: record._id },
+      {
+        $set: {
+          clockOutAt: now,
+          clockOutLocation: {
+            lat,
+            lng,
+            accuracy,
+            distanceM
+          },
+          updatedAt: now
+        }
+      }
+    );
+
+    res.json({ ok:true });
+
+  } catch (e) {
+    console.error('[ATT CLOCK OUT]', e);
+    res.status(500).json({ ok:false, error:'Clock-out failed' });
+  }
+});
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
