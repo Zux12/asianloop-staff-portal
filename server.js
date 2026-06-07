@@ -1513,6 +1513,7 @@ function requireAuth(req, res, next) {
 // Publicly available assets for login page
 app.use('/public/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/public/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/public/js', express.static(path.join(__dirname, 'public/js')));
 
 // serve /public assets (CSS/JS/images)
 app.use('/public', maybeRequireAuth, express.static(path.join(__dirname, 'public')));
