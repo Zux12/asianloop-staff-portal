@@ -10,11 +10,54 @@ function showLogin(){
   attendanceBox.classList.add('hidden');
 }
 
+function getDistanceText(m){
+  if(m >= 1000){
+    return (m/1000).toFixed(2) + ' km';
+  }
+  return Math.round(m) + ' m';
+}
+
+async function updateGpsStatus(){
+
+  try{
+
+    const pos = await getPosition();
+
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+
+    const officeLat = 2.93527;
+    const officeLng = 101.65530;
+
+    const distance = haversineM(
+      lat,
+      lng,
+      officeLat,
+      officeLng
+    );
+
+    const txt = `
+Distance from Office: ${getDistanceText(distance)}
+GPS Accuracy: ${Math.round(pos.coords.accuracy)} m
+`;
+
+    $('gpsStatus').textContent = txt;
+
+  } catch(e){
+
+    $('gpsStatus').textContent =
+      'GPS unavailable';
+
+  }
+}
+
+
 function showAttendance(email){
   $('userEmail').textContent = email || '—';
   loginBox.classList.add('hidden');
   attendanceBox.classList.remove('hidden');
   loadToday();
+  updateGpsStatus();
 }
 
 async function checkSession(){
