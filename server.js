@@ -2159,6 +2159,88 @@ app.get('/privacy', (req, res) => {
   res.sendFile(path.join(__dirname, 'privacy.html'));
 });
 
+
+// ======================================================
+// ATTENDANCE AUTH
+// ======================================================
+
+app.get('/attendance', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'attendance.html'));
+});
+
+app.get('/api/attendance/me', (req, res) => {
+  if (!req.session?.attendanceUser) {
+    return res.status(401).json({ ok:false });
+  }
+
+  res.json({
+    ok:true,
+    email:req.session.attendanceUser.email
+  });
+});
+
+app.post('/attendance-logout', (req, res) => {
+  delete req.session.attendanceUser;
+  res.json({ ok:true });
+});
+
+app.post('/attendance-auth', async (req, res) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
+
+    if (!email || !password) {
+      return res.status(400).json({
+        ok:false,
+        error:'Missing email or password'
+      });
+    }
+
+    if (!email.endsWith(ALLOWED_DOMAIN)) {
+      return res.status(403).json({
+        ok:false,
+        error:'Invalid email domain'
+      });
+    }
+
+    const { ImapFlow } = require('imapflow');
+
+    const client = new ImapFlow({
+      host: IMAP_HOST,
+      port: Number(IMAP_PORT),
+      secure: IMAP_SECURE === 'true',
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
+    await client.connect();
+    await client.logout();
+
+    req.session.attendanceUser = {
+      email
+    };
+
+    res.json({
+      ok:true,
+      email
+    });
+
+  } catch (err) {
+
+    console.error('[ATTENDANCE LOGIN]', err);
+
+    res.status(401).json({
+      ok:false,
+      error:'Invalid email or password'
+    });
+
+  }
+});
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
