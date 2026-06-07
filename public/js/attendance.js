@@ -119,20 +119,67 @@ function getPosition(){
   });
 }
 
+let outsideMode = false;
+let lastPositionPayload = null;
+
+function resetOutsideMode(){
+  outsideMode = false;
+  lastPositionPayload = null;
+  $('outsideBox').classList.add('hidden');
+  $('clockInBtn').textContent = 'Clock In';
+  $('outsideReason').value = '';
+  $('outsideNote').value = '';
+}
+
+$('cancelOutsideBtn').addEventListener('click', () => {
+  resetOutsideMode();
+  attMsg.textContent = '';
+});
+
 $('clockInBtn').addEventListener('click', async () => {
-  attMsg.textContent = 'Getting GPS location...';
+  attMsg.style.color = '#dc2626';
 
   try{
-    const pos = await getPosition();
+    let payload;
 
-    const payload = {
-      lat: pos.coords.latitude,
-      lng: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
-      reason: $('outsideReason').value || '',
-      note: $('outsideNote').value || '',
-      userAgent: navigator.userAgent || ''
-    };
+    if(outsideMode && lastPositionPayload){
+      const reason = $('outsideReason').value || '';
+      const note = $('outsideNote').value || '';
+
+      if(!reason){
+        attMsg.textContent = 'Please select a reason before submitting clock-in.';
+        return;
+      }
+
+      if(reason === 'Other' && !note.trim()){
+        attMsg.textContent = 'Please enter notes when selecting Other.';
+        return;
+      }
+
+      payload = {
+        ...lastPositionPayload,
+        reason,
+        note
+      };
+
+      attMsg.textContent = 'Submitting clock-in...';
+
+    } else {
+      attMsg.textContent = 'Getting GPS location...';
+
+      const pos = await getPosition();
+
+      payload = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        reason: '',
+        note: '',
+        userAgent: navigator.userAgent || ''
+      };
+
+      lastPositionPayload = payload;
+    }
 
     const r = await fetch('/api/attendance/clock-in', {
       method:'POST',
@@ -143,8 +190,16 @@ $('clockInBtn').addEventListener('click', async () => {
     const j = await r.json().catch(()=>({}));
 
     if(r.status === 409 && j.needReason){
+      outsideMode = true;
       $('outsideBox').classList.remove('hidden');
-      attMsg.textContent = j.error || 'You are outside office radius. Please select a reason and press Clock In again.';
+      $('clockInBtn').textContent = 'Submit Clock In';
+
+      if(j.distanceM){
+        const km = (j.distanceM / 1000).toFixed(2);
+        $('outsideText').textContent = `You are approximately ${km} km from the office. Please provide a reason.`;
+      }
+
+      attMsg.textContent = 'Please select a reason, then press Submit Clock In.';
       return;
     }
 
@@ -153,7 +208,7 @@ $('clockInBtn').addEventListener('click', async () => {
       return;
     }
 
-    $('outsideBox').classList.add('hidden');
+    resetOutsideMode();
     attMsg.style.color = '#16a34a';
     attMsg.textContent = 'Clock-in successful.';
     await loadToday();
