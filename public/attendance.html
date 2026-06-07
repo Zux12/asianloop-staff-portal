@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Asianloop Attendance</title>
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="stylesheet" href="/public/css/attendance.css">
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <img src="/public/images/logo.jpg" class="logo" alt="Asianloop">
+
+      <h1>Asianloop Attendance</h1>
+      <p class="muted">Clock in using your Asianloop email account.</p>
+
+      <div id="loginBox">
+        <input id="email" type="email" placeholder="name@asian-loop.com">
+        <input id="password" type="password" placeholder="Password">
+        <button id="loginBtn">Sign In</button>
+        <p id="loginMsg" class="msg"></p>
+      </div>
+
+      <div id="attendanceBox" class="hidden">
+        <p>Welcome, <strong id="userEmail">—</strong></p>
+        <div class="status" id="todayStatus">Checking status...</div>
+
+        <button id="clockInBtn">Clock In</button>
+        <button id="clockOutBtn" class="secondary">Clock Out</button>
+
+        <div id="outsideBox" class="hidden">
+          <p class="warn">You are outside the office radius. Please provide a reason.</p>
+          <select id="outsideReason">
+            <option value="">Select reason</option>
+            <option>Client Meeting</option>
+            <option>Site Visit</option>
+            <option>Training</option>
+            <option>Business Development</option>
+            <option>Work From Home</option>
+            <option>Management Approval</option>
+            <option>Medical Appointment</option>
+            <option>Other</option>
+          </select>
+          <input id="outsideNote" placeholder="Additional notes if needed">
+        </div>
+
+        <p id="attMsg" class="msg"></p>
+        <button id="logoutBtn" class="linkbtn">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/public/js/attendance.js"></script>
+</body>
+</html>
