@@ -97,6 +97,8 @@ function showAttendance(email){
 
   loadToday();
   updateGpsStatus();
+  initHistorySelectors();
+loadHistory();
 }
 
 async function checkSession(){
