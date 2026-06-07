@@ -29,21 +29,25 @@
         <button id="clockInBtn">Clock In</button>
         <button id="clockOutBtn" class="secondary">Clock Out</button>
 
-        <div id="outsideBox" class="hidden">
-          <p class="warn">You are outside the office radius. Please provide a reason.</p>
-          <select id="outsideReason">
-            <option value="">Select reason</option>
-            <option>Client Meeting</option>
-            <option>Site Visit</option>
-            <option>Training</option>
-            <option>Business Development</option>
-            <option>Work From Home</option>
-            <option>Management Approval</option>
-            <option>Medical Appointment</option>
-            <option>Other</option>
-          </select>
-          <input id="outsideNote" placeholder="Additional notes if needed">
-        </div>
+<div id="outsideBox" class="hidden">
+  <p class="warn" id="outsideText">You are outside the office radius. Please provide a reason.</p>
+
+  <select id="outsideReason">
+    <option value="">Select reason</option>
+    <option>Client Meeting</option>
+    <option>Site Visit</option>
+    <option>Training</option>
+    <option>Business Development</option>
+    <option>Work From Home</option>
+    <option>Management Approval</option>
+    <option>Medical Appointment</option>
+    <option>Other</option>
+  </select>
+
+  <input id="outsideNote" placeholder="Additional notes if needed">
+
+  <button id="cancelOutsideBtn" class="secondary" type="button">Cancel</button>
+</div>
 
         <p id="attMsg" class="msg"></p>
         <button id="logoutBtn" class="linkbtn">Logout</button>
