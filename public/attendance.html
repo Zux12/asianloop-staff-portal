@@ -54,6 +54,29 @@
 </div>
 
         <p id="attMsg" class="msg"></p>
+
+<hr class="sep">
+
+<section id="historyBox" class="history">
+  <h2>My Attendance</h2>
+
+  <div class="history-controls">
+    <select id="historyMonth"></select>
+    <select id="historyYear"></select>
+  </div>
+
+  <div class="summary-card" id="historySummary">
+    Loading summary...
+  </div>
+
+  <button id="toggleRecordsBtn" class="secondary" type="button">
+    Show Attendance Records
+  </button>
+
+  <div id="historyRecords" class="records hidden"></div>
+</section>
+        
+        
         <button id="logoutBtn" class="linkbtn">Logout</button>
       </div>
     </section>
