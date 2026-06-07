@@ -5,6 +5,25 @@ const attendanceBox = $('attendanceBox');
 const loginMsg = $('loginMsg');
 const attMsg = $('attMsg');
 
+
+function isMobileDevice(){
+  const ua = navigator.userAgent || '';
+  const hasTouch = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || hasTouch;
+}
+
+function enforceMobileOnly(){
+  if(isMobileDevice()) return true;
+
+  $('clockInBtn').disabled = true;
+  $('clockOutBtn').disabled = true;
+  $('todayStatus').textContent = 'Attendance can only be used from a mobile phone.';
+  $('gpsStatus').textContent = 'Please open this page from your handphone.';
+  return false;
+}
+
+
 function showLogin(){
   loginBox.classList.remove('hidden');
   attendanceBox.classList.add('hidden');
@@ -73,6 +92,9 @@ function showAttendance(email){
   $('userEmail').textContent = email || '—';
   loginBox.classList.add('hidden');
   attendanceBox.classList.remove('hidden');
+
+  if(!enforceMobileOnly()) return;
+
   loadToday();
   updateGpsStatus();
 }
