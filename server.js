@@ -2611,6 +2611,26 @@ function requireAttendanceAdmin(req, res, next) {
 
 
 
+app.get('/api/attendance/is-admin', (req, res) => {
+
+  const email = String(
+    req.session?.attendanceUser?.email ||
+    ''
+  ).toLowerCase();
+
+  const allowed = String(process.env.ATT_ADMIN_EMAILS || '')
+    .toLowerCase()
+    .split(/[;,]/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  res.json({
+    ok: true,
+    isAdmin: allowed.includes(email)
+  });
+});
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
