@@ -161,3 +161,17 @@ button{
   color:#555;
   line-height:1.55;
 }
+
+.admin-link{
+  display:block;
+  margin-top:10px;
+  text-align:center;
+  color:#6b7280;
+  font-size:13px;
+  text-decoration:none;
+}
+
+.admin-link:hover{
+  color:#2563eb;
+  text-decoration:underline;
+}
