@@ -56,9 +56,11 @@ async function loadAdmin(){
   const month = $('adminMonth').value;
   const year = $('adminYear').value;
 
-  const r = await fetch(`/api/attendance/admin?month=${month}&year=${year}`, {
-    cache:'no-store'
-  });
+const view = $('recordView') ? $('recordView').value : 'today';
+
+const r = await fetch(`/api/attendance/admin?month=${month}&year=${year}&view=${view}`, {
+  cache:'no-store'
+});
 
   const j = await r.json().catch(()=>({}));
 
@@ -213,6 +215,10 @@ function downloadCsv(){
 
 $('downloadCsvBtn').addEventListener('click', downloadCsv);
 
+
+if($('recordView')){
+  $('recordView').addEventListener('change', loadAdmin);
+}
 
 
 initSelectors();
