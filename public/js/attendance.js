@@ -387,14 +387,6 @@ function initHistorySelectors(){
 
   monthEl.addEventListener('change', loadHistory);
   yearEl.addEventListener('change', loadHistory);
-
-  $('toggleRecordsBtn').addEventListener('click', () => {
-    recordsVisible = !recordsVisible;
-    $('historyRecords').classList.toggle('hidden', !recordsVisible);
-    $('toggleRecordsBtn').textContent = recordsVisible
-      ? 'Hide Attendance Records'
-      : 'Show Attendance Records';
-  });
 }
 
 function fmtDate(dateKey){
