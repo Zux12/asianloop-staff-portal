@@ -84,19 +84,30 @@ async function loadAdmin(){
     return;
   }
 
-  $('adminRecords').innerHTML = j.records.map(r => `
+$('adminRecords').innerHTML = j.records.map(r => {
+  const loc = r.clockInLocation || {};
+  const inside = loc.insideOffice ? 'Yes' : 'No';
+  const accuracy = loc.accuracy ? Math.round(loc.accuracy) + ' m' : '-';
+
+  return `
     <div class="record-card">
       <strong>${r.email}</strong>
       <div class="record-meta">
         Date: ${fmtDate(r.dateKey)}<br>
         Clock In: ${fmtTime(r.clockInAt)}<br>
+        Clock Out: ${fmtTime(r.clockOutAt)}<br>
         Status: ${label(r)}<br>
-        Distance: ${getDistanceText(r.clockInLocation?.distanceM)}<br>
+        Distance: ${getDistanceText(loc.distanceM)}<br>
+        GPS Accuracy: ${accuracy}<br>
+        Inside Office: ${inside}<br>
         Reason: ${r.outsideReason || '-'}<br>
-        Note: ${r.outsideNote || '-'}
+        Note: ${r.outsideNote || '-'}<br>
+        Weekend: ${r.isWeekend ? 'Yes' : 'No'}<br>
+        Device: ${r.userAgent || '-'}
       </div>
     </div>
-  `).join('');
+  `;
+}).join('');
 }
 
 initSelectors();
