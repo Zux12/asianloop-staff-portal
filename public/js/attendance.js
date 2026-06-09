@@ -87,6 +87,7 @@ GPS Accuracy: ${Math.round(pos.coords.accuracy)} m
   }
 }
 
+
 function showAttendance(email){
   const cleanEmail = String(email || '').toLowerCase();
 
@@ -96,7 +97,18 @@ function showAttendance(email){
 
   const adminLink = $('adminAttendanceLink');
   if(adminLink){
-    adminLink.classList.toggle('hidden', !ATT_ADMIN_EMAILS.includes(cleanEmail));
+    adminLink.classList.add('hidden');
+
+    fetch('/api/attendance/is-admin', {
+      cache:'no-store'
+    })
+    .then(r => r.json())
+    .then(j => {
+      if(j && j.isAdmin){
+        adminLink.classList.remove('hidden');
+      }
+    })
+    .catch(() => {});
   }
 
   if(!enforceMobileOnly()) return;
