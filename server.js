@@ -2686,6 +2686,108 @@ app.get('/api/attendance/admin/today-status', requireAttendanceAdmin, async (req
 });
 
 
+function csvEscape(v) {
+  const s = String(v ?? '');
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+function fmtCsvDateTime(dt) {
+  if (!dt) return '';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: process.env.ATT_TIMEZONE || 'Asia/Kuala_Lumpur',
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit',
+    hour12:false
+  }).format(new Date(dt));
+}
+
+app.get('/api/attendance/admin/export', requireAttendanceAdmin, async (req, res) => {
+  try {
+    if (!db) return res.status(503).send('DB not ready');
+
+    const month = String(req.query.month || '').padStart(2, '0');
+    const year = String(req.query.year || '');
+    const email = String(req.query.email || 'all').toLowerCase();
+
+    if (!month || !year) return res.status(400).send('Month and year required');
+
+    const prefix = `${year}-${month}`;
+
+    const q = {
+      dateKey: { $regex: `^${prefix}` }
+    };
+
+    if (email && email !== 'all') {
+      q.email = email;
+    }
+
+    const records = await attendanceColl()
+      .find(q)
+      .sort({ dateKey: 1, email: 1 })
+      .toArray();
+
+    const headers = [
+      'Date',
+      'Staff Email',
+      'Clock In',
+      'Clock Out',
+      'Status',
+      'Distance From Office',
+      'GPS Accuracy',
+      'Inside Office',
+      'Reason',
+      'Notes',
+      'Weekend',
+      'Device'
+    ];
+
+    const rows = records.map(r => {
+      const loc = r.clockInLocation || {};
+      return [
+        r.dateKey || '',
+        r.email || '',
+        fmtCsvDateTime(r.clockInAt),
+        fmtCsvDateTime(r.clockOutAt),
+        r.outsideReason === 'On Leave'
+          ? 'On Leave'
+          : (r.status || ''),
+        loc.distanceM ?? '',
+        loc.accuracy ?? '',
+        loc.insideOffice === true ? 'Yes' : 'No',
+        r.outsideReason || '',
+        r.outsideNote || '',
+        r.isWeekend ? 'Yes' : 'No',
+        r.userAgent || ''
+      ].map(csvEscape).join(',');
+    });
+
+    const csv = [
+      headers.map(csvEscape).join(','),
+      ...rows
+    ].join('\n');
+
+    const safeEmail = email === 'all'
+      ? 'all'
+      : email.replace(/[^a-z0-9]/gi, '_');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="attendance-${year}-${month}-${safeEmail}.csv"`
+    );
+
+    res.send(csv);
+
+  } catch (e) {
+    console.error('[ATT EXPORT]', e);
+    res.status(500).send('Export failed');
+  }
+});
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
