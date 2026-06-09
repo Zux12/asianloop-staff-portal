@@ -175,3 +175,19 @@ button{
   color:#2563eb;
   text-decoration:underline;
 }
+.mini-toggle{
+  width:100%;
+  text-align:left;
+  background:#eef2ff;
+  color:#1e3a8a;
+  margin:6px 0;
+  padding:10px;
+  border-radius:10px;
+}
+
+.mini-list{
+  padding:8px 10px 10px;
+  font-size:13px;
+  line-height:1.6;
+  color:#374151;
+}
