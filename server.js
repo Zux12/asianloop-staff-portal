@@ -2536,6 +2536,61 @@ app.post('/api/attendance/clock-out', requireAttendance, async (req, res) => {
   }
 });
 
+
+
+app.get('/attendance-admin', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'attendance-admin.html'));
+});
+
+app.get('/api/attendance/admin', requireAuth, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
+
+    const month = String(req.query.month || '').padStart(2, '0');
+    const year = String(req.query.year || '');
+
+    if (!month || !year) {
+      return res.status(400).json({ ok:false, error:'Month and year required' });
+    }
+
+    const prefix = `${year}-${month}`;
+
+    const records = await attendanceColl()
+      .find({ dateKey: { $regex: `^${prefix}` } })
+      .sort({ dateKey: -1, email: 1 })
+      .toArray();
+
+    const summary = {
+      total: records.length,
+      officeAttendance: 0,
+      onTime: 0,
+      late: 0,
+      outsideOffice: 0,
+      onLeave: 0
+    };
+
+    records.forEach(r => {
+      if (r.outsideReason === 'On Leave') {
+        summary.onLeave++;
+      } else if (r.status === 'OUTSIDE_GEOFENCE') {
+        summary.outsideOffice++;
+      } else {
+        summary.officeAttendance++;
+        if (r.status === 'LATE') summary.late++;
+        else summary.onTime++;
+      }
+    });
+
+    res.json({ ok:true, summary, records });
+
+  } catch (e) {
+    console.error('[ATT ADMIN]', e);
+    res.status(500).json({ ok:false, error:'Unable to load admin records' });
+  }
+});
+
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
