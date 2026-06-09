@@ -2555,10 +2555,34 @@ app.get('/api/attendance/admin', requireAttendanceAdmin, async (req, res) => {
 
     const prefix = `${year}-${month}`;
 
-    const records = await attendanceColl()
-      .find({ dateKey: { $regex: `^${prefix}` } })
-      .sort({ dateKey: -1, email: 1 })
-      .toArray();
+    const view = String(req.query.view || 'today').toLowerCase();
+const today = dateKeyMY();
+
+const q = {};
+
+if (view === 'today') {
+  q.dateKey = today;
+} else {
+  q.dateKey = { $regex: `^${prefix}` };
+}
+
+if (view === 'outside') {
+  q.status = 'OUTSIDE_GEOFENCE';
+  q.outsideReason = { $ne: 'On Leave' };
+}
+
+if (view === 'late') {
+  q.status = 'LATE';
+}
+
+if (view === 'leave') {
+  q.outsideReason = 'On Leave';
+}
+
+const records = await attendanceColl()
+  .find(q)
+  .sort({ dateKey: -1, email: 1 })
+  .toArray();
 
     const summary = {
       total: records.length,
