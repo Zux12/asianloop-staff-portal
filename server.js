@@ -2589,15 +2589,20 @@ app.get('/api/attendance/admin', requireAttendanceAdmin, async (req, res) => {
   }
 });
 
-
 function requireAttendanceAdmin(req, res, next) {
-  const email = String(req.session?.user?.email || req.session?.attendanceUser?.email || '').toLowerCase();
+  const email = String(
+    req.session?.attendanceUser?.email ||
+    req.session?.user?.email ||
+    ''
+  ).toLowerCase();
 
   const allowed = String(process.env.ATT_ADMIN_EMAILS || '')
     .toLowerCase()
     .split(/[;,]/)
     .map(s => s.trim())
     .filter(Boolean);
+
+  console.log('[ATT ADMIN CHECK]', { email, allowed });
 
   if (email && allowed.includes(email)) return next();
 
