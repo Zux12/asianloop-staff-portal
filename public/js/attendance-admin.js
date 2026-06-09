@@ -180,7 +180,42 @@ async function loadTodayStatus(){
   }
 }
 
+async function loadExportStaff(){
+  try{
+    const r = await fetch('/api/staff-basic', { cache:'no-store' });
+    const staff = await r.json();
+
+    const el = $('exportStaff');
+    el.innerHTML = '<option value="all">All Staff</option>';
+
+    if(Array.isArray(staff)){
+      staff.forEach(s => {
+        if(!s.email) return;
+        const name = s.name || s.email;
+        el.innerHTML += `<option value="${s.email}">${name} — ${s.email}</option>`;
+      });
+    }
+  }catch(e){}
+}
+
+function downloadCsv(){
+  const month = $('adminMonth').value;
+  const year = $('adminYear').value;
+  const email = $('exportStaff').value || 'all';
+
+  const url =
+    `/api/attendance/admin/export?month=${encodeURIComponent(month)}` +
+    `&year=${encodeURIComponent(year)}` +
+    `&email=${encodeURIComponent(email)}`;
+
+  window.location.href = url;
+}
+
+$('downloadCsvBtn').addEventListener('click', downloadCsv);
+
+
 
 initSelectors();
 loadAdmin();
 loadTodayStatus();
+loadExportStaff();
