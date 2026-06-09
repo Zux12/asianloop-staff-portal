@@ -2788,6 +2788,74 @@ app.get('/api/attendance/admin/export', requireAttendanceAdmin, async (req, res)
   }
 });
 
+
+async function sendAttendanceReminderEmail(toEmail) {
+  const portalUrl = process.env.ATT_PORTAL_URL || 'https://staff.asian-loop.com/attendance';
+
+  const subject = 'Attendance Reminder – Clock-In Required';
+
+  const text = [
+    'Dear Staff,',
+    '',
+    'Our records indicate that you have not clocked in today.',
+    '',
+    'Please log in using your asian-loop email credentials and complete your clock-in through the Asianloop Attendance system.',
+    '',
+    'If you are working outside the office, on leave, attending a meeting, training, or site visit, please record your attendance and select the appropriate reason.',
+    '',
+    'Attendance Portal:',
+    portalUrl,
+    '',
+    'Regards,',
+    '',
+    'Asianloop Attendance System'
+  ].join('\n');
+
+  const info = await smtpTransporter.sendMail({
+    from: process.env.SMTP_FROM || 'Asianloop Attendance <info@asian-loop.com>',
+    to: toEmail,
+    subject,
+    text
+  });
+
+  console.log('[ATT REMINDER EMAIL]', {
+    to: toEmail,
+    accepted: info.accepted,
+    rejected: info.rejected
+  });
+
+  return info;
+}
+
+app.post('/api/attendance/test-reminder', requireAttendanceAdmin, async (req, res) => {
+  try {
+    const to =
+      String(req.query.to || process.env.ATT_REMINDER_TEST_EMAIL || '').trim().toLowerCase();
+
+    if (!to) {
+      return res.status(400).json({
+        ok:false,
+        error:'No test email configured'
+      });
+    }
+
+    await sendAttendanceReminderEmail(to);
+
+    res.json({
+      ok:true,
+      sentTo:to
+    });
+
+  } catch (e) {
+    console.error('[ATT TEST REMINDER]', e);
+    res.status(500).json({
+      ok:false,
+      error:e.message || 'Failed to send test reminder'
+    });
+  }
+});
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
