@@ -2856,6 +2856,119 @@ app.post('/api/attendance/test-reminder', requireAttendanceAdmin, async (req, re
 });
 
 
+
+// ======================================================
+// ATTENDANCE DAILY REMINDER SCHEDULER
+// ======================================================
+
+let attendanceReminderRunning = false;
+
+function currentMYTimeHM() {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: process.env.ATT_TIMEZONE || 'Asia/Kuala_Lumpur',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(new Date());
+}
+
+function attendanceReminderLogColl() {
+  return db.collection('attendanceReminderLogs');
+}
+
+async function runAttendanceReminderIfDue() {
+  try {
+    if (attendanceReminderRunning) return;
+    if (!db) return;
+
+    const reminderTime = process.env.ATT_REMINDER_TIME || '10:16';
+    const nowHM = currentMYTimeHM();
+
+    if (nowHM !== reminderTime) return;
+
+    const today = dateKeyMY();
+
+    if (isWeekendMY()) {
+      console.log('[ATT REMINDER] skipped weekend', today);
+      return;
+    }
+
+    const alreadySent = await attendanceReminderLogColl().findOne({
+      dateKey: today,
+      reminderTime
+    });
+
+    if (alreadySent) {
+      console.log('[ATT REMINDER] already sent today', today);
+      return;
+    }
+
+    attendanceReminderRunning = true;
+
+    const activeStaff = await db.collection('users')
+      .find({
+        archivedAt: { $exists:false },
+        status: { $ne:'Inactive' }
+      })
+      .project({ name:1, email:1 })
+      .toArray();
+
+    const todayRecords = await attendanceColl()
+      .find({ dateKey: today })
+      .project({ email:1 })
+      .toArray();
+
+    const clockedEmails = new Set(
+      todayRecords.map(r => String(r.email || '').toLowerCase())
+    );
+
+    const notClockedIn = activeStaff.filter(s => {
+      const email = String(s.email || '').toLowerCase();
+      return email && !clockedEmails.has(email);
+    });
+
+    const sent = [];
+    const failed = [];
+
+    for (const staff of notClockedIn) {
+      const email = String(staff.email || '').toLowerCase();
+
+      try {
+        await sendAttendanceReminderEmail(email);
+        sent.push(email);
+      } catch (e) {
+        console.error('[ATT REMINDER SEND FAILED]', email, e.message || e);
+        failed.push({ email, error: e.message || String(e) });
+      }
+    }
+
+    await attendanceReminderLogColl().insertOne({
+      dateKey: today,
+      reminderTime,
+      sentCount: sent.length,
+      failedCount: failed.length,
+      sent,
+      failed,
+      createdAt: new Date()
+    });
+
+    console.log('[ATT REMINDER] completed', {
+      dateKey: today,
+      sentCount: sent.length,
+      failedCount: failed.length
+    });
+
+  } catch (e) {
+    console.error('[ATT REMINDER ERROR]', e);
+  } finally {
+    attendanceReminderRunning = false;
+  }
+}
+
+// check every 60 seconds
+setInterval(runAttendanceReminderIfDue, 60 * 1000);
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
