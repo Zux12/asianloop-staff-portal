@@ -2538,11 +2538,11 @@ app.post('/api/attendance/clock-out', requireAttendance, async (req, res) => {
 
 
 
-app.get('/attendance-admin', requireAuth, (req, res) => {
+app.get('/attendance-admin', requireAttendanceAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'attendance-admin.html'));
 });
 
-app.get('/api/attendance/admin', requireAuth, async (req, res) => {
+app.get('/api/attendance/admin', requireAttendanceAdmin, async (req, res) => {
   try {
     if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
 
@@ -2588,6 +2588,21 @@ app.get('/api/attendance/admin', requireAuth, async (req, res) => {
     res.status(500).json({ ok:false, error:'Unable to load admin records' });
   }
 });
+
+
+function requireAttendanceAdmin(req, res, next) {
+  const email = String(req.session?.user?.email || req.session?.attendanceUser?.email || '').toLowerCase();
+
+  const allowed = String(process.env.ATT_ADMIN_EMAILS || '')
+    .toLowerCase()
+    .split(/[;,]/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (email && allowed.includes(email)) return next();
+
+  return res.status(403).send('Forbidden: Attendance admin access only.');
+}
 
 
 
