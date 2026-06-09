@@ -2631,6 +2631,61 @@ app.get('/api/attendance/is-admin', (req, res) => {
 });
 
 
+app.get('/api/attendance/admin/today-status', requireAttendanceAdmin, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ ok:false, error:'DB not ready' });
+
+    const today = dateKeyMY();
+
+    const activeStaff = await db.collection('users')
+      .find({
+        archivedAt: { $exists:false },
+        status: { $ne:'Inactive' }
+      })
+      .project({ name:1, email:1 })
+      .sort({ name:1, email:1 })
+      .toArray();
+
+    const todayRecords = await attendanceColl()
+      .find({ dateKey: today })
+      .toArray();
+
+    const clockedEmails = new Set(todayRecords.map(r => String(r.email || '').toLowerCase()));
+
+    const onLeaveRecords = todayRecords.filter(r => r.outsideReason === 'On Leave');
+    const onLeaveEmails = new Set(onLeaveRecords.map(r => String(r.email || '').toLowerCase()));
+
+    const clockedIn = activeStaff.filter(s => clockedEmails.has(String(s.email || '').toLowerCase()));
+    const onLeave = activeStaff.filter(s => onLeaveEmails.has(String(s.email || '').toLowerCase()));
+
+    const notClockedIn = activeStaff.filter(s => {
+      const email = String(s.email || '').toLowerCase();
+      return !clockedEmails.has(email);
+    });
+
+    res.json({
+      ok:true,
+      dateKey: today,
+      summary: {
+        activeStaff: activeStaff.length,
+        clockedIn: clockedIn.length,
+        notClockedIn: notClockedIn.length,
+        onLeave: onLeave.length
+      },
+      lists: {
+        clockedIn,
+        notClockedIn,
+        onLeave
+      }
+    });
+
+  } catch (e) {
+    console.error('[ATT TODAY STATUS]', e);
+    res.status(500).json({ ok:false, error:'Unable to load today status' });
+  }
+});
+
+
 // -------- Login / Logout --------
 app.post('/login', loginLimiter, async (req, res) => {
   try {
