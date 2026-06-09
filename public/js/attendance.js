@@ -451,21 +451,34 @@ async function loadHistory(){
     }
 
     $('historyRecords').innerHTML = records.map(r => {
-      const reason = r.outsideReason ? `<br>Reason: ${r.outsideReason}` : '';
-      const note = r.outsideNote ? `<br>Note: ${r.outsideNote}` : '';
+if(r.outsideReason === 'On Leave'){
 
-      return `
-        <div class="record-card">
-          <strong>${fmtDate(r.dateKey)}</strong>
-          <div class="record-meta">
-            Clock In: ${fmtTime(r.clockInAt)}<br>
-            Status: ${getRecordLabel(r)}<br>
-            Distance: ${getRecordDistance(r)}
-            ${reason}
-            ${note}
-          </div>
-        </div>
-      `;
+  return `
+    <div class="record-card">
+      <strong>${fmtDate(r.dateKey)}</strong>
+      <div class="record-meta">
+        Status: On Leave
+        ${r.outsideNote ? `<br>Notes: ${r.outsideNote}` : ''}
+      </div>
+    </div>
+  `;
+}
+
+const reason = r.outsideReason ? `<br>Reason: ${r.outsideReason}` : '';
+const note = r.outsideNote ? `<br>Note: ${r.outsideNote}` : '';
+
+return `
+  <div class="record-card">
+    <strong>${fmtDate(r.dateKey)}</strong>
+    <div class="record-meta">
+      Clock In: ${fmtTime(r.clockInAt)}<br>
+      Status: ${getRecordLabel(r)}<br>
+      Distance: ${getRecordDistance(r)}
+      ${reason}
+      ${note}
+    </div>
+  </div>
+`;
     }).join('');
 
   }catch(e){
