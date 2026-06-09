@@ -317,10 +317,14 @@ attMsg.textContent = 'Clock-in successful.';
 await loadToday();
 await loadHistory();
 
-  }catch(e){
-    attMsg.style.color = '#dc2626';
-    attMsg.textContent = e.message || 'Unable to get GPS location.';
   }
+
+  catch(e){
+  attMsg.style.color = '#dc2626';
+
+  attMsg.textContent =
+    'GPS permission is required to record attendance. Please enable Location Services and allow location access for this website, then try again.';
+}
 });
 
 $('clockOutBtn').addEventListener('click', async () => {
@@ -355,10 +359,14 @@ attMsg.textContent = 'Clock-out successful.';
 await loadToday();
 await loadHistory();
 
-  }catch(e){
-    attMsg.style.color = '#dc2626';
-    attMsg.textContent = e.message || 'Unable to get GPS location.';
   }
+
+  catch(e){
+  attMsg.style.color = '#dc2626';
+
+  attMsg.textContent =
+    'GPS permission is required to record attendance. Please enable Location Services and allow location access for this website, then try again.';
+}
 });
 
 
