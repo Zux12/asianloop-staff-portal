@@ -310,10 +310,12 @@ $('clockInBtn').addEventListener('click', async () => {
       return;
     }
 
-    resetOutsideMode();
-    attMsg.style.color = '#16a34a';
-    attMsg.textContent = 'Clock-in successful.';
-    await loadToday();
+resetOutsideMode();
+attMsg.style.color = '#16a34a';
+attMsg.textContent = 'Clock-in successful.';
+
+await loadToday();
+await loadHistory();
 
   }catch(e){
     attMsg.style.color = '#dc2626';
@@ -347,9 +349,11 @@ $('clockOutBtn').addEventListener('click', async () => {
       return;
     }
 
-    attMsg.style.color = '#16a34a';
-    attMsg.textContent = 'Clock-out successful.';
-    await loadToday();
+attMsg.style.color = '#16a34a';
+attMsg.textContent = 'Clock-out successful.';
+
+await loadToday();
+await loadHistory();
 
   }catch(e){
     attMsg.style.color = '#dc2626';
