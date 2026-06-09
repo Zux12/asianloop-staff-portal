@@ -2881,10 +2881,10 @@ async function runAttendanceReminderIfDue() {
     if (attendanceReminderRunning) return;
     if (!db) return;
 
-    const reminderTime = process.env.ATT_REMINDER_TIME || '10:16';
-    const nowHM = currentMYTimeHM();
+const reminderTime = process.env.ATT_REMINDER_TIME || '10:16';
+const nowHM = currentMYTimeHM();
 
-    if (nowHM !== reminderTime) return;
+if (nowHM < reminderTime) return;
 
     const today = dateKeyMY();
 
