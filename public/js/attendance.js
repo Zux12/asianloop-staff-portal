@@ -87,18 +87,24 @@ GPS Accuracy: ${Math.round(pos.coords.accuracy)} m
   }
 }
 
-
 function showAttendance(email){
-  $('userEmail').textContent = email || '—';
+  const cleanEmail = String(email || '').toLowerCase();
+
+  $('userEmail').textContent = cleanEmail || '—';
   loginBox.classList.add('hidden');
   attendanceBox.classList.remove('hidden');
+
+  const adminLink = $('adminAttendanceLink');
+  if(adminLink){
+    adminLink.classList.toggle('hidden', !ATT_ADMIN_EMAILS.includes(cleanEmail));
+  }
 
   if(!enforceMobileOnly()) return;
 
   loadToday();
   updateGpsStatus();
   initHistorySelectors();
-loadHistory();
+  loadHistory();
 }
 
 async function checkSession(){
