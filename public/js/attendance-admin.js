@@ -110,5 +110,77 @@ $('adminRecords').innerHTML = j.records.map(r => {
 }).join('');
 }
 
+
+function toggleList(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('hidden');
+}
+
+function personList(items){
+  if(!items || !items.length) return '<div class="muted">None</div>';
+
+  return items.map(x => {
+    const name = x.name || x.email || '-';
+    const email = x.email || '';
+    return `<div>• ${name}${email && name !== email ? ' — ' + email : ''}</div>`;
+  }).join('');
+}
+
+async function loadTodayStatus(){
+  try{
+    const r = await fetch('/api/attendance/admin/today-status', {
+      cache:'no-store'
+    });
+
+    const j = await r.json().catch(()=>({}));
+
+    if(!r.ok || !j.ok){
+      document.getElementById('dailySummary').textContent =
+        j.error || 'Unable to load today status.';
+      return;
+    }
+
+    const s = j.summary;
+    const lists = j.lists;
+
+    document.getElementById('dailySummary').innerHTML = `
+      <strong>Today’s Clock-In Status</strong><br><br>
+
+      Active Staff: ${s.activeStaff}<br><br>
+
+      <button class="mini-toggle" onclick="toggleList('clockedList')">
+        ▶ Clocked In Today: ${s.clockedIn}
+      </button>
+      <div id="clockedList" class="hidden mini-list">
+        ${personList(lists.clockedIn)}
+      </div>
+
+      <button class="mini-toggle" onclick="toggleList('notClockedList')">
+        ▶ Not Clocked In Today: ${s.notClockedIn}
+      </button>
+      <div id="notClockedList" class="hidden mini-list">
+        ${personList(lists.notClockedIn)}
+      </div>
+
+      <button class="mini-toggle" onclick="toggleList('leaveList')">
+        ▶ On Leave Today: ${s.onLeave}
+      </button>
+      <div id="leaveList" class="hidden mini-list">
+        ${personList(lists.onLeave)}
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Based on active staff in the staff directory.
+      </div>
+    `;
+  }catch(e){
+    document.getElementById('dailySummary').textContent =
+      'Unable to load today status.';
+  }
+}
+
+
 initSelectors();
 loadAdmin();
+loadTodayStatus();
