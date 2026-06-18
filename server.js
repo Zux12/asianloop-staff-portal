@@ -2900,6 +2900,26 @@ function attendanceReminderLogColl() {
   return db.collection('attendanceReminderLogs');
 }
 
+
+function envEmailList(name) {
+  return String(process.env[name] || '')
+    .toLowerCase()
+    .split(/[;,]/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function isExemptAttendanceEmail(email) {
+  const e = String(email || '').toLowerCase();
+  return envEmailList('ATT_EXEMPT_EMAILS').includes(e);
+}
+
+function getDailyReportRecipients() {
+  return envEmailList('ATT_DAILY_REPORT_RECIPIENTS');
+}
+
+
+
 async function runAttendanceReminderIfDue() {
   try {
     if (attendanceReminderRunning) return;
@@ -2946,10 +2966,16 @@ if (nowHM < reminderTime) return;
       todayRecords.map(r => String(r.email || '').toLowerCase())
     );
 
-    const notClockedIn = activeStaff.filter(s => {
-      const email = String(s.email || '').toLowerCase();
-      return email && !clockedEmails.has(email);
-    });
+const notClockedIn = activeStaff.filter(s => {
+  const email = String(s.email || '').toLowerCase();
+
+  if (!email) return false;
+
+  // Directors / exempt staff do not receive reminders
+  if (isExemptAttendanceEmail(email)) return false;
+
+  return !clockedEmails.has(email);
+});
 
     const sent = [];
     const failed = [];
