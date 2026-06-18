@@ -2679,28 +2679,51 @@ app.get('/api/attendance/admin/today-status', requireAttendanceAdmin, async (req
     const onLeaveRecords = todayRecords.filter(r => r.outsideReason === 'On Leave');
     const onLeaveEmails = new Set(onLeaveRecords.map(r => String(r.email || '').toLowerCase()));
 
-    const clockedIn = activeStaff.filter(s => clockedEmails.has(String(s.email || '').toLowerCase()));
-    const onLeave = activeStaff.filter(s => onLeaveEmails.has(String(s.email || '').toLowerCase()));
+const monitoredStaff = activeStaff.filter(s => {
+  const email = String(s.email || '').toLowerCase();
+  return email && !isExemptAttendanceEmail(email);
+});
 
-    const notClockedIn = activeStaff.filter(s => {
-      const email = String(s.email || '').toLowerCase();
-      return !clockedEmails.has(email);
-    });
+const exemptStaff = activeStaff.filter(s => {
+  const email = String(s.email || '').toLowerCase();
+  return email && isExemptAttendanceEmail(email);
+});
+
+const clockedIn = monitoredStaff.filter(s => clockedEmails.has(String(s.email || '').toLowerCase()));
+const onLeave = monitoredStaff.filter(s => onLeaveEmails.has(String(s.email || '').toLowerCase()));
+
+const notClockedIn = monitoredStaff.filter(s => {
+  const email = String(s.email || '').toLowerCase();
+  return !clockedEmails.has(email);
+});
+
+const directorsClockedIn = exemptStaff.filter(s =>
+  clockedEmails.has(String(s.email || '').toLowerCase())
+);
+
+const directorsNotClockedIn = exemptStaff.filter(s =>
+  !clockedEmails.has(String(s.email || '').toLowerCase())
+);
 
     res.json({
       ok:true,
       dateKey: today,
-      summary: {
-        activeStaff: activeStaff.length,
-        clockedIn: clockedIn.length,
-        notClockedIn: notClockedIn.length,
-        onLeave: onLeave.length
-      },
-      lists: {
-        clockedIn,
-        notClockedIn,
-        onLeave
-      }
+summary: {
+  activeStaff: monitoredStaff.length,
+  clockedIn: clockedIn.length,
+  notClockedIn: notClockedIn.length,
+  onLeave: onLeave.length,
+  directorsTotal: exemptStaff.length,
+  directorsClockedIn: directorsClockedIn.length,
+  directorsNotClockedIn: directorsNotClockedIn.length
+},
+lists: {
+  clockedIn,
+  notClockedIn,
+  onLeave,
+  directorsClockedIn,
+  directorsNotClockedIn
+}
     });
 
   } catch (e) {
