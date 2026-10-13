@@ -31,10 +31,40 @@ const smtpTransporter = nodemailer.createTransport({
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
 });
 
-smtpTransporter.verify((err) => {
-  if (err) console.error('[SMTP] verify failed:', err.message || err);
-  else console.log('[SMTP] ready to send mail as', process.env.SMTP_USER);
-});
+// ======================================================
+// TEMPORARY PAUSE — ALL OUTGOING EMAILS
+// Added: 13 October 2026
+// Requested by Dr. Zurix.
+//
+// Stops attendance reminders, licence reminders and test
+// emails sent through this backend's smtpTransporter.
+//
+// TO RESUME: change EMAIL_SENDING_PAUSED to false,
+// then redeploy/restart the application.
+// Emails blocked during this pause are not queued here.
+// ======================================================
+const EMAIL_SENDING_PAUSED = true;
+
+if (EMAIL_SENDING_PAUSED) {
+  smtpTransporter.sendMail = async function () {
+    const error = new Error(
+      'Outgoing emails are temporarily paused by management.'
+    );
+    error.code = 'EMAIL_SENDING_PAUSED';
+    console.log('[EMAIL PAUSED] Email sending blocked.');
+    throw error;
+  };
+
+  console.log('[EMAIL PAUSED] All outgoing SMTP emails are disabled.');
+} else {
+  smtpTransporter.verify((err) => {
+    if (err) {
+      console.error('[SMTP] verify failed:', err.message || err);
+    } else {
+      console.log('[SMTP] ready to send mail as', process.env.SMTP_USER);
+    }
+  });
+}
 
 
 
@@ -2945,6 +2975,9 @@ function getDailyReportRecipients() {
 
 async function runAttendanceReminderIfDue() {
   try {
+    // Temporary email pause: skip reminders without creating daily logs.
+    if (EMAIL_SENDING_PAUSED) return;
+
     if (attendanceReminderRunning) return;
     if (!db) return;
 
